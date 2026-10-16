@@ -2,6 +2,13 @@
 
 ## 2026-10-16
 
+### Free-first agent engine integration plan
+- Documented an explicit ₹0 / US$0 default budget policy, no silent paid fallback, quota-exhaustion pause behavior, and a model-free development path.
+- Recorded OpenHands Software Agent SDK as an evaluation candidate, not an adopted dependency, with license, isolation, model-route and recovery gates.
+- Defined the control-plane/agent trust boundary, cloud-first phone workflow constraints, and staged implementation from deterministic vertical slice to isolated worker and mobile control room.
+- Linked the plan from the README; no runtime dependency or paid service was added.
+- Verification status: documentation-only changes; check GitHub Actions before claiming CI success.
+
 ### Multi-product factory strategy
 - Documented the long-term goal of a general-purpose factory capable of supporting publishing/newsletter, commerce marketplace, travel/accommodation marketplace and business-software product families.
 - Defined reusable platform capabilities, a product-template contract, safety and production-evidence gates, and a staged delivery sequence.
