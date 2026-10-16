@@ -22,6 +22,8 @@
 - [ ] Demonstrate a small deterministic example without external model/API costs.
 
 ## Phase 2: Agent integration
+- [x] Document the zero-spend policy, trust boundaries, and staged agent adoption gates.
+- [ ] Evaluate the OpenHands Software Agent SDK as an optional adapter; do not make it a mandatory dependency before review.
 - [ ] Choose a coding agent and model route after verifying terms, real free quotas, data flow, and persistence.
 - [ ] Use a disposable least-privilege workspace and explicit command allowlist.
 - [ ] Store diffs, test logs, verification evidence, and budget events.
