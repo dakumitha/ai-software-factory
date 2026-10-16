@@ -17,7 +17,7 @@
 <header class="top"><div class="brand"><div class="mark">F</div><div><strong>AI Software Factory</strong><small>Phone + desktop control room</small></div></div><div class="status" id="connection">Checking API…</div></header>
 <div class="eyebrow">Your command centre</div>
 <h1>Ideas in. Verified software out.</h1>
-<p class="intro">Use this same page on a phone or computer. Projects created here are saved by the factory API in its database, not in this browser. Remote agents and cloud builds are not connected yet.</p>
+<p class="intro">The target is one workspace for phone and desktop. This development build currently runs on the machine hosting the API; it is not yet securely reachable from your phone over the internet. Projects are saved by the API in its database, not in this browser. Remote agents and cloud builds are not connected yet.</p>
 <div class="banner"><strong>Honest status: API-connected prototype</strong><p>This page can read and create projects through the local factory API. It does not run an AI agent, execute generated code, or sync across devices unless both devices reach the same securely hosted API and database.</p></div>
 <div class="stats">
  <div class="stat"><label>Server projects</label><b id="projectCount">—</b><small>Read from API</small></div>
@@ -73,11 +73,11 @@
    const result=await api('/projects');
    projects=Array.isArray(result.items)?result.items:[];
    render();$('lastUpdated').textContent='Updated '+new Date().toLocaleTimeString();
-   $('formMessage').textContent='';
+   $('formMessage').textContent='';return true;
   }catch(error){
    online=false;$('connection').textContent='API disconnected';$('connection').style.color='var(--warn)';
    $('projects').innerHTML='<div class="empty"><strong>Cannot reach the factory API</strong><br>Start the app with <code>python -m software_factory --web</code> and open the address it prints. No data has been saved to this browser as a fallback.</div>';
-   $('formMessage').textContent=error.message;
+   $('formMessage').textContent=error.message;return false;
   }finally{$('refresh').disabled=false}
  }
  $('projectForm').addEventListener('submit',async event=>{
@@ -87,7 +87,7 @@
   const button=$('save');button.disabled=true;button.textContent='Saving…';$('formMessage').textContent='';
   try{
    await api('/projects',{method:'POST',body:JSON.stringify({name,idea:'['+$('family').value+'] '+idea})});
-   $('projectForm').reset();await load();$('formMessage').className='good';$('formMessage').textContent='Project saved to the factory database. No compute was started.';
+   $('projectForm').reset();const refreshed=await load();if(refreshed){$('formMessage').className='good';$('formMessage').textContent='Project saved to the factory database. No compute was started.';}
   }catch(error){$('formMessage').className='error';$('formMessage').textContent=error.message}
   finally{button.disabled=false;button.textContent='Save project to factory'}
  });
