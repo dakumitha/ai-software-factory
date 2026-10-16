@@ -75,6 +75,8 @@ See [Multi-Product Software Factory Strategy](docs/PRODUCT_FAMILY_STRATEGY.md).
 - [Architecture and trust boundaries](docs/ARCHITECTURE.md)
 - [API Discovery Registry](docs/API_DISCOVERY_REGISTRY.md)
 - [Integration register and audit rules](docs/INTEGRATION_REGISTER.md)
+- [External repository integration guide](docs/EXTERNAL_REPOSITORY_INTEGRATION_GUIDE.md)
+- [Machine-readable repository integration manifest](config/integrations/repositories.json)
 - [Delivery roadmap and acceptance gates](docs/ROADMAP.md)
 - [Multi-product strategy](docs/PRODUCT_FAMILY_STRATEGY.md)
 - [Free-first agent engine integration plan](docs/FREE_FIRST_AGENT_ENGINE.md)
