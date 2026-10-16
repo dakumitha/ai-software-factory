@@ -65,6 +65,14 @@ PYTHONPATH=src python -m unittest discover -s tests -p 'test_artifact_workflow.p
 
 A passing result proves only the checks described in the report. It is not proof of functional correctness, secure execution, successful builds, or production readiness.
 
+## Built-in artifact task handler
+
+The explicit `artifact_integrity` task adapter validates a narrow task payload, writes through the bounded artifact layer, saves verification evidence, and always stops at human review. It rejects unknown task types and never runs command strings. See [Built-in Artifact Task Adapter](docs/BUILT_IN_ARTIFACT_TASK.md).
+
+```sh
+PYTHONPATH=src python -m unittest discover -s tests -p 'test_artifact_task.py' -v
+```
+
 ## API Discovery Registry
 
 The SQLite-backed API Discovery Registry is also exposed through the local JSON API. It supports candidate creation, filtering, review, approval/rejection, and audit history without invoking third-party services. For CLI use:
@@ -120,6 +128,7 @@ See [Multi-Product Software Factory Strategy](docs/PRODUCT_FAMILY_STRATEGY.md).
 - [Delivery roadmap and acceptance gates](docs/ROADMAP.md)
 - [Deterministic control-plane demo](docs/DETERMINISTIC_DEMO.md)
 - [Bounded artifact workflow](docs/BOUNDED_ARTIFACT_WORKFLOW.md)
+- [Built-in artifact task contract](docs/BUILT_IN_ARTIFACT_TASK.md)
 - [Multi-product strategy](docs/PRODUCT_FAMILY_STRATEGY.md)
 - [Free-first agent engine integration plan](docs/FREE_FIRST_AGENT_ENGINE.md)
 - [Reference research and design direction](docs/REFERENCE_RESEARCH.md)
