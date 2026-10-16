@@ -2,6 +2,13 @@
 
 ## 2026-10-16
 
+### Phone + desktop control room prototype
+- Added a responsive, dependency-free control-room UI with overview, project drafts, compute/agent setup guidance, and activity/evidence views.
+- Added browser-local project creation and explicit prototype-state messaging; it does not claim remote execution, real agent runs, or multi-device synchronization.
+- Documented the target phone + desktop architecture, secure worker boundary, zero-spend requirements, hosting constraints, and end-to-end acceptance criteria.
+- No paid service, model dependency, or external compute resource was enabled.
+- Verification status: source and workflow checks still need to be inspected; no deployment or remote worker is claimed.
+
 ### Free-first agent engine integration plan
 - Documented an explicit ₹0 / US$0 default budget policy, no silent paid fallback, quota-exhaustion pause behavior, and a model-free development path.
 - Recorded OpenHands Software Agent SDK as an evaluation candidate, not an adopted dependency, with license, isolation, model-route and recovery gates.
