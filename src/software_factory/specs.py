@@ -4,7 +4,6 @@ from __future__ import annotations
 import json
 import re
 import sqlite3
-from datetime import datetime, timezone
 from typing import Any
 
 from .core import Store, ValidationError, new_id, utc_now
@@ -25,6 +24,8 @@ def _validate_spec(spec: dict[str, Any]) -> dict[str, Any]:
         raise ValidationError("Specification requires a title and a goal.")
     if not isinstance(requirements, list):
         raise ValidationError("requirements must be a list.")
+    if not isinstance(questions, list) or not all(isinstance(x, str) and x.strip() for x in questions):
+        raise ValidationError("open_questions must be a list of non-empty strings.")
     seen: set[str] = set()
     normalized = []
     for req in requirements:
@@ -48,15 +49,19 @@ def _validate_spec(spec: dict[str, Any]) -> dict[str, Any]:
             "priority": str(req.get("priority", "must")).lower(),
             "acceptance_criteria": [x.strip() for x in acceptance],
         })
-    if not isinstance(questions, list) or not all(isinstance(x, str) and x.strip() for x in questions):
-        raise ValidationError("open_questions must be a list of non-empty strings.")
+    assumptions = spec.get("assumptions", [])
+    constraints = spec.get("constraints", [])
+    if not isinstance(assumptions, list) or not all(isinstance(x, str) for x in assumptions):
+        raise ValidationError("assumptions must be a list of strings.")
+    if not isinstance(constraints, list) or not all(isinstance(x, str) for x in constraints):
+        raise ValidationError("constraints must be a list of strings.")
     return {
         "title": title,
         "goal": goal,
         "requirements": normalized,
         "open_questions": [q.strip() for q in questions],
-        "assumptions": spec.get("assumptions", []),
-        "constraints": spec.get("constraints", []),
+        "assumptions": assumptions,
+        "constraints": constraints,
         "updated_at": utc_now(),
     }
 
@@ -78,6 +83,12 @@ class SpecStore:
                     approved_at TEXT,
                     UNIQUE(project_id, version),
                     FOREIGN KEY(project_id) REFERENCES projects(id)
+                );
+                CREATE TABLE IF NOT EXISTS specification_events (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    spec_id TEXT NOT NULL, at TEXT NOT NULL, actor TEXT NOT NULL,
+                    kind TEXT NOT NULL, payload_json TEXT NOT NULL,
+                    FOREIGN KEY(spec_id) REFERENCES specifications(id)
                 );
             """)
 
@@ -136,16 +147,6 @@ class SpecStore:
                 "UPDATE specifications SET status='APPROVED', approved_at=? WHERE id=?",
                 (approved_at, spec_id),
             )
-            # Record the decision in the job-independent audit stream associated with the project
-            # by storing an event in the dedicated specification audit table.
-            db.execute(
-                """CREATE TABLE IF NOT EXISTS specification_events (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    spec_id TEXT NOT NULL, at TEXT NOT NULL, actor TEXT NOT NULL,
-                    kind TEXT NOT NULL, payload_json TEXT NOT NULL,
-                    FOREIGN KEY(spec_id) REFERENCES specifications(id)
-                )"""
-            )
             db.execute(
                 "INSERT INTO specification_events(spec_id, at, actor, kind, payload_json) VALUES (?, ?, ?, ?, ?)",
                 (spec_id, approved_at, actor, "spec.approved",
@@ -172,8 +173,12 @@ def build_plan(spec: dict[str, Any]) -> list[dict[str, Any]]:
         "depends_on": [],
         "acceptance_checks": ["Repository structure exists", "Baseline checks are configured"],
     }]
+    requirement_task_ids = []
     for req in normalized["requirements"]:
         task_id = "req-" + _slug(req["id"])
+        if task_id in requirement_task_ids:
+            raise ValidationError("Requirement IDs collide after task ID normalization.")
+        requirement_task_ids.append(task_id)
         tasks.append({
             "id": task_id,
             "title": f"Implement: {req['description']}",
