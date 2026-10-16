@@ -12,8 +12,9 @@ Targeted tests:
 PYTHONPATH=src python -m unittest discover -s tests -p 'test_execution.py' -v
 PYTHONPATH=src python -m unittest discover -s tests -p 'test_artifacts.py' -v
 PYTHONPATH=src python -m unittest discover -s tests -p 'test_verification.py' -v
+PYTHONPATH=src python -m unittest discover -s tests -p 'test_worker_cli.py' -v
 ```
 
-Coverage includes persistence/migrations, lifecycle and task graph validation, specifications/planning, API registry lifecycle, repository metadata evaluation, worker leases, task attempts, deterministic handler execution, bounded artifact writes, and non-executing artifact verification.
+Coverage includes persistence/migrations, lifecycle and task graph validation, specifications/planning, API registry lifecycle, repository metadata evaluation, worker leases, task attempts, deterministic handler execution, bounded artifact writes, non-executing artifact verification, and read-only CLI output/privacy behaviour.
 
 The execution controller only invokes explicitly registered trusted handlers. It does not sandbox code, execute shell commands, load plugins, or invoke model APIs. Artifact storage and verification are not a sandbox; use a private workspace and treat generated files as untrusted. Crashed or uncertain attempts require review before replay.
