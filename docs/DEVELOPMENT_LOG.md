@@ -2,6 +2,13 @@
 
 ## 2026-10-17
 
+### Allowlisted artifact-integrity task adapter
+- Added `software_factory.artifact_task.handle_artifact_integrity_task` with a strict payload contract for the single `artifact_integrity` task kind.
+- Unknown kinds, non-text/bytes content, and invalid option types are rejected before artifact creation. Task strings are never executed as commands.
+- Added tests for successful review-gated evidence, unknown-kind rejection, and invalid option types; added a task contract guide.
+- Updated the roadmap and test instructions alongside code.
+- Verification status: GitHub Actions must validate the current branch head; no local test run is claimed.
+
 ### Bounded artifact integrity workflow
 - Added `software_factory.artifact_workflow.create_and_verify_artifact` to connect bounded file creation, read-back SHA-256/optional JSON verification, and persisted JSON evidence.
 - Added regression tests for successful evidence creation, create-only/no-overwrite behaviour, and malformed JSON.
