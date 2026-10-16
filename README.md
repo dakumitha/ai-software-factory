@@ -65,6 +65,7 @@ See [Multi-Product Software Factory Strategy](docs/PRODUCT_FAMILY_STRATEGY.md).
 - [Integration register and audit rules](docs/INTEGRATION_REGISTER.md)
 - [Delivery roadmap and acceptance gates](docs/ROADMAP.md)
 - [Multi-product strategy](docs/PRODUCT_FAMILY_STRATEGY.md)
+- [Free-first agent engine integration plan](docs/FREE_FIRST_AGENT_ENGINE.md)
 - [Security policy](SECURITY.md)
 - [Decision records](docs/decisions/README.md)
 - [Documentation standard and change workflow](docs/DOCUMENTATION_STANDARD.md)
