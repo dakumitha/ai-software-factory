@@ -309,7 +309,7 @@ class ApiTests(unittest.TestCase):
         self.assertEqual(status, 200)
         self.assertFalse(result["automatic_resume"])
         self.assertEqual(result["items"][0]["job_id"], job["id"])
-        self.assertEqual(self.store.get_job(job["id"])["state"], "RUNNING")
+        self.assertEqual(ApiHandler.store.get_job(job["id"])["state"], "RUNNING")
 
     def test_checkpoint_api_persists_task_progress(self):
         _, project = self.request("/projects", {"name": "Recovery API", "idea": "Test durable checkpoints"})

@@ -35,4 +35,5 @@ This log records meaningful project milestones and verified evidence. It is not 
 - Added `Store.list_interrupted_jobs()` and `GET /recovery/interrupted` to inventory RUNNING/VERIFYING jobs and checkpoint pointers without mutating job state.
 - The recovery endpoint is intentionally observational: without worker leases/heartbeats and durable task-attempt semantics, automatic restart could collide with a still-running worker or repeat side effects.
 - Added unit/API coverage and updated architecture, test instructions, and roadmap in the same change.
-- **Pending verification:** GitHub Actions for the schema-migration and recovery-inventory change.
+- First GitHub Actions run exposed a test-fixture reference error (the API test stores its database on `ApiHandler.store`, not `self.store`). The assertion was corrected without changing production behavior.
+- **Pending verification:** GitHub Actions for the corrected schema-migration and recovery-inventory change.
