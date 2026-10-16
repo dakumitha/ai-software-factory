@@ -46,4 +46,5 @@ This log records meaningful project milestones and verified evidence. It is not 
 - Task attempts require an unexpired worker lease and a known task. A repeated key with identical task/input returns the original attempt; conflicting reuse is rejected.
 - Interrupted-job inventory includes a count of attempts still STARTED or marked UNCERTAIN, which need reconciliation before retry.
 - Added store/API tests and updated architecture, roadmap, and test instructions in this same change.
-- **Pending verification:** GitHub Actions for durable task attempts.
+- Initial API test exposed incorrect route segment counts for starting/finishing attempts. Corrected route matching; the store-level attempt tests passed in the first run.
+- **Pending verification:** GitHub Actions for durable task attempts after route correction.

@@ -680,11 +680,11 @@ class ApiHandler(BaseHTTPRequestHandler):
                     raise ValidationError("A checkpoint object is required.")
                 return self._send(200, self.store.save_checkpoint(
                     parts[1], body["checkpoint"], actor="api-owner"))
-            if len(parts) == 4 and parts[0] == "jobs" and parts[2] == "task-attempts":
+            if len(parts) == 3 and parts[0] == "jobs" and parts[2] == "task-attempts":
                 item = self.store.start_task_attempt(parts[1], str(body.get("task_id", "")),
                     body.get("token", ""), body.get("idempotency_key", ""), body.get("input"))
                 return self._send(200, item)
-            if len(parts) == 5 and parts[0] == "jobs" and parts[2] == "task-attempts":
+            if len(parts) == 4 and parts[0] == "jobs" and parts[2] == "task-attempts":
                 item = self.store.finish_task_attempt(parts[1], parts[3], body.get("token", ""),
                     str(body.get("status", "")), body.get("output"), str(body.get("error", "")))
                 return self._send(200, item)
