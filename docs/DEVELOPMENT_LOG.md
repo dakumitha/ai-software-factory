@@ -2,6 +2,14 @@
 
 ## 2026-10-17
 
+### Recoverable worker reliability contract
+- Added `docs/RECOVERABLE_WORKERS.md` defining persistence-before-action, stale lease interpretation, idempotency limits, bounded retries, structured evidence, circuit-breaker intent, and human-review boundaries.
+- The document distinguishes an expired lease from proof that a process has stopped; this avoids unsafe duplicate side effects after a disconnected terminal or agent.
+- Updated the roadmap with staged implementation gates. No runtime recovery behavior is claimed as implemented by this documentation change.
+- Verification: documentation-only change; automated CI should validate the updated branch. No local test run is claimed.
+
+## 2026-10-17
+
 ### Allowlisted artifact-integrity task adapter
 - Added `software_factory.artifact_task.handle_artifact_integrity_task` with a strict payload contract for the single `artifact_integrity` task kind.
 - Unknown kinds, non-text/bytes content, and invalid option types are rejected before artifact creation. Task strings are never executed as commands.
