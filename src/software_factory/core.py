@@ -322,7 +322,7 @@ class ApiHandler(BaseHTTPRequestHandler):
 def serve(host: str = "127.0.0.1", port: int = 8080, database: str = "data/factory.sqlite3") -> None:
     if host not in {"127.0.0.1", "localhost", "::1"} and os.environ.get("FACTORY_ALLOW_REMOTE") != "1":
         raise RuntimeError("Remote binding is disabled by default. Set FACTORY_ALLOW_REMOTE=1 only behind authenticated TLS.")
-    from .specs import SpecStore
+    from .specs import SpecStore, build_plan
     ApiHandler.store = Store(database)
     ApiHandler.specs = SpecStore(ApiHandler.store)
     server = ThreadingHTTPServer((host, port), ApiHandler)
