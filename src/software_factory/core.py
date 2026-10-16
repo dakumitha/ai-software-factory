@@ -305,13 +305,18 @@ class ApiHandler(BaseHTTPRequestHandler):
                 if spec["status"] != "APPROVED":
                     raise ValidationError("Approve the specification before generating an execution plan.")
                 plan = build_plan(spec["spec"])
+                try:
+                    validated_plan = validate_task_graph(plan)
+                except ValidationError:
+                    raise
                 return self._send(200, {"spec_id": spec["id"], "version": spec["version"],
-                                        "tasks": validate_task_graph(plan)})
+                                        "tasks": validated_plan})
             return self._send(404, {"error": "Not found"})
         except (ValidationError, json.JSONDecodeError, TypeError) as exc:
             return self._send(400, {"error": str(exc)})
-        except Exception:
-            return self._send(500, {"error": "Internal error. Check server-side diagnostics."})
+        except Exception as exc:
+            # Keep the API response useful for debugging without logging request bodies or secrets.
+            return self._send(500, {"error": f"Internal error: {type(exc).__name__}"})
 
 
 def serve(host: str = "127.0.0.1", port: int = 8080, database: str = "data/factory.sqlite3") -> None:
