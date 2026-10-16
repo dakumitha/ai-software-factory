@@ -11,6 +11,7 @@
 - [x] Deterministic allowlisted execution controller for one task at a time.
 - [x] Bounded local artifact writer with path checks, size cap, explicit overwrite, and SHA-256 receipt.
 - [x] Non-executing artifact verification for path, size, digest, and optional JSON syntax.
+- [x] Bounded create → read-back verify → persist evidence helper workflow; it always stops at human review.
 - [ ] Independent code/build/test verification and safe isolated executor.
 - [ ] Authentication for any non-local access.
 
@@ -21,6 +22,7 @@
 - [x] Add read-only CLI commands for job listing and status inspection.
 - [ ] Add one-step execution CLI only after safe built-in task handlers and explicit execution policy are defined.
 - [x] Add an isolated deterministic dry-run demo for spec approval, planning, leases, task attempts, and checkpoints without external model/API costs. The demo deliberately stops at review and does not claim acceptance tests passed.
+- [x] Add a bounded artifact workflow that persists read-back verification evidence. This is a file-integrity milestone, not a code build/test gate.
 
 ## Phase 2: Agent integration
 - [x] Document the zero-spend policy, trust boundaries, and staged agent adoption gates.
