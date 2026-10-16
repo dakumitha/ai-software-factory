@@ -50,6 +50,8 @@ Idea → clarification interview → requirements and acceptance criteria → ar
 - [Delivery roadmap and acceptance gates](docs/ROADMAP.md)
 - [Security policy](SECURITY.md)
 - [Decision records](docs/decisions/README.md)
+- [Documentation standard and change workflow](docs/DOCUMENTATION_STANDARD.md)
+- [Development log](docs/DEVELOPMENT_LOG.md)
 - [Test instructions](tests/README.md)
 
 ## Important constraints

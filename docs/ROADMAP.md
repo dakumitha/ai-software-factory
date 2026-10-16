@@ -10,10 +10,11 @@
 - [x] Validate task dependency graphs and provide ready-task selection.
 - [x] Add JSON HTTP endpoints for projects, jobs, events, and state transitions.
 - [x] Add standard-library unit tests and a Python 3.11/3.12 GitHub Actions workflow.
-- [ ] Verify the core-test workflow is green.
-- [ ] Add API integration tests and a safe phone-friendly control interface.
+- [x] Verify the core-test workflow is green in GitHub Actions for the current feature-branch head (run 38840047085).
+- [x] Add API integration tests for the current control-plane and specification endpoints.
+- [ ] Build a safe phone-friendly control interface.
 
-**Gate:** control-plane tests pass in CI and persistence survives restart.
+**Gate:** current control-plane and specification tests pass in GitHub Actions. Persistence checks cover selected store-reopen cases; full interrupted-job resume and checkpoint consistency remain to be proven by dedicated recovery tests.
 
 ## Phase 1: Free execution route and integration choices
 - [ ] Compare Spec Kit and OpenSpec on one representative feature; select one primary.
