@@ -46,6 +46,17 @@ The SQLite-backed API Discovery Registry is also exposed through the local JSON 
 
 See [API Discovery Registry guide](docs/API_DISCOVERY_REGISTRY.md) for the review gate and limitations.
 
+## Read-only worker CLI
+
+Inspect persisted job state without opening SQLite manually. These commands do not execute tasks or print task payloads:
+
+```sh
+PYTHONPATH=src python -m software_factory.worker_cli --database data/factory.sqlite3 list
+PYTHONPATH=src python -m software_factory.worker_cli --database data/factory.sqlite3 status <job-id>
+```
+
+See [Read-only Worker CLI](docs/WORKER_CLI.md) for filters, output fields, exit codes, and privacy boundaries.
+
 ## Design principles
 
 1. **Reuse before rebuild:** evaluate existing projects and tools before writing replacements.
@@ -74,6 +85,7 @@ See [Multi-Product Software Factory Strategy](docs/PRODUCT_FAMILY_STRATEGY.md).
 - [Product vision and scope](docs/PRODUCT_VISION.md)
 - [Architecture and trust boundaries](docs/ARCHITECTURE.md)
 - [API Discovery Registry](docs/API_DISCOVERY_REGISTRY.md)
+- [Read-only Worker CLI](docs/WORKER_CLI.md)
 - [Integration register and audit rules](docs/INTEGRATION_REGISTER.md)
 - [External repository integration guide](docs/EXTERNAL_REPOSITORY_INTEGRATION_GUIDE.md)
 - [Machine-readable repository integration manifest](config/integrations/repositories.json)
