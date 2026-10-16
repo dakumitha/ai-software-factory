@@ -12,7 +12,7 @@ PYTHONPATH=src python -m unittest discover -s tests -v
 - Read-only interruption inventory, lifecycle transitions, event history, task graph validation, and ready-task selection.
 - Checkpoint persistence, task-ID validation, monotonic completion, idempotent writes, and online backup/restore.
 - HTTP API behavior for projects, jobs, specifications, checkpoints, and API registry lifecycle.
-- API registry URL validation, filtering, review/approval policy, audit events, and control-plane integration.
+- API registry URL validation, filtering, review/approval policy, audit events, control-plane integration, and CLI lifecycle commands.
 - Adapter registration against approved candidates, operation allowlisting, approval revocation checks, duplicate rejection, and invalid contracts.
 
 ## API registry and adapter boundaries

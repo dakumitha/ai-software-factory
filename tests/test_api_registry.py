@@ -1,8 +1,12 @@
+import io
+import json
 import tempfile
 import unittest
+from contextlib import redirect_stdout
+from unittest.mock import patch
 from pathlib import Path
 
-from software_factory.api_registry import ApiRegistry, RegistryError
+from software_factory.api_registry import ApiRegistry, RegistryError, main
 
 
 class ApiRegistryTests(unittest.TestCase):
@@ -87,6 +91,45 @@ class ApiRegistryTests(unittest.TestCase):
         ])
         self.assertEqual([event["actor"] for event in events], ["system", "reviewer", "owner"])
         self.assertEqual(events[-1]["payload"]["approval_status"], "APPROVED")
+
+    def test_cli_supports_review_decision_and_audit_history(self):
+        output = io.StringIO()
+        with patch("sys.argv", [
+            "api_registry", "--database", str(self.path), "add",
+            "--name", "CLI API", "--category", "developer-tools",
+            "--source-url", "https://example.com/catalogue",
+        ]), redirect_stdout(output):
+            main()
+        candidate_id = json.loads(output.getvalue())["id"]
+
+        output = io.StringIO()
+        with patch("sys.argv", [
+            "api_registry", "--database", str(self.path), "review",
+            "--id", str(candidate_id), "--verification", "VERIFIED",
+            "--licence", "APPROVED", "--pricing", "FREE",
+            "--notes", "Official provider terms checked", "--actor", "reviewer",
+        ]), redirect_stdout(output):
+            main()
+        self.assertEqual(json.loads(output.getvalue())["approval_status"], "PENDING")
+
+        output = io.StringIO()
+        with patch("sys.argv", [
+            "api_registry", "--database", str(self.path), "decide",
+            "--id", str(candidate_id), "--status", "APPROVED",
+            "--reason", "Suitable for evaluation", "--actor", "owner",
+        ]), redirect_stdout(output):
+            main()
+        self.assertEqual(json.loads(output.getvalue())["approval_status"], "APPROVED")
+
+        output = io.StringIO()
+        with patch("sys.argv", [
+            "api_registry", "--database", str(self.path), "events",
+            "--candidate-id", str(candidate_id),
+        ]), redirect_stdout(output):
+            main()
+        self.assertEqual([e["kind"] for e in json.loads(output.getvalue())], [
+            "candidate.created", "candidate.reviewed", "candidate.decision",
+        ])
 
     def test_invalid_status_is_rejected(self):
         item = self.candidate()

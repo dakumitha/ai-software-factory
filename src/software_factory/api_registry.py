@@ -240,6 +240,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Review-gated API discovery registry")
     parser.add_argument("--database", default="data/api-registry.sqlite3")
     sub = parser.add_subparsers(dest="command", required=True)
+
     add = sub.add_parser("add", help="Record a candidate without invoking it")
     add.add_argument("--name", required=True)
     add.add_argument("--category", required=True)
@@ -248,20 +249,52 @@ def main() -> None:
     add.add_argument("--pricing", choices=sorted(PRICING), default="UNKNOWN")
     add.add_argument("--licence", choices=sorted(LICENCE), default="UNKNOWN")
     add.add_argument("--notes", default="")
+    add.add_argument("--actor", default="operator")
+
     listing = sub.add_parser("list", help="List/search candidates")
     listing.add_argument("--query", default="")
     listing.add_argument("--category", default="")
-    listing.add_argument("--status", default="")
+    listing.add_argument("--status", choices=sorted(APPROVAL), default="")
+
+    review = sub.add_parser("review", help="Record verification, licence and pricing evidence")
+    review.add_argument("--id", type=int, required=True)
+    review.add_argument("--verification", choices=sorted(VERIFICATION), required=True)
+    review.add_argument("--licence", choices=sorted(LICENCE), required=True)
+    review.add_argument("--pricing", choices=sorted(PRICING), required=True)
+    review.add_argument("--notes", default="")
+    review.add_argument("--actor", default="operator")
+
+    decision = sub.add_parser("decide", help="Approve or reject a reviewed candidate")
+    decision.add_argument("--id", type=int, required=True)
+    decision.add_argument("--status", choices=sorted(APPROVAL), required=True)
+    decision.add_argument("--reason", default="")
+    decision.add_argument("--actor", default="operator")
+
+    history = sub.add_parser("events", help="Show audit history")
+    history.add_argument("--candidate-id", type=int)
+
     args = parser.parse_args()
     registry = ApiRegistry(args.database)
     try:
         if args.command == "add":
-            result = registry.add(args.name, args.category, args.source_url,
-                                  provider_url=args.provider_url, pricing_status=args.pricing,
-                                  licence_status=args.licence, notes=args.notes)
-        else:
+            result = registry.add(
+                args.name, args.category, args.source_url,
+                provider_url=args.provider_url, pricing_status=args.pricing,
+                licence_status=args.licence, notes=args.notes, actor=args.actor,
+            )
+        elif args.command == "list":
             result = registry.list(query=args.query, category=args.category,
                                    approval_status=args.status)
+        elif args.command == "review":
+            result = registry.review(
+                args.id, verification_status=args.verification,
+                licence_status=args.licence, pricing_status=args.pricing,
+                notes=args.notes, actor=args.actor,
+            )
+        elif args.command == "decide":
+            result = registry.decide(args.id, args.status, reason=args.reason, actor=args.actor)
+        else:
+            result = registry.events(args.candidate_id)
         print(json.dumps(result, indent=2, ensure_ascii=False))
     except RegistryError as exc:
         parser.error(str(exc))

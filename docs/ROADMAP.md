@@ -15,6 +15,7 @@
 - [x] SQLite API Discovery Registry with HTTPS URL validation, filtering, review states, approval gate, and audit history.
 - [x] Registry candidate lifecycle exposed through the local control-plane API.
 - [x] Explicit adapter protocol and approval-gated in-process adapter registry.
+- [x] Command-line review, decision, and audit-history operations for the API registry.
 - [ ] Safe phone-friendly control interface.
 - [ ] Provider-specific adapters only after provider terms, data flow, timeouts, quotas, and tests are reviewed.
 

@@ -4,6 +4,13 @@ This log records meaningful milestones and verified evidence. It does not replac
 
 ## 2026-10-16
 
+### API Discovery Registry: operator CLI lifecycle
+- Added CLI commands for reviewing candidate evidence, approving/rejecting candidates, and inspecting audit history.
+- Added operator actor labels and constrained status choices; approval policy remains enforced by the registry.
+- Documented repeatable commands and clarified that statuses are operator assertions, not automated verification.
+- Verification status: pending GitHub Actions.
+
+
 ### API Discovery Registry: approval-gated adapter interface
 - Added ProviderAdapter protocol and in-memory AdapterRegistry for explicitly constructed trusted adapter objects.
 - Registration requires an approved catalogue record; resolution rechecks current approval and enforces the adapter's declared operation allowlist.

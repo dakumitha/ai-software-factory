@@ -73,3 +73,8 @@ Only the controller may transition a job to release after validating required ev
 ## Design rule
 
 Prefer the smallest coherent system that safely coordinates existing tools. Every dependency must justify operational cost, security risk, licence, and free-tier feasibility.
+
+
+## API registry operator workflow
+
+The registry CLI supports candidate creation, search, review, approval/rejection, and audit-history inspection against a chosen SQLite database. Review and decision commands use the same policy gates as the HTTP API. The CLI records operator-supplied evidence; it does not independently verify provider claims or retrieve API-mega-list entries.

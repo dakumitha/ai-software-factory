@@ -43,3 +43,16 @@ The registry is connected to the local HTTP control-plane API for candidate crea
 - Prefer official provider documentation and published pricing/terms over directory descriptions.
 - Record evidence and review date; re-review when terms change.
 - FREE means reviewed as free at entry time, not unlimited use or a guarantee pricing will never change.
+
+
+## Complete the review lifecycle from the command line
+
+The CLI supports the same review and decision steps as the HTTP API. Use the same database path for every command:
+
+```sh
+PYTHONPATH=src python -m software_factory.api_registry --database data/api-registry.sqlite3 review --id 1 --verification VERIFIED --licence APPROVED --pricing FREEMIUM --notes "Official docs and pricing checked on 2026-10-16" --actor operator
+PYTHONPATH=src python -m software_factory.api_registry --database data/api-registry.sqlite3 decide --id 1 --status APPROVED --reason "Reviewed for a limited prototype" --actor operator
+PYTHONPATH=src python -m software_factory.api_registry --database data/api-registry.sqlite3 events --candidate-id 1
+```
+
+Approval fails unless verification is VERIFIED, licence is APPROVED or NOT_APPLICABLE, and pricing is known. The CLI does not verify a service on your behalf; the operator must inspect evidence and enter accurate statuses. Running events without a candidate ID shows the full audit history. These commands make review usable without an HTTP client, but do not add a catalogue crawler or automatically import third-party directory entries.
