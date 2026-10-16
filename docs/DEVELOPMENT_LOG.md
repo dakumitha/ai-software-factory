@@ -1,5 +1,14 @@
 # Development Log
 
+## 2026-10-17
+
+### Read-only worker CLI
+- Added `software_factory.worker_cli` commands to list jobs and inspect one job using the existing SQLite store.
+- Summaries expose lifecycle and count metadata only; specification bodies, task inputs/outputs, and lease tokens are intentionally omitted.
+- Added tests for JSON output, project filtering, unknown-job exit status, and payload privacy.
+- Added operator instructions and updated the roadmap. This CLI is read-only and does not execute tasks or call model providers.
+- Verification status: GitHub Actions must validate the new commit; no local test run is claimed.
+
 ## 2026-10-16
 
 ### API-connected phone + desktop control room
