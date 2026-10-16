@@ -1,0 +1,60 @@
+name: Repository foundation checks
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'README.md'
+      - 'SECURITY.md'
+      - 'docs/**'
+      - '.github/workflows/foundation-checks.yml'
+  pull_request:
+    paths:
+      - 'README.md'
+      - 'SECURITY.md'
+      - 'docs/**'
+      - '.github/workflows/foundation-checks.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: foundation-checks-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  documentation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Validate required project documents and requirement IDs
+        shell: bash
+        run: |
+          set -euo pipefail
+          required=(
+            README.md
+            SECURITY.md
+            docs/PRODUCT_VISION.md
+            docs/ARCHITECTURE.md
+            docs/INTEGRATION_REGISTER.md
+            docs/ROADMAP.md
+            docs/decisions/README.md
+          )
+          for file in "${required[@]}"; do
+            test -s "$file" || { echo "::error file=$file::Required document missing or empty"; exit 1; }
+          done
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          text = Path("docs/PRODUCT_VISION.md").read_text(encoding="utf-8")
+          ids = re.findall(r"\bSF-REQ-\d{3}\b", text)
+          duplicates = sorted({item for item in ids if ids.count(item) > 1})
+          if not ids:
+              raise SystemExit("No SF-REQ requirement IDs found")
+          if duplicates:
+              raise SystemExit(f"Duplicate requirement IDs: {', '.join(duplicates)}")
+          print(f"Foundation checks passed: required documents present; {len(ids)} unique requirement IDs.")
+          PY
