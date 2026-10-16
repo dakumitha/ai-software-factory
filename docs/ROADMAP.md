@@ -16,6 +16,13 @@
 - [ ] Independent code/build/test verification and safe isolated executor.
 - [ ] Authentication for any non-local access.
 
+## Reliability milestone: recoverable workers
+- [x] Document the recovery contract and safe implementation order in `docs/RECOVERABLE_WORKERS.md`.
+- [ ] Add regression tests for expired/replaced leases, stale-worker rejection, and preserved attempt/checkpoint history.
+- [ ] Implement deterministic stale-work inventory and recovery recommendations without executing commands.
+- [ ] Add heartbeat updates and structured worker outcomes with bounded, secret-safe diagnostics.
+- [ ] Add bounded retry policy and circuit breaker after outcome categories are stable.
+
 ## Phase 1: Demonstrated end-to-end vertical slice
 - [ ] Connect approved specification → task plan → explicit approval → bounded worker execution → independent verification → reviewable artifact.
 - [x] Safe artifact writer and tests for traversal, symlinks, size limits, and overwrite policy.
