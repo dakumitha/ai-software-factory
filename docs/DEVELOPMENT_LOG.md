@@ -2,10 +2,17 @@
 
 ## 2026-10-16
 
+### Multi-product factory strategy
+- Documented the long-term goal of a general-purpose factory capable of supporting publishing/newsletter, commerce marketplace, travel/accommodation marketplace and business-software product families.
+- Defined reusable platform capabilities, a product-template contract, safety and production-evidence gates, and a staged delivery sequence.
+- Clarified that these product families are future targets, not implemented products; the immediate priority remains a reproducible end-to-end factory slice.
+- Linked the strategy from the README.
+- Verification status: documentation-only change; GitHub Actions status must be checked after commit.
+
 ### Non-executing artifact verification
 - Added workspace-contained artifact inspection, a 1 MB read limit, SHA-256 comparison, optional UTF-8 JSON syntax checks, and structured evidence reports.
 - Added a bounded JSON report writer and tests for success, digest mismatch, malformed JSON, missing/traversal paths, symlinks, and invalid digest input.
-- Verification status: pending GitHub Actions.
+- Verification status: GitHub Actions passed on commit 97b420bebf062c3dc5cb8f809e35a947acef749f.
 
 ### Artifact workspace and CI regression correction
 - Added bounded text/byte artifact writes, traversal and symlink checks, explicit overwrite policy, restrictive file mode, and SHA-256 receipts.
