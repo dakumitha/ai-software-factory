@@ -41,4 +41,9 @@ This log records meaningful project milestones and verified evidence. It is not 
 - The interrupted-job inventory now excludes jobs with unexpired leases and surfaces jobs with missing/expired leases for operator review.
 - Added store and HTTP API tests for lease acquisition, heartbeat, invalid tokens, release, TTL validation, and recovery-inventory interaction.
 - Updated architecture, roadmap, and test instructions in the same implementation cycle.
-- **Pending verification:** GitHub Actions for the worker-lease milestone.
+- Worker-lease migration and API tests passed on commit `a42d0fcd97911c614bd996aa254a4e6080671793` (core [38841399560](https://github.com/dakumitha/ai-software-factory/actions/runs/38841399560), spec [38841399648](https://github.com/dakumitha/ai-software-factory/actions/runs/38841399576), foundation [38841399576](https://github.com/dakumitha/ai-software-factory/actions/runs/38841399576)).
+- Added schema migration v4 and durable task-attempt records with idempotency-key uniqueness, input fingerprinting, and terminal status immutability.
+- Task attempts require an unexpired worker lease and a known task. A repeated key with identical task/input returns the original attempt; conflicting reuse is rejected.
+- Interrupted-job inventory includes a count of attempts still STARTED or marked UNCERTAIN, which need reconciliation before retry.
+- Added store/API tests and updated architecture, roadmap, and test instructions in this same change.
+- **Pending verification:** GitHub Actions for durable task attempts.

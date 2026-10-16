@@ -21,9 +21,9 @@ class CoreTests(unittest.TestCase):
         self.tmp.cleanup()
 
     def test_schema_migrations_are_recorded_and_repeatable(self):
-        self.assertEqual(self.store.schema_version(), 3)
+        self.assertEqual(self.store.schema_version(), 4)
         reopened = Store(Path(self.tmp.name) / "factory.sqlite3")
-        self.assertEqual(reopened.schema_version(), 3)
+        self.assertEqual(reopened.schema_version(), 4)
         with reopened.connect() as db:
             versions = [row["version"] for row in db.execute(
                 "SELECT version FROM schema_migrations ORDER BY version"
@@ -31,10 +31,11 @@ class CoreTests(unittest.TestCase):
             indexes = {row["name"] for row in db.execute(
                 "SELECT name FROM sqlite_master WHERE type='index'"
             )}
-        self.assertEqual(versions, [1, 2, 3])
+        self.assertEqual(versions, [1, 2, 3, 4])
         self.assertIn("idx_jobs_state_updated_at", indexes)
         self.assertIn("idx_events_job_id_id", indexes)
         self.assertIn("idx_job_leases_expires_at", indexes)
+        self.assertIn("idx_task_attempts_job_status", indexes)
 
     def test_legacy_database_is_migrated_without_losing_records(self):
         import sqlite3
@@ -58,7 +59,7 @@ class CoreTests(unittest.TestCase):
                 INSERT INTO projects VALUES ('prj_legacy', 'Legacy project', 'Preserve me', '2026-01-01T00:00:00+00:00');
             """)
         migrated = Store(legacy_path)
-        self.assertEqual(migrated.schema_version(), 3)
+        self.assertEqual(migrated.schema_version(), 4)
         self.assertEqual(migrated.get_project("prj_legacy")["name"], "Legacy project")
         with migrated.connect() as db:
             self.assertEqual(db.execute(
@@ -80,6 +81,41 @@ class CoreTests(unittest.TestCase):
         candidates = self.store.list_interrupted_jobs()
         self.assertEqual(candidates[0]["job_id"], job["id"])
         self.assertEqual(candidates[0]["lease_status"], "missing")
+
+    def test_task_attempt_idempotency_and_immutable_finish(self):
+        job = self.store.create_job(self.project["id"], tasks=[{"id": "build", "title": "Build"}])
+        for target in ["NEEDS_CLARIFICATION", "SPEC_READY", "PLAN_READY",
+                       "AWAITING_APPROVAL", "QUEUED", "RUNNING"]:
+            self.store.transition(job["id"], target)
+        lease = self.store.acquire_lease(job["id"], "worker-attempts")
+        attempt = self.store.start_task_attempt(job["id"], "build", lease["token"], "build-v1",
+                                                {"source": "spec-v1"})
+        repeated = self.store.start_task_attempt(job["id"], "build", lease["token"], "build-v1",
+                                                 {"source": "spec-v1"})
+        self.assertEqual(repeated["id"], attempt["id"])
+        self.assertEqual(repeated["attempt_number"], 1)
+        with self.assertRaises(ValidationError):
+            self.store.start_task_attempt(job["id"], "build", lease["token"], "build-v1",
+                                          {"source": "different"})
+        finished = self.store.finish_task_attempt(job["id"], attempt["id"], lease["token"],
+                                                   "SUCCEEDED", output={"commit": "abc"})
+        self.assertEqual(finished["status"], "SUCCEEDED")
+        self.assertEqual(finished["output"], {"commit": "abc"})
+        self.assertEqual(self.store.finish_task_attempt(job["id"], attempt["id"], lease["token"],
+                                                         "SUCCEEDED")["status"], "SUCCEEDED")
+        with self.assertRaises(ValidationError):
+            self.store.finish_task_attempt(job["id"], attempt["id"], lease["token"], "FAILED")
+
+    def test_task_attempt_requires_lease_and_known_task(self):
+        job = self.store.create_job(self.project["id"], tasks=[{"id": "build", "title": "Build"}])
+        with self.assertRaises(ValidationError):
+            self.store.start_task_attempt(job["id"], "build", "no-token", "key-1")
+        for target in ["NEEDS_CLARIFICATION", "SPEC_READY", "PLAN_READY",
+                       "AWAITING_APPROVAL", "QUEUED", "RUNNING"]:
+            self.store.transition(job["id"], target)
+        lease = self.store.acquire_lease(job["id"], "worker-attempts")
+        with self.assertRaises(ValidationError):
+            self.store.start_task_attempt(job["id"], "unknown", lease["token"], "key-2")
 
     def test_worker_lease_requires_active_job_and_valid_ttl(self):
         job = self.store.create_job(self.project["id"])
@@ -321,6 +357,24 @@ class ApiTests(unittest.TestCase):
         status, payload = self.request("/projects/missing-project/specifications")
         self.assertEqual(status, 404)
         self.assertIn("Project not found", payload["error"])
+
+    def test_task_attempt_api_start_and_finish(self):
+        _, project = self.request("/projects", {"name": "Attempt API", "idea": "Record task execution"})
+        _, job = self.request("/jobs", {"project_id": project["id"],
+            "tasks": [{"id": "build", "title": "Build"}]})
+        for target in ["NEEDS_CLARIFICATION", "SPEC_READY", "PLAN_READY",
+                       "AWAITING_APPROVAL", "QUEUED", "RUNNING"]:
+            status, result = self.request(f"/jobs/{job['id']}/transition", {"target": target})
+            self.assertEqual(status, 200, result)
+        _, lease = self.request(f"/jobs/{job['id']}/lease", {"owner_id": "attempt-api"})
+        status, attempt = self.request(f"/jobs/{job['id']}/task-attempts", {
+            "task_id": "build", "token": lease["token"], "idempotency_key": "build-once",
+            "input": {"revision": 1}})
+        self.assertEqual(status, 200, attempt)
+        status, done = self.request(f"/jobs/{job['id']}/task-attempts/{attempt['id']}", {
+            "token": lease["token"], "status": "SUCCEEDED", "output": {"result": "ok"}})
+        self.assertEqual(status, 200, done)
+        self.assertEqual(done["status"], "SUCCEEDED")
 
     def test_lease_api_acquire_heartbeat_and_release(self):
         _, project = self.request("/projects", {"name": "Lease API", "idea": "Track worker ownership"})

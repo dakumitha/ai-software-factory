@@ -80,7 +80,7 @@ class Store:
                 int(row["version"])
                 for row in db.execute("SELECT version FROM schema_migrations")
             }
-            latest_known = 3
+            latest_known = 4
             if applied and max(applied) > latest_known:
                 raise RuntimeError(
                     f"Database schema version {max(applied)} is newer than this application "
@@ -138,6 +138,31 @@ class Store:
                 db.execute(
                     "INSERT INTO schema_migrations(version, applied_at) VALUES (?, ?)",
                     (3, utc_now()),
+                )
+
+            if 4 not in applied:
+                db.execute("""
+                    CREATE TABLE IF NOT EXISTS task_attempts (
+                        id TEXT PRIMARY KEY,
+                        job_id TEXT NOT NULL,
+                        task_id TEXT NOT NULL,
+                        attempt_number INTEGER NOT NULL,
+                        idempotency_key TEXT NOT NULL,
+                        input_hash TEXT NOT NULL,
+                        status TEXT NOT NULL CHECK(status IN ('STARTED', 'SUCCEEDED', 'FAILED', 'UNCERTAIN')),
+                        output_json TEXT,
+                        error_text TEXT,
+                        started_at TEXT NOT NULL,
+                        finished_at TEXT,
+                        UNIQUE(job_id, idempotency_key),
+                        UNIQUE(job_id, task_id, attempt_number),
+                        FOREIGN KEY(job_id) REFERENCES jobs(id)
+                    )
+                """)
+                db.execute("CREATE INDEX IF NOT EXISTS idx_task_attempts_job_status ON task_attempts(job_id, status)")
+                db.execute(
+                    "INSERT INTO schema_migrations(version, applied_at) VALUES (?, ?)",
+                    (4, utc_now()),
                 )
 
     def schema_version(self) -> int:
@@ -207,6 +232,109 @@ class Store:
             db.execute("DELETE FROM job_leases WHERE job_id=?", (job_id,))
             self._event(db, job_id, lease["owner_id"], "job.lease_released", {})
 
+    @staticmethod
+    def _lease_for_worker(db: sqlite3.Connection, job_id: str, token: str) -> sqlite3.Row:
+        token_hash = hashlib.sha256(token.encode("utf-8")).hexdigest() if isinstance(token, str) else ""
+        lease = db.execute("SELECT * FROM job_leases WHERE job_id=?", (job_id,)).fetchone()
+        if (not lease or lease["expires_at"] <= utc_now()
+                or not secrets.compare_digest(lease["token_hash"], token_hash)):
+            raise ValidationError("A valid, unexpired worker lease is required.")
+        return lease
+
+    def start_task_attempt(self, job_id: str, task_id: str, token: str,
+                           idempotency_key: str, input_data: Any = None) -> dict[str, Any]:
+        """Record a task attempt before execution, protected by an active worker lease.
+
+        Reusing a key with the same task/input returns the original attempt.
+        Reusing it for different work is rejected. A STARTED attempt found after a
+        crash must be treated as uncertain, not automatically repeated.
+        """
+        if not isinstance(idempotency_key, str) or not idempotency_key.strip() or len(idempotency_key) > 200:
+            raise ValidationError("idempotency_key must be a non-empty string of at most 200 characters.")
+        if not isinstance(task_id, str) or not task_id.strip():
+            raise ValidationError("task_id is required.")
+        input_hash = hashlib.sha256(json.dumps(input_data, sort_keys=True, separators=(",", ":")).encode("utf-8")).hexdigest()
+        with _LOCK, self.connect() as db:
+            lease = self._lease_for_worker(db, job_id, token)
+            row = db.execute("SELECT * FROM jobs WHERE id=?", (job_id,)).fetchone()
+            if not row:
+                raise ValidationError("Job does not exist.")
+            if row["state"] not in {"RUNNING", "VERIFYING"}:
+                raise ValidationError("Task attempts require a RUNNING or VERIFYING job.")
+            task_ids = {task["id"] for task in json.loads(row["tasks_json"])}
+            if task_id not in task_ids:
+                raise ValidationError("Task does not belong to this job.")
+            existing = db.execute(
+                "SELECT * FROM task_attempts WHERE job_id=? AND idempotency_key=?",
+                (job_id, idempotency_key.strip()),
+            ).fetchone()
+            if existing:
+                if existing["task_id"] != task_id or existing["input_hash"] != input_hash:
+                    raise ValidationError("Idempotency key was already used for different task input.")
+                item = dict(existing)
+                item["output"] = json.loads(item.pop("output_json")) if item.get("output_json") else None
+                return item
+            number = db.execute(
+                "SELECT COALESCE(MAX(attempt_number), 0) + 1 AS n FROM task_attempts WHERE job_id=? AND task_id=?",
+                (job_id, task_id),
+            ).fetchone()["n"]
+            attempt_id, now = new_id("attempt"), utc_now()
+            db.execute("""INSERT INTO task_attempts
+                (id, job_id, task_id, attempt_number, idempotency_key, input_hash, status, started_at)
+                VALUES (?, ?, ?, ?, ?, ?, 'STARTED', ?)""",
+                (attempt_id, job_id, task_id, number, idempotency_key.strip(), input_hash, now))
+            self._event(db, job_id, lease["owner_id"], "task.attempt_started",
+                        {"attempt_id": attempt_id, "task_id": task_id, "attempt_number": number})
+            result = db.execute("SELECT * FROM task_attempts WHERE id=?", (attempt_id,)).fetchone()
+            item = dict(result)
+            item["output"] = None
+            return item
+
+    def finish_task_attempt(self, job_id: str, attempt_id: str, token: str,
+                            status: str, output: Any = None, error: str = "") -> dict[str, Any]:
+        """Finish a task attempt under its active lease; terminal results are immutable."""
+        if status not in {"SUCCEEDED", "FAILED", "UNCERTAIN"}:
+            raise ValidationError("Attempt status must be SUCCEEDED, FAILED, or UNCERTAIN.")
+        with _LOCK, self.connect() as db:
+            lease = self._lease_for_worker(db, job_id, token)
+            row = db.execute("SELECT * FROM task_attempts WHERE id=? AND job_id=?",
+                             (attempt_id, job_id)).fetchone()
+            if not row:
+                raise ValidationError("Task attempt does not exist for this job.")
+            if row["status"] != "STARTED":
+                if row["status"] == status:
+                    return self.get_task_attempt(job_id, attempt_id)  # type: ignore[return-value]
+                raise ValidationError("A finished task attempt cannot be changed.")
+            now = utc_now()
+            output_json = json.dumps(output, sort_keys=True) if status == "SUCCEEDED" and output is not None else None
+            error_text = str(error)[:4000] if status != "SUCCEEDED" else None
+            db.execute("""UPDATE task_attempts SET status=?, output_json=?, error_text=?, finished_at=?
+                          WHERE id=?""", (status, output_json, error_text, now, attempt_id))
+            self._event(db, job_id, lease["owner_id"], "task.attempt_finished",
+                        {"attempt_id": attempt_id, "task_id": row["task_id"], "status": status})
+        return self.get_task_attempt(job_id, attempt_id)  # type: ignore[return-value]
+
+    def get_task_attempt(self, job_id: str, attempt_id: str) -> dict[str, Any] | None:
+        with self.connect() as db:
+            row = db.execute("SELECT * FROM task_attempts WHERE id=? AND job_id=?",
+                             (attempt_id, job_id)).fetchone()
+        if not row:
+            return None
+        item = dict(row)
+        item["output"] = json.loads(item.pop("output_json")) if item.get("output_json") else None
+        return item
+
+    def list_task_attempts(self, job_id: str) -> list[dict[str, Any]]:
+        with self.connect() as db:
+            rows = db.execute("SELECT * FROM task_attempts WHERE job_id=? ORDER BY started_at, attempt_number",
+                              (job_id,)).fetchall()
+        result = []
+        for row in rows:
+            item = dict(row)
+            item["output"] = json.loads(item.pop("output_json")) if item.get("output_json") else None
+            result.append(item)
+        return result
+
     def list_interrupted_jobs(self) -> list[dict[str, Any]]:
         """List jobs left in active execution states for explicit recovery review.
 
@@ -228,7 +356,13 @@ class Store:
                 continue
             job = self._decode_job(row)
             checkpoint = job["checkpoint"]
+            with self.connect() as db:
+                uncertain_count = db.execute(
+                    "SELECT COUNT(*) FROM task_attempts WHERE job_id=? AND status IN ('STARTED', 'UNCERTAIN')",
+                    (job["id"],),
+                ).fetchone()[0]
             candidates.append({
+                "uncertain_attempt_count": uncertain_count,
                 "job_id": job["id"],
                 "project_id": job["project_id"],
                 "state": job["state"],
@@ -546,6 +680,14 @@ class ApiHandler(BaseHTTPRequestHandler):
                     raise ValidationError("A checkpoint object is required.")
                 return self._send(200, self.store.save_checkpoint(
                     parts[1], body["checkpoint"], actor="api-owner"))
+            if len(parts) == 4 and parts[0] == "jobs" and parts[2] == "task-attempts":
+                item = self.store.start_task_attempt(parts[1], str(body.get("task_id", "")),
+                    body.get("token", ""), body.get("idempotency_key", ""), body.get("input"))
+                return self._send(200, item)
+            if len(parts) == 5 and parts[0] == "jobs" and parts[2] == "task-attempts":
+                item = self.store.finish_task_attempt(parts[1], parts[3], body.get("token", ""),
+                    str(body.get("status", "")), body.get("output"), str(body.get("error", "")))
+                return self._send(200, item)
             if len(parts) == 3 and parts[0] == "jobs" and parts[2] == "lease":
                 lease = self.store.acquire_lease(parts[1], str(body.get("owner_id", "")),
                     body.get("ttl_seconds", 60))
