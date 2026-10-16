@@ -2,6 +2,18 @@
 
 ## 2026-10-17
 
+### Bounded artifact integrity workflow
+- Added `software_factory.artifact_workflow.create_and_verify_artifact` to connect bounded file creation, read-back SHA-256/optional JSON verification, and persisted JSON evidence.
+- Added regression tests for successful evidence creation, create-only/no-overwrite behaviour, and malformed JSON.
+- The workflow always recommends `REVIEW_REQUIRED`; it does not run source code, builds, application tests, or releases.
+- Updated README, roadmap, and operator documentation alongside the implementation.
+- Verification status: the latest pre-change Core tests run was green for commit `09a1f5875e810e96d1b9f9fabbc46e07b27e916e`. The new workflow changes require their own CI run; no local test run is claimed.
+
+### Deterministic dry-run demo
+- Added a temporary-database demo for spec approval, deterministic planning, worker lease, task attempts and checkpoints, with zero model/network/shell calls.
+- Added focused regression tests and documentation. The demo ends at `REVIEW_REQUIRED` and does not claim acceptance tests passed.
+- Verification status: see the corresponding GitHub Actions run for the exact commit; no local test run is claimed.
+
 ### Read-only worker CLI
 - Added `software_factory.worker_cli` commands to list jobs and inspect one job using the existing SQLite store.
 - Summaries expose lifecycle and count metadata only; specification bodies, task inputs/outputs, and lease tokens are intentionally omitted.
@@ -29,15 +41,14 @@
 - Documented an explicit ₹0 / US$0 default budget policy, no silent paid fallback, quota-exhaustion pause behavior, and a model-free development path.
 - Recorded OpenHands Software Agent SDK as an evaluation candidate, not an adopted dependency, with license, isolation, model-route and recovery gates.
 - Defined the control-plane/agent trust boundary, cloud-first phone workflow constraints, and staged implementation from deterministic vertical slice to isolated worker and mobile control room.
-- Linked the plan from the README; no runtime dependency or paid service was added.
+- No runtime dependency or paid service was added.
 - Verification status: documentation-only changes; check GitHub Actions before claiming CI success.
 
 ### Multi-product factory strategy
 - Documented the long-term goal of a general-purpose factory capable of supporting publishing/newsletter, commerce marketplace, travel/accommodation marketplace and business-software product families.
-- Defined reusable platform capabilities, a product-template contract, safety and production-evidence gates, and a staged delivery sequence.
+- Defined reusable platform capabilities, a product-template contract, security and production-evidence gates, and a staged delivery sequence.
 - Clarified that these product families are future targets, not implemented products; the immediate priority remains a reproducible end-to-end factory slice.
 - Linked the strategy from the README.
-- Verification status: documentation-only change; GitHub Actions status must be checked after commit.
 
 ### Non-executing artifact verification
 - Added workspace-contained artifact inspection, a 1 MB read limit, SHA-256 comparison, optional UTF-8 JSON syntax checks, and structured evidence reports.
