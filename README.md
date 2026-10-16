@@ -51,6 +51,12 @@ See [API Discovery Registry guide](docs/API_DISCOVERY_REGISTRY.md) for the revie
 
 Idea → clarification interview → requirements and acceptance criteria → architecture and threat model → dependency-aware task graph → approved agent execution → isolated workspace → tests and security checks → human review → release → monitoring and maintenance.
 
+## Multi-product strategy
+
+The factory is intended to support multiple product families, including publishing/newsletters, commerce marketplaces, travel/accommodation marketplaces and business applications. The strategy defines the shared engineering lifecycle, reusable capability library, template contract, security/reliability gates and staged delivery plan. These are long-term goals, not claims that these products already exist.
+
+See [Multi-Product Software Factory Strategy](docs/PRODUCT_FAMILY_STRATEGY.md).
+
 ## Documentation
 
 - [Product vision and scope](docs/PRODUCT_VISION.md)
@@ -58,6 +64,7 @@ Idea → clarification interview → requirements and acceptance criteria → ar
 - [API Discovery Registry](docs/API_DISCOVERY_REGISTRY.md)
 - [Integration register and audit rules](docs/INTEGRATION_REGISTER.md)
 - [Delivery roadmap and acceptance gates](docs/ROADMAP.md)
+- [Multi-product strategy](docs/PRODUCT_FAMILY_STRATEGY.md)
 - [Security policy](SECURITY.md)
 - [Decision records](docs/decisions/README.md)
 - [Documentation standard and change workflow](docs/DOCUMENTATION_STANDARD.md)
