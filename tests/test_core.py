@@ -20,6 +20,67 @@ class CoreTests(unittest.TestCase):
     def tearDown(self):
         self.tmp.cleanup()
 
+    def test_schema_migrations_are_recorded_and_repeatable(self):
+        self.assertEqual(self.store.schema_version(), 2)
+        reopened = Store(Path(self.tmp.name) / "factory.sqlite3")
+        self.assertEqual(reopened.schema_version(), 2)
+        with reopened.connect() as db:
+            versions = [row["version"] for row in db.execute(
+                "SELECT version FROM schema_migrations ORDER BY version"
+            )]
+            indexes = {row["name"] for row in db.execute(
+                "SELECT name FROM sqlite_master WHERE type='index'"
+            )}
+        self.assertEqual(versions, [1, 2])
+        self.assertIn("idx_jobs_state_updated_at", indexes)
+        self.assertIn("idx_events_job_id_id", indexes)
+
+    def test_legacy_database_is_migrated_without_losing_records(self):
+        import sqlite3
+        legacy_path = Path(self.tmp.name) / "legacy.sqlite3"
+        with sqlite3.connect(legacy_path) as db:
+            db.executescript("""
+                CREATE TABLE projects (
+                    id TEXT PRIMARY KEY, name TEXT NOT NULL, idea TEXT NOT NULL, created_at TEXT NOT NULL
+                );
+                CREATE TABLE jobs (
+                    id TEXT PRIMARY KEY, project_id TEXT NOT NULL, state TEXT NOT NULL,
+                    spec_json TEXT NOT NULL, tasks_json TEXT NOT NULL, budget_json TEXT NOT NULL,
+                    checkpoint_json TEXT NOT NULL, created_at TEXT NOT NULL, updated_at TEXT NOT NULL,
+                    FOREIGN KEY(project_id) REFERENCES projects(id)
+                );
+                CREATE TABLE events (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT, job_id TEXT NOT NULL, at TEXT NOT NULL,
+                    actor TEXT NOT NULL, kind TEXT NOT NULL, payload_json TEXT NOT NULL,
+                    FOREIGN KEY(job_id) REFERENCES jobs(id)
+                );
+                INSERT INTO projects VALUES ('prj_legacy', 'Legacy project', 'Preserve me', '2026-01-01T00:00:00+00:00');
+            """)
+        migrated = Store(legacy_path)
+        self.assertEqual(migrated.schema_version(), 2)
+        self.assertEqual(migrated.get_project("prj_legacy")["name"], "Legacy project")
+        with migrated.connect() as db:
+            self.assertEqual(db.execute(
+                "SELECT COUNT(*) FROM projects WHERE id='prj_legacy'"
+            ).fetchone()[0], 1)
+
+    def test_interrupted_job_inventory_is_read_only_and_excludes_inactive_jobs(self):
+        running = self.store.create_job(self.project["id"], tasks=[{"id": "build", "title": "Build"}])
+        for target in ["NEEDS_CLARIFICATION", "SPEC_READY", "PLAN_READY",
+                       "AWAITING_APPROVAL", "QUEUED", "RUNNING"]:
+            self.store.transition(running["id"], target)
+        self.store.save_checkpoint(running["id"], {
+            "current_task_id": "build", "completed_task_ids": []
+        })
+        inactive = self.store.create_job(self.project["id"])
+        before = self.store.get_job(running["id"])["state"]
+        candidates = self.store.list_interrupted_jobs()
+        self.assertEqual([item["job_id"] for item in candidates], [running["id"]])
+        self.assertEqual(candidates[0]["recovery_status"], "operator_review_required")
+        self.assertEqual(candidates[0]["current_task_id"], "build")
+        self.assertEqual(self.store.get_job(running["id"])["state"], before)
+        self.assertEqual(self.store.get_job(inactive["id"])["state"], "DRAFT")
+
     def test_project_and_job_survive_store_reopen(self):
         job = self.store.create_job(self.project["id"], spec={"goal": "demo"})
         reopened = Store(Path(self.tmp.name) / "factory.sqlite3")
@@ -236,6 +297,19 @@ class ApiTests(unittest.TestCase):
         status, payload = self.request("/projects/missing-project/specifications")
         self.assertEqual(status, 404)
         self.assertIn("Project not found", payload["error"])
+
+    def test_interrupted_recovery_endpoint_lists_candidates_without_mutating_them(self):
+        _, project = self.request("/projects", {"name": "Recovery API", "idea": "Inventory interrupted work"})
+        _, job = self.request("/jobs", {"project_id": project["id"]})
+        for target in ["NEEDS_CLARIFICATION", "SPEC_READY", "PLAN_READY",
+                       "AWAITING_APPROVAL", "QUEUED", "RUNNING"]:
+            status, result = self.request(f"/jobs/{job['id']}/transition", {"target": target})
+            self.assertEqual(status, 200, result)
+        status, result = self.request("/recovery/interrupted")
+        self.assertEqual(status, 200)
+        self.assertFalse(result["automatic_resume"])
+        self.assertEqual(result["items"][0]["job_id"], job["id"])
+        self.assertEqual(self.store.get_job(job["id"])["state"], "RUNNING")
 
     def test_checkpoint_api_persists_task_progress(self):
         _, project = self.request("/projects", {"name": "Recovery API", "idea": "Test durable checkpoints"})

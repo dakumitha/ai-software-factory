@@ -26,4 +26,13 @@ This log records meaningful project milestones and verified evidence. It is not 
 - Added `Store.backup_to(destination)`, using SQLite's online backup API to make a consistent database copy.
 - Added tests that restore a copied database and verify project, job checkpoint, and audit-event records, and that reject the live database as its own backup destination.
 - Updated architecture and test instructions with the backup contract, example, and security caveats.
-- **Pending verification:** CI for this backup milestone.
+- CI verification for the backup milestone was reported successful for commit `4a594598c334eac66f21f9a9139dbdbe29be735f` (core tests run [38840769733](https://github.com/dakumitha/ai-software-factory/actions/runs/38840769733), specification workflow run [38840769654](https://github.com/dakumitha/ai-software-factory/actions/runs/38840769654), foundation checks run [38840769612](https://github.com/dakumitha/ai-software-factory/actions/runs/38840769612)).
+
+### Schema evolution and interruption inventory
+- Added an ordered schema migration ledger. Migration v1 recognises the existing project/job/event schema; v2 adds indexes for job state/update-time and event lookup.
+- Opening a pre-migration database records its baseline version and applies later additive migrations without recreating or deleting user records. Databases declaring a newer schema version are refused rather than silently downgraded.
+- Added `Store.schema_version()` and tests for migration version recording, repeated initialization, and preserving a legacy project row.
+- Added `Store.list_interrupted_jobs()` and `GET /recovery/interrupted` to inventory RUNNING/VERIFYING jobs and checkpoint pointers without mutating job state.
+- The recovery endpoint is intentionally observational: without worker leases/heartbeats and durable task-attempt semantics, automatic restart could collide with a still-running worker or repeat side effects.
+- Added unit/API coverage and updated architecture, test instructions, and roadmap in the same change.
+- **Pending verification:** GitHub Actions for the schema-migration and recovery-inventory change.

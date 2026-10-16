@@ -62,23 +62,95 @@ class Store:
         return conn
 
     def _init_db(self) -> None:
+        """Apply ordered, additive schema migrations before the store is used.
+
+        Databases created before migration tracking are treated as schema v1;
+        their existing tables and records are preserved.
+        """
         with self.connect() as db:
-            db.executescript("""
-                CREATE TABLE IF NOT EXISTS projects (
-                    id TEXT PRIMARY KEY, name TEXT NOT NULL, idea TEXT NOT NULL, created_at TEXT NOT NULL
-                );
-                CREATE TABLE IF NOT EXISTS jobs (
-                    id TEXT PRIMARY KEY, project_id TEXT NOT NULL, state TEXT NOT NULL,
-                    spec_json TEXT NOT NULL, tasks_json TEXT NOT NULL, budget_json TEXT NOT NULL,
-                    checkpoint_json TEXT NOT NULL, created_at TEXT NOT NULL, updated_at TEXT NOT NULL,
-                    FOREIGN KEY(project_id) REFERENCES projects(id)
-                );
-                CREATE TABLE IF NOT EXISTS events (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT, job_id TEXT NOT NULL, at TEXT NOT NULL,
-                    actor TEXT NOT NULL, kind TEXT NOT NULL, payload_json TEXT NOT NULL,
-                    FOREIGN KEY(job_id) REFERENCES jobs(id)
-                );
+            db.execute("""
+                CREATE TABLE IF NOT EXISTS schema_migrations (
+                    version INTEGER PRIMARY KEY,
+                    applied_at TEXT NOT NULL
+                )
             """)
+            applied = {
+                int(row["version"])
+                for row in db.execute("SELECT version FROM schema_migrations")
+            }
+            latest_known = 2
+            if applied and max(applied) > latest_known:
+                raise RuntimeError(
+                    f"Database schema version {max(applied)} is newer than this application "
+                    f"supports (latest known: {latest_known})."
+                )
+
+            if 1 not in applied:
+                db.execute("""
+                    CREATE TABLE IF NOT EXISTS projects (
+                        id TEXT PRIMARY KEY, name TEXT NOT NULL, idea TEXT NOT NULL,
+                        created_at TEXT NOT NULL
+                    )
+                """)
+                db.execute("""
+                    CREATE TABLE IF NOT EXISTS jobs (
+                        id TEXT PRIMARY KEY, project_id TEXT NOT NULL, state TEXT NOT NULL,
+                        spec_json TEXT NOT NULL, tasks_json TEXT NOT NULL, budget_json TEXT NOT NULL,
+                        checkpoint_json TEXT NOT NULL, created_at TEXT NOT NULL, updated_at TEXT NOT NULL,
+                        FOREIGN KEY(project_id) REFERENCES projects(id)
+                    )
+                """)
+                db.execute("""
+                    CREATE TABLE IF NOT EXISTS events (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT, job_id TEXT NOT NULL, at TEXT NOT NULL,
+                        actor TEXT NOT NULL, kind TEXT NOT NULL, payload_json TEXT NOT NULL,
+                        FOREIGN KEY(job_id) REFERENCES jobs(id)
+                    )
+                """)
+                db.execute(
+                    "INSERT INTO schema_migrations(version, applied_at) VALUES (?, ?)",
+                    (1, utc_now()),
+                )
+
+            if 2 not in applied:
+                db.execute("CREATE INDEX IF NOT EXISTS idx_jobs_state_updated_at ON jobs(state, updated_at)")
+                db.execute("CREATE INDEX IF NOT EXISTS idx_events_job_id_id ON events(job_id, id)")
+                db.execute(
+                    "INSERT INTO schema_migrations(version, applied_at) VALUES (?, ?)",
+                    (2, utc_now()),
+                )
+
+    def schema_version(self) -> int:
+        """Return the highest successfully recorded schema migration."""
+        with self.connect() as db:
+            row = db.execute("SELECT MAX(version) AS version FROM schema_migrations").fetchone()
+        return int(row["version"] or 0)
+
+    def list_interrupted_jobs(self) -> list[dict[str, Any]]:
+        """List jobs left in active execution states for explicit recovery review.
+
+        This is intentionally observational: without worker leases/heartbeats,
+        the store cannot safely decide whether another process still owns a job.
+        """
+        with self.connect() as db:
+            rows = db.execute(
+                "SELECT * FROM jobs WHERE state IN ('RUNNING', 'VERIFYING') "
+                "ORDER BY updated_at ASC, id ASC"
+            ).fetchall()
+        candidates = []
+        for row in rows:
+            job = self._decode_job(row)
+            checkpoint = job["checkpoint"]
+            candidates.append({
+                "job_id": job["id"],
+                "project_id": job["project_id"],
+                "state": job["state"],
+                "updated_at": job["updated_at"],
+                "current_task_id": checkpoint.get("current_task_id"),
+                "completed_task_ids": checkpoint.get("completed_task_ids", []),
+                "recovery_status": "operator_review_required",
+            })
+        return candidates
 
 
     def backup_to(self, destination: str | Path) -> Path:
@@ -336,6 +408,12 @@ class ApiHandler(BaseHTTPRequestHandler):
             return self._send(200, {"items": self.store.list_projects()})
         if path == "/jobs":
             return self._send(200, {"items": self.store.list_jobs()})
+        if path == "/recovery/interrupted":
+            return self._send(200, {
+                "items": self.store.list_interrupted_jobs(),
+                "automatic_resume": False,
+                "note": "Candidates require operator review; worker ownership and task execution are not yet implemented.",
+            })
         parts = path.strip("/").split("/")
         if len(parts) == 2 and parts[0] == "projects":
             project = self.store.get_project(parts[1])

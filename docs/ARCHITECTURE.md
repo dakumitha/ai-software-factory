@@ -53,6 +53,12 @@ The implemented control plane stores checkpoint JSON on each job and exposes `PO
 
 These checks protect the progress record from common accidental regressions. They do not establish exactly-once execution or prove that a task succeeded.
 
+### Schema migrations and interrupted-job inventory
+
+The store records applied schema versions in `schema_migrations`. Migration v1 establishes the existing project/job/event tables and is also recorded when opening a legacy database that already has those tables. Migration v2 adds indexes for state/update-time and job-event lookups. Migrations are additive, repeatable on reopen, and refuse to start if the database declares a newer schema version than this code understands.
+
+`GET /recovery/interrupted` inventories jobs left in `RUNNING` or `VERIFYING`, including their last checkpoint pointers. It is a read-only review queue, not an automatic resume mechanism. No worker lease or heartbeat currently proves that another process has stopped, so startup must not blindly reset active jobs. True automatic recovery requires worker ownership/leases, task-attempt records, idempotency contracts, and verification of any task whose side effects may have occurred.
+
 ### Database backup
 
 `Store.backup_to(destination)` uses SQLite's online backup API to create a consistent database copy. It creates the destination directory if needed and rejects using the live database path as the destination. The method does not encrypt the copy, upload it remotely, or define retention. Operators must protect backup files and periodically test restoration by opening a copy and checking expected project/job/checkpoint/event records. Agent execution, task-attempt records, process-crash recovery, and output verification are still future work.

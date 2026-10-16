@@ -16,8 +16,10 @@
 
 - [x] Add durable checkpoint update API with validation and audit events.
 - [x] Test checkpoint persistence across store reopen, idempotent repeated writes, unknown task rejection, and completed-task regression rejection.
+- [x] Add versioned SQLite schema migrations, preserve pre-migration records, and verify migration re-open safety.
+- [x] Add a read-only interrupted-job inventory endpoint for RUNNING/VERIFYING jobs and their last checkpoint pointers.
 
-**Gate:** current control-plane, specification, and checkpoint tests pass in GitHub Actions. Full interrupted-job resume, task-attempt recovery, encrypted/remote backup retention, and exactly-once external side-effect handling remain unimplemented.
+**Gate:** schema evolution and recovery-candidate inventory are implemented; automatic interrupted-job resume, worker leases/heartbeats, task-attempt recovery, encrypted/remote backup retention, and exactly-once external side-effect handling remain unimplemented.
 
 ## Phase 1: Free execution route and integration choices
 - [ ] Compare Spec Kit and OpenSpec on one representative feature; select one primary.
