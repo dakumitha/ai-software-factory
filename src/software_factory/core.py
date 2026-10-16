@@ -304,7 +304,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                     return self._send(404, {"error": "Specification not found"})
                 if spec["status"] != "APPROVED":
                     raise ValidationError("Approve the specification before generating an execution plan.")
-                plan = build_plan(spec["spec"])
+                plan = self.build_plan(spec["spec"])
                 try:
                     validated_plan = validate_task_graph(plan)
                 except ValidationError:
