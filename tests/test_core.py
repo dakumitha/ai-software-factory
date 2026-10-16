@@ -82,6 +82,37 @@ class SpecTests(unittest.TestCase):
         self.assertEqual((first["version"], second["version"]), (1, 2))
         self.assertEqual(self.specs.get(first["id"])["spec"]["goal"], self.spec["goal"])
 
+    def test_concurrent_spec_writes_allocate_unique_versions(self):
+        barrier = threading.Barrier(6)
+        results = []
+        failures = []
+        lock = threading.Lock()
+
+        def save_revision(index):
+            try:
+                barrier.wait(timeout=3)
+                item = self.specs.save(self.project["id"], {**self.spec, "goal": f"Revision {index}"})
+                with lock:
+                    results.append(item["version"])
+            except Exception as exc:
+                with lock:
+                    failures.append(exc)
+
+        workers = [threading.Thread(target=save_revision, args=(i,)) for i in range(6)]
+        for worker in workers:
+            worker.start()
+        for worker in workers:
+            worker.join(timeout=8)
+        self.assertEqual(failures, [])
+        self.assertEqual(sorted(results), [1, 2, 3, 4, 5, 6])
+
+    def test_invalid_requirement_priority_is_rejected(self):
+        invalid = {**self.spec, "requirements": [
+            {**self.spec["requirements"][0], "priority": "urgent"}
+        ]}
+        with self.assertRaises(ValidationError):
+            self.specs.save(self.project["id"], invalid)
+
     def test_open_questions_block_approval(self):
         item = self.specs.save(self.project["id"], {**self.spec, "open_questions": ["Which login provider?"]})
         with self.assertRaises(ValidationError):
@@ -139,6 +170,20 @@ class ApiTests(unittest.TestCase):
         status, project = self.request("/projects", {"name": "API Demo", "idea": "A small app"})
         self.assertEqual(status, 201)
         self.assertTrue(project["id"].startswith("prj_"))
+
+    def test_malformed_json_returns_controlled_client_error(self):
+        req = Request(self.base + "/projects", data=b"{broken", headers={"Content-Type": "application/json"})
+        try:
+            with urlopen(req, timeout=2) as response:
+                self.fail(f"Expected 400, received {response.status}")
+        except HTTPError as exc:
+            self.assertEqual(exc.code, 400)
+            self.assertIn("valid UTF-8 JSON", json.loads(exc.read())["error"])
+
+    def test_spec_list_rejects_unknown_project(self):
+        status, payload = self.request("/projects/missing-project/specifications")
+        self.assertEqual(status, 400)
+        self.assertIn("Project does not exist", payload["error"])
 
     def test_spec_api_requires_approval_before_plan(self):
         _, project = self.request("/projects", {"name": "API Demo", "idea": "A small app"})

@@ -42,11 +42,14 @@ def _validate_spec(spec: dict[str, Any]) -> dict[str, Any]:
             isinstance(x, str) and x.strip() for x in acceptance
         ):
             raise ValidationError(f"{rid} needs at least one measurable acceptance criterion.")
+        priority = str(req.get("priority", "must")).strip().lower()
+        if priority not in {"must", "should", "could", "wont"}:
+            raise ValidationError(f"{rid} priority must be one of: must, should, could, wont.")
         seen.add(rid)
         normalized.append({
             "id": rid,
             "description": description,
-            "priority": str(req.get("priority", "must")).lower(),
+            "priority": priority,
             "acceptance_criteria": [x.strip() for x in acceptance],
         })
     assumptions = spec.get("assumptions", [])
@@ -97,6 +100,8 @@ class SpecStore:
             raise ValidationError("Project does not exist.")
         normalized = _validate_spec(spec)
         with self.store.connect() as db:
+            # Serialize version allocation across concurrent writers.
+            db.execute("BEGIN IMMEDIATE")
             version = db.execute(
                 "SELECT COALESCE(MAX(version), 0) + 1 FROM specifications WHERE project_id=?",
                 (project_id,),
@@ -113,6 +118,8 @@ class SpecStore:
             return item
 
     def list(self, project_id: str) -> list[dict[str, Any]]:
+        if not self.store.get_project(project_id):
+            raise ValidationError("Project does not exist.")
         with self.store.connect() as db:
             rows = db.execute(
                 "SELECT * FROM specifications WHERE project_id=? ORDER BY version DESC", (project_id,)
@@ -134,6 +141,8 @@ class SpecStore:
 
     def approve(self, spec_id: str, actor: str = "owner") -> dict[str, Any]:
         with self.store.connect() as db:
+            # Read, validate, update, and audit as one serialized transaction.
+            db.execute("BEGIN IMMEDIATE")
             row = db.execute("SELECT * FROM specifications WHERE id=?", (spec_id,)).fetchone()
             if not row:
                 raise ValidationError("Specification does not exist.")

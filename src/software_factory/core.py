@@ -242,10 +242,20 @@ class ApiHandler(BaseHTTPRequestHandler):
         self.wfile.write(raw)
 
     def _body(self) -> dict[str, Any]:
-        length = int(self.headers.get("Content-Length", "0"))
+        raw_length = self.headers.get("Content-Length", "0")
+        try:
+            length = int(raw_length)
+        except (TypeError, ValueError) as exc:
+            raise ValidationError("Content-Length must be a valid integer.") from exc
         if length < 1 or length > 1_000_000:
             raise ValidationError("Request body must be between 1 byte and 1 MB.")
-        body = json.loads(self.rfile.read(length))
+        raw = self.rfile.read(length)
+        if len(raw) != length:
+            raise ValidationError("Request body ended before Content-Length bytes were received.")
+        try:
+            body = json.loads(raw)
+        except (json.JSONDecodeError, UnicodeDecodeError) as exc:
+            raise ValidationError("Request body must contain valid UTF-8 JSON.") from exc
         if not isinstance(body, dict):
             raise ValidationError("JSON body must be an object.")
         return body
