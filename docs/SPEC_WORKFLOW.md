@@ -9,6 +9,6 @@ The specification layer stores immutable, versioned project specifications in SQ
 - `GET /specifications/{spec_id}` retrieves a revision.
 - `POST /specifications/{spec_id}/approve` approves a revision only when no open questions remain.
 - `GET /specifications/{spec_id}/events` retrieves the approval audit trail.
-- `POST /specifications/{spec_id}/plan` builds a deterministic starter plan.
+- `POST /specifications/{spec_id}/plan` builds a deterministic starter plan, but only after approval.
 
-A plan is not code execution. Generated plans require owner approval and later execution by an isolated agent adapter. The API is not safe for public exposure until authentication, authorization, rate limits, and TLS are configured.
+A plan is not code execution. Generated plans require owner approval and later execution by an isolated agent adapter. The current API is for controlled development, not safe public exposure. Authentication, authorization, rate limiting, and TLS must be configured before any hosted public deployment.
