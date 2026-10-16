@@ -556,11 +556,18 @@ def validate_task_graph(tasks: list[dict[str, Any]]) -> list[dict[str, Any]]:
         if not isinstance(depends, list) or not all(isinstance(x, str) for x in depends):
             raise ValidationError(f"Task {task_id} depends_on must be a list of strings.")
         checks = task.get("acceptance_checks", [])
+        task_type = task.get("type", "")
+        task_input = task.get("input", {})
+        if not isinstance(task_type, str):
+            raise ValidationError(f"Task {task_id} type must be a string.")
+        if not isinstance(task_input, dict):
+            raise ValidationError(f"Task {task_id} input must be an object.")
         if not isinstance(checks, list) or not all(isinstance(x, str) for x in checks):
             raise ValidationError(f"Task {task_id} acceptance_checks must be a list of strings.")
         ids.add(task_id)
-        normalized.append({"id": task_id, "title": title, "requirement_ids": sorted(set(requirements)),
-                           "depends_on": sorted(set(depends)), "acceptance_checks": checks})
+        normalized.append({"id": task_id, "title": title, "type": task_type.strip(), "input": task_input,
+                           "requirement_ids": sorted(set(requirements)), "depends_on": sorted(set(depends)),
+                           "acceptance_checks": checks})
     by_id = {task["id"]: task for task in normalized}
     for task in normalized:
         missing = set(task["depends_on"]) - ids
