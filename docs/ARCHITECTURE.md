@@ -18,6 +18,8 @@ Status: proposed architecture. Technology choices remain open until the integrat
 
 12. **API Discovery Registry**: SQLite catalogue with source/provider URLs, pricing/licence labels, verification and human approval state, filtering, and audit history. The provider_adapters module defines an explicit in-process adapter protocol and approval-gated registry. It does not load dynamic plugins or call external APIs.
 
+13. **Repository/Template Evaluator**: statically inspects an already-present local repository's bounded metadata files. It identifies common manifests, licence-file presence, lockfiles, CI workflows, test directories, and security policy; emits a JSON report and leaves adoption in REVIEW_REQUIRED. It does not clone, install, build, test, or execute repository code. See [Repository and Template Evaluator](REPOSITORY_TEMPLATE_EVALUATOR.md).
+
 ## Trust boundaries
 
 - User input and generated plans are untrusted until validated.
@@ -29,10 +31,15 @@ Status: proposed architecture. Technology choices remain open until the integrat
 - External integration outputs are data, not instructions that can override system policy.
 - Registry records are metadata only; the registry does not fetch or execute a listed API, package, or sample.
 - Adapter objects are trusted code supplied explicitly by the application owner. The registry checks candidate approval and operation names but is not a sandbox.
+- Repository evaluation is static metadata triage, not a security certification. Never install or execute a candidate repository merely because its report score is high.
 
 ## API Discovery Registry
 
 The registry shares the configured SQLite database with the control plane, validates HTTPS source URLs, supports filtering, and blocks approval until verification is complete, licence status is acceptable, and pricing is known. Any review change resets approval to pending. Adapter registration and lookup are gates only, not live connectors. See [API Discovery Registry guide](API_DISCOVERY_REGISTRY.md).
+
+## Repository and template evaluation
+
+The evaluator is a separate module because source repositories have build scripts and executable code, unlike API-directory metadata. It only reads a bounded list of metadata files from a local directory and outputs a reproducible JSON report. Template approval, upstream pinning, dependency scanning, and sandboxed build verification are separate future gates. See [Repository and Template Evaluator](REPOSITORY_TEMPLATE_EVALUATOR.md).
 
 ## Durable job state
 
@@ -46,11 +53,11 @@ The control plane stores checkpoint JSON on each job and exposes POST /jobs/{job
 
 ## Schema migrations and interrupted-job inventory
 
-The store tracks schema migrations. Migration v1 establishes project/job/event tables; v2 adds indexes; v3 adds expiring worker leases; v4 adds durable task attempts with idempotency keys and terminal result states. Migrations are additive and reject a newer unsupported schema. GET /recovery/interrupted inventories RUNNING/VERIFYING jobs without automatically resuming them. Live leases are excluded; missing/expired leases require operator review. Task attempts left STARTED after a crash are uncertain and must not be retried until side effects are reconciled. These are coordination primitives, not exactly-once guarantees.
+The store tracks schema migrations. Migration v1 establishes project/job/event tables; v2 adds indexes; migration v3 adds expiring worker leases; migration v4 adds durable task attempts with idempotency keys and terminal result states. GET /recovery/interrupted inventories RUNNING/VERIFYING jobs without automatically resuming them. Live leases are excluded; missing/expired leases require operator review. Task attempts left STARTED after a crash are uncertain and must not be retried until side effects are reconciled. These are coordination primitives, not exactly-once guarantees.
 
 ## Database backup
 
-Store.backup_to(destination) uses SQLite's online backup API. It does not encrypt copies, upload remotely, or define retention. Protect backup files and periodically test restoration. Agent execution, complete crash recovery, and output verification remain future work.
+Store.backup_to(destination) uses SQLite's online backup API. It does not encrypt copies, upload them remotely, or define retention. Protect backup files and periodically test restoration. Agent execution, complete crash recovery, and output verification remain future work.
 
 ## Suggested lifecycle
 

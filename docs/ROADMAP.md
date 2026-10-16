@@ -6,7 +6,7 @@
 - [x] Dedicated repository and product requirements.
 - [x] Lightweight documentation CI.
 - [x] SQLite project/job persistence, lifecycle validation, and append-only event history.
-- [x] Task dependency graph validation and ready-task selection.
+- [x] Task dependency graph validation and ready-task resolution.
 - [x] JSON HTTP API for projects, jobs, events, and state transitions.
 - [x] Standard-library tests and Python 3.11/3.12 GitHub Actions workflow.
 - [x] Durable checkpoints and ordered additive schema migrations.
@@ -17,10 +17,11 @@
 - [x] Explicit adapter protocol and approval-gated in-process adapter registry.
 - [x] Command-line review, decision, and audit-history operations for the API registry.
 - [x] Preview-first local JSON/CSV catalogue import with field allowlisting, URL validation, duplicate detection, and pending-only records.
+- [x] Static local repository metadata evaluator with JSON report, bounded file reads, and no code execution.
 - [ ] Safe phone-friendly control interface.
 - [ ] Provider-specific adapters only after provider terms, data flow, timeouts, quotas, and tests are reviewed.
 
-**Gate:** API discovery metadata and adapter lookup are implemented. No catalogue crawler, provider invocation, dynamic plugin loading, automatic task resume, encrypted/remote backup retention, or exactly-once side-effect handling is included.
+**Gate:** API discovery metadata and adapter lookup are implemented. Repository metadata triage is implemented. No catalogue crawler, provider invocation, dynamic plugin loading, automatic task resume, encrypted/remote backup retention, or exactly-once side-effect handling is included.
 
 ## Phase 1: Free execution route and integration choices
 - [ ] Compare Spec Kit and OpenSpec on one representative feature; select one primary.
