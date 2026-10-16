@@ -1,12 +1,14 @@
 """Durable, dependency-free control plane for software-factory jobs."""
 from __future__ import annotations
 
+import hashlib
 import json
 import os
+import secrets
 import sqlite3
 import threading
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import Any
@@ -78,7 +80,7 @@ class Store:
                 int(row["version"])
                 for row in db.execute("SELECT version FROM schema_migrations")
             }
-            latest_known = 2
+            latest_known = 3
             if applied and max(applied) > latest_known:
                 raise RuntimeError(
                     f"Database schema version {max(applied)} is newer than this application "
@@ -120,11 +122,90 @@ class Store:
                     (2, utc_now()),
                 )
 
+            if 3 not in applied:
+                db.execute("""
+                    CREATE TABLE IF NOT EXISTS job_leases (
+                        job_id TEXT PRIMARY KEY,
+                        owner_id TEXT NOT NULL,
+                        token_hash TEXT NOT NULL,
+                        acquired_at TEXT NOT NULL,
+                        heartbeat_at TEXT NOT NULL,
+                        expires_at TEXT NOT NULL,
+                        FOREIGN KEY(job_id) REFERENCES jobs(id)
+                    )
+                """)
+                db.execute("CREATE INDEX IF NOT EXISTS idx_job_leases_expires_at ON job_leases(expires_at)")
+                db.execute(
+                    "INSERT INTO schema_migrations(version, applied_at) VALUES (?, ?)",
+                    (3, utc_now()),
+                )
+
     def schema_version(self) -> int:
         """Return the highest successfully recorded schema migration."""
         with self.connect() as db:
             row = db.execute("SELECT MAX(version) AS version FROM schema_migrations").fetchone()
         return int(row["version"] or 0)
+
+    @staticmethod
+    def _validate_lease_ttl(ttl_seconds: int) -> int:
+        if isinstance(ttl_seconds, bool) or not isinstance(ttl_seconds, int) or not 10 <= ttl_seconds <= 3600:
+            raise ValidationError("Lease TTL must be an integer between 10 and 3600 seconds.")
+        return ttl_seconds
+
+    def acquire_lease(self, job_id: str, owner_id: str, ttl_seconds: int = 60) -> dict[str, Any]:
+        """Acquire a time-limited worker lease and return its secret token once."""
+        ttl_seconds = self._validate_lease_ttl(ttl_seconds)
+        owner_id = owner_id.strip() if isinstance(owner_id, str) else ""
+        if not owner_id:
+            raise ValidationError("owner_id is required.")
+        now_dt = datetime.now(timezone.utc)
+        now = now_dt.isoformat(timespec="seconds")
+        expires = (now_dt + timedelta(seconds=ttl_seconds)).isoformat(timespec="seconds")
+        token = secrets.token_urlsafe(32)
+        token_hash = hashlib.sha256(token.encode("utf-8")).hexdigest()
+        with _LOCK, self.connect() as db:
+            job = db.execute("SELECT state FROM jobs WHERE id=?", (job_id,)).fetchone()
+            if not job:
+                raise ValidationError("Job does not exist.")
+            if job["state"] not in {"RUNNING", "VERIFYING"}:
+                raise ValidationError("A worker lease can only be acquired for RUNNING or VERIFYING jobs.")
+            lease = db.execute("SELECT * FROM job_leases WHERE job_id=?", (job_id,)).fetchone()
+            if lease and lease["expires_at"] > now:
+                raise ValidationError("Job already has an active worker lease.")
+            db.execute("""INSERT INTO job_leases(job_id, owner_id, token_hash, acquired_at, heartbeat_at, expires_at)
+                VALUES (?, ?, ?, ?, ?, ?) ON CONFLICT(job_id) DO UPDATE SET
+                owner_id=excluded.owner_id, token_hash=excluded.token_hash, acquired_at=excluded.acquired_at,
+                heartbeat_at=excluded.heartbeat_at, expires_at=excluded.expires_at""",
+                (job_id, owner_id, token_hash, now, now, expires))
+            self._event(db, job_id, owner_id, "job.lease_acquired", {"expires_at": expires})
+        return {"job_id": job_id, "owner_id": owner_id, "token": token,
+                "acquired_at": now, "heartbeat_at": now, "expires_at": expires}
+
+    def heartbeat_lease(self, job_id: str, token: str, ttl_seconds: int = 60) -> dict[str, Any]:
+        """Extend a lease only when the supplied secret still owns an unexpired lease."""
+        ttl_seconds = self._validate_lease_ttl(ttl_seconds)
+        now_dt = datetime.now(timezone.utc)
+        now = now_dt.isoformat(timespec="seconds")
+        expires = (now_dt + timedelta(seconds=ttl_seconds)).isoformat(timespec="seconds")
+        token_hash = hashlib.sha256(token.encode("utf-8")).hexdigest() if isinstance(token, str) else ""
+        with _LOCK, self.connect() as db:
+            lease = db.execute("SELECT * FROM job_leases WHERE job_id=?", (job_id,)).fetchone()
+            if not lease or lease["expires_at"] <= now or not secrets.compare_digest(lease["token_hash"], token_hash):
+                raise ValidationError("Lease is missing, expired, or the token is invalid.")
+            db.execute("UPDATE job_leases SET heartbeat_at=?, expires_at=? WHERE job_id=?", (now, expires, job_id))
+            self._event(db, job_id, lease["owner_id"], "job.lease_heartbeat", {"expires_at": expires})
+            return {"job_id": job_id, "owner_id": lease["owner_id"],
+                    "heartbeat_at": now, "expires_at": expires}
+
+    def release_lease(self, job_id: str, token: str) -> None:
+        """Release a lease only when the supplied secret matches its current owner token."""
+        token_hash = hashlib.sha256(token.encode("utf-8")).hexdigest() if isinstance(token, str) else ""
+        with _LOCK, self.connect() as db:
+            lease = db.execute("SELECT * FROM job_leases WHERE job_id=?", (job_id,)).fetchone()
+            if not lease or not secrets.compare_digest(lease["token_hash"], token_hash):
+                raise ValidationError("Lease is missing or the token is invalid.")
+            db.execute("DELETE FROM job_leases WHERE job_id=?", (job_id,))
+            self._event(db, job_id, lease["owner_id"], "job.lease_released", {})
 
     def list_interrupted_jobs(self) -> list[dict[str, Any]]:
         """List jobs left in active execution states for explicit recovery review.
@@ -132,13 +213,19 @@ class Store:
         This is intentionally observational: without worker leases/heartbeats,
         the store cannot safely decide whether another process still owns a job.
         """
+        now = utc_now()
         with self.connect() as db:
             rows = db.execute(
-                "SELECT * FROM jobs WHERE state IN ('RUNNING', 'VERIFYING') "
-                "ORDER BY updated_at ASC, id ASC"
+                """SELECT jobs.*, job_leases.owner_id AS lease_owner,
+                          job_leases.expires_at AS lease_expires_at
+                   FROM jobs LEFT JOIN job_leases ON job_leases.job_id=jobs.id
+                   WHERE jobs.state IN ('RUNNING', 'VERIFYING')
+                   ORDER BY jobs.updated_at ASC, jobs.id ASC"""
             ).fetchall()
         candidates = []
         for row in rows:
+            if row["lease_expires_at"] and row["lease_expires_at"] > now:
+                continue
             job = self._decode_job(row)
             checkpoint = job["checkpoint"]
             candidates.append({
@@ -148,6 +235,8 @@ class Store:
                 "updated_at": job["updated_at"],
                 "current_task_id": checkpoint.get("current_task_id"),
                 "completed_task_ids": checkpoint.get("completed_task_ids", []),
+                "lease_status": "expired" if row["lease_expires_at"] else "missing",
+                "lease_owner": row["lease_owner"],
                 "recovery_status": "operator_review_required",
             })
         return candidates
@@ -457,6 +546,16 @@ class ApiHandler(BaseHTTPRequestHandler):
                     raise ValidationError("A checkpoint object is required.")
                 return self._send(200, self.store.save_checkpoint(
                     parts[1], body["checkpoint"], actor="api-owner"))
+            if len(parts) == 3 and parts[0] == "jobs" and parts[2] == "lease":
+                lease = self.store.acquire_lease(parts[1], str(body.get("owner_id", "")),
+                    body.get("ttl_seconds", 60))
+                return self._send(201, lease)
+            if len(parts) == 4 and parts[0] == "jobs" and parts[2:] == ["lease", "heartbeat"]:
+                return self._send(200, self.store.heartbeat_lease(parts[1], body.get("token", ""),
+                    body.get("ttl_seconds", 60)))
+            if len(parts) == 4 and parts[0] == "jobs" and parts[2:] == ["lease", "release"]:
+                self.store.release_lease(parts[1], body.get("token", ""))
+                return self._send(200, {"released": True, "job_id": parts[1]})
             if len(parts) == 3 and parts[0] == "projects" and parts[2] == "specifications":
                 return self._send(201, self.specs.save(parts[1], body))
             if len(parts) == 3 and parts[0] == "specifications" and parts[2] == "approve":

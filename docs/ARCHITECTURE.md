@@ -55,9 +55,9 @@ These checks protect the progress record from common accidental regressions. The
 
 ### Schema migrations and interrupted-job inventory
 
-The store records applied schema versions in `schema_migrations`. Migration v1 establishes the existing project/job/event tables and is also recorded when opening a legacy database that already has those tables. Migration v2 adds indexes for state/update-time and job-event lookups. Migrations are additive, repeatable on reopen, and refuse to start if the database declares a newer schema version than this code understands.
+The store records applied schema versions in `schema_migrations`. Migration v1 establishes the existing project/job/event tables and is also recorded when opening a legacy database that already has those tables. Migration v2 adds indexes for state/update-time and job-event lookups. Migration v3 adds expiring worker leases. Migrations are additive, repeatable on reopen, and refuse to start if the database declares a newer schema version than this code understands.
 
-`GET /recovery/interrupted` inventories jobs left in `RUNNING` or `VERIFYING`, including their last checkpoint pointers. It is a read-only review queue, not an automatic resume mechanism. No worker lease or heartbeat currently proves that another process has stopped, so startup must not blindly reset active jobs. True automatic recovery requires worker ownership/leases, task-attempt records, idempotency contracts, and verification of any task whose side effects may have occurred.
+`GET /recovery/interrupted` inventories jobs left in `RUNNING` or `VERIFYING`, including their last checkpoint pointers. It is a read-only review queue, not an automatic resume mechanism. Jobs with an unexpired worker lease are excluded; jobs with no lease or an expired lease are surfaced for operator review. Workers acquire a lease with `POST /jobs/{job_id}/lease`, extend it through `/lease/heartbeat`, and release it through `/lease/release`. The secret token is stored only as a SHA-256 hash in SQLite and is returned only at acquisition. These leases improve ownership tracking but do not yet execute or resume tasks. True automatic recovery still requires durable task-attempt records, idempotency contracts, and verification of any task whose side effects may have occurred.
 
 ### Database backup
 

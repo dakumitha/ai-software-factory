@@ -36,4 +36,9 @@ This log records meaningful project milestones and verified evidence. It is not 
 - The recovery endpoint is intentionally observational: without worker leases/heartbeats and durable task-attempt semantics, automatic restart could collide with a still-running worker or repeat side effects.
 - Added unit/API coverage and updated architecture, test instructions, and roadmap in the same change.
 - First GitHub Actions run exposed a test-fixture reference error (the API test stores its database on `ApiHandler.store`, not `self.store`). The assertion was corrected without changing production behavior.
-- **Pending verification:** GitHub Actions for the corrected schema-migration and recovery-inventory change.
+- The corrected schema-migration and recovery-inventory tests passed in GitHub Actions for commit `fc5cf09354066e76baeb9a9d6d70841d7c052318` (core [38841280562](https://github.com/dakumitha/ai-software-factory/actions/runs/38841280562), spec/API [38841280592](https://github.com/dakumitha/ai-software-factory/actions/runs/38841280592), foundation [38841280573](https://github.com/dakumitha/ai-software-factory/actions/runs/38841280573)).
+- Added schema migration v3 for expiring worker leases. Lease tokens are random, returned only at acquisition, and stored as SHA-256 hashes; heartbeat and release require the matching token.
+- The interrupted-job inventory now excludes jobs with unexpired leases and surfaces jobs with missing/expired leases for operator review.
+- Added store and HTTP API tests for lease acquisition, heartbeat, invalid tokens, release, TTL validation, and recovery-inventory interaction.
+- Updated architecture, roadmap, and test instructions in the same implementation cycle.
+- **Pending verification:** GitHub Actions for the worker-lease milestone.

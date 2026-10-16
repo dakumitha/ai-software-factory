@@ -10,6 +10,7 @@ PYTHONPATH=src python -m unittest discover -s tests -v
 
 - SQLite project/job persistence after reopening the store.
 - Ordered schema migrations, legacy database upgrade without record loss, and migration re-open safety.
+- Worker lease acquisition, token-protected heartbeat/release, and recovery inventory filtering for active leases.
 - Read-only inventory of RUNNING/VERIFYING jobs for explicit interruption review.
 - Validated lifecycle transitions and append-only job event history.
 - Task dependency graph validation and ready-task selection.
@@ -23,7 +24,7 @@ A checkpoint stores orchestration progress in the job's SQLite record. `complete
 
 This is a durable progress ledger, **not yet a complete job executor or exactly-once execution guarantee**. The current application does not execute agent tasks. Before execution is added, each adapter must define idempotency keys, durable task attempt records, interruption recovery, bounded retry behaviour, and verification evidence. A checkpoint must not be treated as proof that generated code passed tests.
 
-The interrupted-job endpoint is intentionally read-only. It does not prove that a worker is dead or resume tasks. The suite does not yet verify hosted deployment, authentication, sandbox isolation, encrypted/remote backup retention, or production crash recovery.
+The interrupted-job endpoint is intentionally read-only. It excludes unexpired worker leases, but a missing/expired lease does not prove that a worker is dead or resume tasks. Lease tracking is ownership metadata, not a complete executor. The suite does not yet verify hosted deployment, authentication, sandbox isolation, encrypted/remote backup retention, or production crash recovery.
 
 ## Creating a database backup
 
