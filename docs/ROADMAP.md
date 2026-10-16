@@ -10,12 +10,14 @@
 - [x] Static local repository metadata evaluator.
 - [x] Deterministic allowlisted execution controller for one task at a time.
 - [x] Bounded local artifact writer with path checks, size cap, explicit overwrite, and SHA-256 receipt.
-- [ ] Independent verification evidence and safe artifact workspace.
+- [x] Non-executing artifact verification for path, size, digest, and optional JSON syntax.
+- [ ] Independent code/build/test verification and safe isolated executor.
 - [ ] Authentication for any non-local access.
 
 ## Phase 1: Demonstrated end-to-end vertical slice
 - [ ] Connect approved specification → task plan → explicit approval → bounded worker execution → independent verification → reviewable artifact.
 - [x] Safe artifact writer and tests for traversal, symlinks, size limits, and overwrite policy.
+- [x] Artifact evidence reports for digest and JSON syntax checks.
 - [ ] Add controller CLI commands for one-step execution and status inspection.
 - [ ] Demonstrate a small deterministic example without external model/API costs.
 
