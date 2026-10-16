@@ -6,6 +6,10 @@ A cloud-first, repository-driven software production system designed to turn ide
 
 **Control-plane foundation implemented; automated tests running in GitHub Actions.** The repository now contains a dependency-free Python/SQLite core for projects, durable jobs, validated state transitions, append-only job events, task dependency validation, and an HTTP JSON API. Agent execution, model-provider integration, a hosted mobile UI, sandboxed builds, and release automation are not yet implemented or verified.
 
+## Phone + desktop control room
+
+A responsive UI prototype is available at [`web/index.html`](web/index.html). It is designed for use from both a phone and desktop while heavy work runs on separate compute. The current prototype saves project drafts in browser-local storage only; it does not yet connect to a remote worker or sync projects across devices. See [Phone + Compute Control Room](docs/PHONE_COMPUTE_CONTROL_ROOM.md) for the target architecture and acceptance criteria.
+
 ## Run the current control plane
 
 Requires Python 3.11 or newer. No Python runtime dependencies are required for the current core.
@@ -66,6 +70,7 @@ See [Multi-Product Software Factory Strategy](docs/PRODUCT_FAMILY_STRATEGY.md).
 - [Delivery roadmap and acceptance gates](docs/ROADMAP.md)
 - [Multi-product strategy](docs/PRODUCT_FAMILY_STRATEGY.md)
 - [Free-first agent engine integration plan](docs/FREE_FIRST_AGENT_ENGINE.md)
+- [Phone + compute control room](docs/PHONE_COMPUTE_CONTROL_ROOM.md)
 - [Security policy](SECURITY.md)
 - [Decision records](docs/decisions/README.md)
 - [Documentation standard and change workflow](docs/DOCUMENTATION_STANDARD.md)
