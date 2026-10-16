@@ -1,56 +1,30 @@
 # Tests and Recovery Verification
 
-The control plane uses Python's standard library only. Run from the repository root:
+Run from the repository root with Python 3.11+:
 
 ```sh
 PYTHONPATH=src python -m unittest discover -s tests -v
 ```
 
-## What the current tests verify
+## Coverage
 
-- SQLite project/job persistence after reopening the store.
-- Ordered schema migrations, legacy database upgrade without record loss, and migration re-open safety.
-- Worker lease acquisition, token-protected heartbeat/release, and recovery inventory filtering for active leases.
-- Durable task-attempt start/finish, idempotency-key reuse, and immutable terminal outcomes.
-- Read-only inventory of RUNNING/VERIFYING jobs for explicit interruption review.
-- Validated lifecycle transitions and append-only job event history.
-- Task dependency graph validation and ready-task selection.
-- Checkpoint persistence across store reopen, task-ID validation, monotonic completed-task tracking, and idempotent repeated writes.
-- SQLite online backup and restoration of projects, jobs, checkpoint state, and audit events.
-- HTTP API behaviour for projects, jobs, specification approval/planning, and checkpoint updates.
+- SQLite project/job persistence, ordered migrations, legacy upgrade, worker leases, and task attempts.
+- Read-only interruption inventory, lifecycle transitions, event history, task graph validation, and ready-task selection.
+- Checkpoint persistence, task-ID validation, monotonic completion, idempotent writes, and online backup/restore.
+- HTTP API behavior for projects, jobs, specifications, checkpoints, and API registry lifecycle.
+- API registry URL validation, filtering, review/approval policy, audit events, and control-plane integration.
+- Adapter registration against approved candidates, operation allowlisting, approval revocation checks, duplicate rejection, and invalid contracts.
 
-## API registry boundaries
+## API registry and adapter boundaries
 
-The registry records third-party API metadata only. It does not crawl websites, invoke provider endpoints, install dependencies, execute examples, or manage secrets. The control-plane HTTP API supports candidate creation/search/detail, review, approval/rejection, and audit history. Registry create/review/decision events are stored transactionally in a dedicated audit table in the configured SQLite database. Approval requires a verified candidate, an approved/not-applicable licence status, and known pricing. This is a metadata policy gate, not a guarantee of provider security, availability, or future pricing.
+The registry records third-party API metadata only. It does not crawl websites, invoke providers, install dependencies, execute examples, or manage secrets. Approval requires a verified candidate, an approved/not-applicable licence, and known pricing. This policy does not guarantee provider security or future pricing.
 
-HTTP endpoints:
-- `GET /api-candidates?query=&category=&status=`
-- `GET /api-candidates/{id}`
-- `GET /api-candidates/events` and `GET /api-candidates/{id}/events`
-- `POST /api-candidates`
-- `POST /api-candidates/{id}/review`
-- `POST /api-candidates/{id}/decision`
+The provider adapter interface accepts only explicitly constructed in-process objects. Registration requires an approved record; resolution rechecks current approval and the operation allowlist. It does not invoke providers, sandbox adapter code, manage secrets, or implement network timeouts/rate limits. Control-plane registry endpoints currently have no authentication and must remain loopback-only.
 
-These are currently local development endpoints without authentication; keep the service loopback-only. Do not expose them remotely until authentication, authorization, and production deployment controls are implemented.
+## Recovery limits
 
-## Checkpoint contract and limitations
+Checkpoints and task attempts are orchestration metadata, not a complete executor or exactly-once guarantee. A STARTED attempt after a crash may have caused side effects and must be reconciled before retry. Hosted deployment, authentication, sandbox isolation, encrypted/remote backup retention, and production crash recovery are not verified.
 
-A checkpoint stores orchestration progress in the job's SQLite record. `completed_task_ids` must refer to tasks belonging to that job and cannot remove a previously recorded completion. Repeating the exact same checkpoint does not create another audit event.
+## Backup
 
-This is a durable progress ledger, **not yet a complete job executor or exactly-once execution guarantee**. The current application does not execute agent tasks. Before execution is added, each adapter must define idempotency keys, durable task attempt records, interruption recovery, bounded retry behaviour, and verification evidence. A checkpoint must not be treated as proof that generated code passed tests.
-
-The interrupted-job endpoint is intentionally read-only. It excludes unexpired worker leases, but a missing/expired lease does not prove that a worker is dead or resume tasks. Lease tracking is ownership metadata, not a complete executor. Task-attempt records track orchestration state but cannot guarantee exactly-once external side effects. The suite does not yet verify hosted deployment, authentication, sandbox isolation, encrypted/remote backup retention, or production crash recovery.
-
-## Creating a database backup
-
-The `Store.backup_to(destination)` method uses SQLite's online backup API to create a consistent copy, including while the database is open. Example from the repository root:
-
-```python
-from software_factory.core import Store
-
-store = Store("data/factory.sqlite3")
-backup_path = store.backup_to("backups/factory-backup.sqlite3")
-print(f"Backup written to: {backup_path}")
-```
-
-Protect backups as carefully as the live database. Store them outside public repositories, restrict access, and apply your retention policy. A backup is not proven recoverable until a restore test opens the copied database and checks expected records. This method does not encrypt backups or upload them to remote storage.
+Store.backup_to(destination) uses SQLite's online backup API. Protect backups, keep them outside public repositories, and test restoration. It does not encrypt or upload them remotely.

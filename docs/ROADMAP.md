@@ -1,83 +1,66 @@
 # Accelerated Delivery Roadmap
 
-**Deadline target: 7–14 days for a demonstrated end-to-end engine slice.** The target is aggressive and conditional on free execution/model access being available. The result should be a working, testable engine that creates and verifies a representative application, not a claim that every software category is production-perfect.
+**Deadline target: 7–14 days for a demonstrated end-to-end engine slice.** This is aggressive and conditional on free execution/model access. The target is a working, testable engine for a representative app, not universal production perfection.
 
 ## Phase 0: Foundation and control plane
-- [x] Create dedicated repository and product requirements.
-- [x] Add lightweight documentation CI.
-- [x] Implement SQLite project/job persistence.
-- [x] Implement explicit job lifecycle validation and append-only event history.
-- [x] Validate task dependency graphs and provide ready-task selection.
-- [x] Add JSON HTTP endpoints for projects, jobs, events, and state transitions.
-- [x] Add standard-library unit tests and a Python 3.11/3.12 GitHub Actions workflow.
-- [x] Verify the core-test workflow is green in GitHub Actions for the current feature-branch head (run 38840047085).
-- [x] Add API integration tests for the current control-plane and specification endpoints.
-- [ ] Build a safe phone-friendly control interface.
+- [x] Dedicated repository and product requirements.
+- [x] Lightweight documentation CI.
+- [x] SQLite project/job persistence, lifecycle validation, and append-only event history.
+- [x] Task dependency graph validation and ready-task selection.
+- [x] JSON HTTP API for projects, jobs, events, and state transitions.
+- [x] Standard-library tests and Python 3.11/3.12 GitHub Actions workflow.
+- [x] Durable checkpoints and ordered additive schema migrations.
+- [x] Read-only interrupted-job inventory and expiring worker leases.
+- [x] Durable task-attempt records, idempotency-key conflict detection, and immutable terminal outcomes.
+- [x] SQLite API Discovery Registry with HTTPS URL validation, filtering, review states, approval gate, and audit history.
+- [x] Registry candidate lifecycle exposed through the local control-plane API.
+- [x] Explicit adapter protocol and approval-gated in-process adapter registry.
+- [ ] Safe phone-friendly control interface.
+- [ ] Provider-specific adapters only after provider terms, data flow, timeouts, quotas, and tests are reviewed.
 
-- [x] Add durable checkpoint update API with validation and audit events.
-- [x] Test checkpoint persistence across store reopen, idempotent repeated writes, unknown task rejection, and completed-task regression rejection.
-- [x] Add versioned SQLite schema migrations, preserve pre-migration records, and verify migration re-open safety.
-- [x] Add a read-only interrupted-job inventory endpoint for RUNNING/VERIFYING jobs and their last checkpoint pointers.
-- [x] Add expiring worker leases with token-checked heartbeat/release; keep live-leased jobs out of the recovery inventory.
-- [x] Add durable task-attempt records, idempotency-key conflict detection, and immutable terminal outcomes.
-
-- [x] Add a separate SQLite API Discovery Registry with URL validation, filtering, review states, and an approval gate.
-- [x] Connect registry candidate listing, creation, review, decisions, and audit history to the control-plane HTTP API.
-- [x] Record registry mutations in a dedicated append-only SQLite audit stream.
-- [ ] Add a safe, human-approved adapter interface for selected providers.
-
-**Gate:** schema evolution and recovery-candidate inventory are implemented; automatic interrupted-job resume, durable task-attempt recovery, encrypted/remote backup retention, and exactly-once external side-effect handling remain unimplemented.
+**Gate:** API discovery metadata and adapter lookup are implemented. No catalogue crawler, provider invocation, dynamic plugin loading, automatic task resume, encrypted/remote backup retention, or exactly-once side-effect handling is included.
 
 ## Phase 1: Free execution route and integration choices
 - [ ] Compare Spec Kit and OpenSpec on one representative feature; select one primary.
-- [ ] Identify an agent runner that can run on a genuinely available free host or free-tier runtime.
-- [ ] Verify at least one model route without paid API credit; document quotas, acceptable use, and fallback.
-- [ ] Confirm persistent artifact storage and job resume behaviour on the selected host.
-- [ ] Record decisions, limitations, and reproducible setup steps.
-
-**Gate:** one real execution path is proven without assuming unlimited free compute.
+- [ ] Identify an agent runner on a genuinely available free host/runtime.
+- [ ] Verify at least one model route without paid API credit; document quotas and fallback.
+- [ ] Confirm persistent artifact storage and resume behavior on the selected host.
+- [ ] Record decisions and reproducible setup steps.
 
 ## Phase 2: Requirements-to-plan workflow
-- [ ] Build an adaptive discovery interview that stores answers, assumptions, unresolved questions, and conflicts.
+- [ ] Build an adaptive discovery interview storing answers, assumptions, unresolved questions, and conflicts.
 - [ ] Generate versioned project specifications and acceptance criteria.
 - [ ] Create dependency-aware plans with requirement traceability.
-- [ ] Require explicit owner approval before executing agent tasks.
+- [ ] Require explicit owner approval before agent tasks execute.
 - [ ] Persist prompts/config versions, outputs, logs, checkpoints, and budget events.
 
-**Gate:** a plain-language idea becomes a reviewable, saved specification and executable plan.
-
 ## Phase 3: Agent execution and verification
-- [ ] Integrate one coding-agent adapter, behind a narrow interface.
+- [ ] Integrate one coding-agent adapter behind a narrow interface.
 - [ ] Use an isolated, disposable workspace with bounded time, output, and permissions.
 - [ ] Apply changes only to a separate working branch/workspace.
-- [ ] Run tests, lint/type checks, build, dependency/license checks, and secret scanning as appropriate.
+- [ ] Run tests, lint/type checks, build, dependency/licence checks, and secret scanning as appropriate.
 - [ ] Save patch/diff, logs, test reports, and evidence.
 - [ ] Pause safely on quota exhaustion and resume from persisted state.
 
-**Gate:** one sample app is generated/modified and verification evidence is recorded; failures block completion.
-
 ## Phase 4: Mobile control room and hand-off
-- [ ] Provide a responsive phone-first interface for projects, job status, logs, diffs, approval, and export.
-- [ ] Add safe API authentication and production deployment configuration.
-- [ ] Add exportable requirements, plans, patches, and reports.
-- [ ] Document limitations and owner-operated recovery.
-
-**Gate:** owner can supervise the full demonstrated workflow from a phone without needing a local development computer.
+- [ ] Responsive phone-first interface for status, logs, diffs, approvals, and export.
+- [ ] API authentication and production deployment configuration.
+- [ ] Exportable requirements, plans, patches, and reports.
+- [ ] Owner-operated recovery documentation.
 
 ## Phase 5: Broaden coverage after the vertical slice
 - [ ] Add further frameworks, languages, and agent providers based on benchmark evidence.
 - [ ] Add maintenance/bug triage and optional codebase indexing.
 - [ ] Add controlled deployment and rollback only after isolated verification is reliable.
-- [ ] Add more sophisticated memory/search only if baseline persistence is insufficient.
 
 ## Scope and honest completion
 
-The 7–14 day target applies to the first demonstrated end-to-end engine slice. It does not guarantee a universal, production-grade autonomous software factory across every stack. The external model/host route is the principal risk because free tiers can change or exhaust quotas. If the free route fails, pause and report the blocker rather than silently using a paid service.
+The 7–14 day target is for the first demonstrated end-to-end slice, not a guarantee of a universal autonomous factory. Free model/host routes may change or exhaust quotas. If the free route fails, pause and report the blocker rather than silently using a paid service.
 
 ## CI budget rules
 
 - Prefer local/static checks and one targeted workflow run over blind retries.
-- Keep workflows short, pinned, and read-only unless a job truly requires more permission.
+- Keep workflows short and read-only unless extra permissions are necessary.
 - Do not run model-intensive jobs on every documentation change.
 - Never disable required checks or weaken tests to turn CI green.
 - Record CI usage and stop before known quota limits.
