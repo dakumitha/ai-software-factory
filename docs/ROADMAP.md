@@ -20,7 +20,7 @@
 - [x] Artifact evidence reports for digest and JSON syntax checks.
 - [x] Add read-only CLI commands for job listing and status inspection.
 - [ ] Add one-step execution CLI only after safe built-in task handlers and explicit execution policy are defined.
-- [ ] Demonstrate a small deterministic example without external model/API costs.
+- [x] Add an isolated deterministic dry-run demo for spec approval, planning, leases, task attempts, and checkpoints without external model/API costs. The demo deliberately stops at review and does not claim acceptance tests passed.
 
 ## Phase 2: Agent integration
 - [x] Document the zero-spend policy, trust boundaries, and staged agent adoption gates.
