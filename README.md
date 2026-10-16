@@ -4,7 +4,7 @@ A cloud-first, repository-driven software production system designed to turn ide
 
 ## Current status
 
-**Control-plane foundation implemented; automated tests running in GitHub Actions.** The repository now contains a dependency-free Python/SQLite core for projects, durable jobs, validated state transitions, append-only job events, task dependency validation, and an HTTP JSON API. Agent execution, model-provider integration, a hosted mobile UI, sandboxed builds, and release automation are not yet implemented or verified.
+**Control-plane foundation implemented; remote CI evidence must be checked per commit.** The repository contains a dependency-free Python/SQLite core for projects, durable jobs, validated state transitions, append-only job events, task dependency validation, and an HTTP JSON API. It also has a deterministic orchestration demo and a bounded artifact integrity workflow. Agent execution, model-provider integration, a hosted mobile UI, sandboxed builds, and release automation are not yet implemented or verified.
 
 ## Phone + desktop control room
 
@@ -45,13 +45,25 @@ Run the factory's orchestration flow without paid services, network calls, an AI
 PYTHONPATH=src python -m software_factory --demo
 ```
 
-The demo uses a disposable temporary database and reports the specification approval, generated task plan, worker lease, task attempts, and final review state. It is an orchestration demonstration only: it does not generate source code or run the acceptance tests. See [Deterministic Demo](docs/DETERMINISTIC_DEMO.md).
+The demo uses a disposable temporary database and reports specification approval, task planning, a worker lease, task attempts, and the final review state. It does not generate source code or run acceptance tests. See [Deterministic Demo](docs/DETERMINISTIC_DEMO.md).
 
-Run the focused regression tests with:
+Focused demo tests:
 
 ```sh
 PYTHONPATH=src python -m unittest discover -s tests -p 'test_demo.py' -v
 ```
+
+## Bounded artifact workflow
+
+The new helper writes a bounded artifact, reads it back through the separate verification module, compares SHA-256, optionally checks JSON syntax, and saves an evidence report. It always returns a review-gated result and never executes generated code.
+
+See [Bounded Artifact Workflow](docs/BOUNDED_ARTIFACT_WORKFLOW.md). Run its focused regression tests:
+
+```sh
+PYTHONPATH=src python -m unittest discover -s tests -p 'test_artifact_workflow.py' -v
+```
+
+A passing result proves only the checks described in the report. It is not proof of functional correctness, secure execution, successful builds, or production readiness.
 
 ## API Discovery Registry
 
@@ -107,6 +119,7 @@ See [Multi-Product Software Factory Strategy](docs/PRODUCT_FAMILY_STRATEGY.md).
 - [Machine-readable repository integration manifest](config/integrations/repositories.json)
 - [Delivery roadmap and acceptance gates](docs/ROADMAP.md)
 - [Deterministic control-plane demo](docs/DETERMINISTIC_DEMO.md)
+- [Bounded artifact workflow](docs/BOUNDED_ARTIFACT_WORKFLOW.md)
 - [Multi-product strategy](docs/PRODUCT_FAMILY_STRATEGY.md)
 - [Free-first agent engine integration plan](docs/FREE_FIRST_AGENT_ENGINE.md)
 - [Reference research and design direction](docs/REFERENCE_RESEARCH.md)
