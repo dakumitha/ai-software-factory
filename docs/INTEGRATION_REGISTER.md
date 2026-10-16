@@ -57,3 +57,19 @@ For each candidate, record:
 - Track licence notices and preserve required attribution.
 - Do not send confidential user or project data to external services without explicit configuration and approval.
 - Do not integrate a component solely to increase the number of agents.
+
+## Additional repositories reviewed (2026-10-16)
+
+| Repository | Proposed role | Status | Important constraint |
+|---|---|---|---|
+| [addyosmani/agent-skills](https://github.com/addyosmani/agent-skills) | Select engineering workflow guidance | Accepted for selective reference, not copied into the codebase | MIT per upstream README; review selected skills and preserve attribution |
+| [upstash/context7](https://github.com/upstash/context7) | Version-specific library docs through MCP | Optional configuration documented, not connected | MIT per upstream; optional key/rate limits; keep network lookup out of core tests |
+| [Graphify](https://github.com/Graphify-Labs/graphify) | Codebase knowledge graph | Candidate | Pin revision and confirm exact licence, supported languages, dependency/security posture, and value on this repo |
+| [21st MCP](https://github.com/21st-dev/magic-mcp) | UI component discovery | Optional configuration documented, not connected | Upstream says old Magic MCP is superseded; API key and hosted AI generation access may be needed |
+| [Strix](https://github.com/usestrix/strix) | Security testing of owned code/targets | Candidate, not installed | Docker and LLM provider key; model inference may cost money; only authorized targets |
+| [Hindsight](https://github.com/vectorize-io/hindsight) | Optional long-term agent memory | Candidate, not installed | MIT per upstream README; self-hosting still needs compute/storage and a model route |
+| [Odysseus](https://github.com/odysseus-dev/odysseus) | Separate self-hosted agent workspace | Separate-deployment evaluation only | AGPL-3.0-or-later per upstream README; do not embed without legal/security review |
+| [OpenHands Software Agent SDK](https://github.com/OpenHands/software-agent-sdk) | Future coding-worker adapter | Candidate, not installed | SDK is not free inference or free hosting; isolation and zero-spend path must be demonstrated |
+
+These entries are not evidence of successful installation. The exact revision, complete transitive licence inventory, and runtime behaviour must be reviewed before any candidate changes to **Integrated**. See [External Repository Integration Guide](EXTERNAL_REPOSITORY_INTEGRATION_GUIDE.md) and the machine-readable [repository integration manifest](../config/integrations/repositories.json).
+
