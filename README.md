@@ -27,7 +27,7 @@ The server binds to loopback by default. Remote binding is blocked unless `FACTO
 
 ## API Discovery Registry
 
-A separate SQLite-backed registry can record and search third-party API candidates without invoking them:
+The SQLite-backed API Discovery Registry is also exposed through the local JSON API. It supports candidate creation, filtering, review, approval/rejection, and audit history without invoking third-party services. For CLI use:
 
     PYTHONPATH=src python -m software_factory.api_registry add --name "Example API" --category developer-tools --source-url "https://github.com/example/catalogue"
     PYTHONPATH=src python -m software_factory.api_registry list --status PENDING

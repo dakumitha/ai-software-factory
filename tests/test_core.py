@@ -9,6 +9,7 @@ from urllib.request import Request, urlopen
 
 from software_factory.core import ApiHandler, Store, ValidationError, ready_tasks, validate_task_graph
 from software_factory.specs import SpecStore, build_plan
+from software_factory.api_registry import ApiRegistry
 
 
 class CoreTests(unittest.TestCase):
@@ -314,8 +315,10 @@ class SpecTests(unittest.TestCase):
 class ApiTests(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
-        ApiHandler.store = Store(Path(self.tmp.name) / "factory.sqlite3")
+        database = Path(self.tmp.name) / "factory.sqlite3"
+        ApiHandler.store = Store(database)
         ApiHandler.specs = SpecStore(ApiHandler.store)
+        ApiHandler.api_registry = ApiRegistry(database)
         self.server = ThreadingHTTPServer(("127.0.0.1", 0), ApiHandler)
         self.thread = threading.Thread(target=self.server.serve_forever, daemon=True)
         self.thread.start()
@@ -335,6 +338,42 @@ class ApiTests(unittest.TestCase):
                 return response.status, json.loads(response.read())
         except HTTPError as exc:
             return exc.code, json.loads(exc.read())
+
+    def test_api_registry_http_create_search_review_approval_and_audit(self):
+        status, candidate = self.request("/api-candidates", {
+            "name": "Example API", "category": "developer-tools",
+            "source_url": "https://catalogue.example/api",
+            "provider_url": "https://api.example",
+            "pricing_status": "UNKNOWN", "licence_status": "UNKNOWN",
+        })
+        self.assertEqual(status, 201, candidate)
+        candidate_id = candidate["id"]
+        status, blocked = self.request(f"/api-candidates/{candidate_id}/decision", {
+            "approval_status": "APPROVED",
+        })
+        self.assertEqual(status, 400)
+        self.assertIn("verification_status=VERIFIED", blocked["error"])
+        status, reviewed = self.request(f"/api-candidates/{candidate_id}/review", {
+            "verification_status": "VERIFIED", "licence_status": "APPROVED",
+            "pricing_status": "FREEMIUM", "notes": "Official docs reviewed",
+        })
+        self.assertEqual(status, 200, reviewed)
+        status, approved = self.request(f"/api-candidates/{candidate_id}/decision", {
+            "approval_status": "APPROVED", "reason": "Approved for adapter prototype",
+        })
+        self.assertEqual(status, 200, approved)
+        self.assertEqual(approved["approval_status"], "APPROVED")
+        status, listing = self.request("/api-candidates?category=developer-tools&status=APPROVED")
+        self.assertEqual(status, 200)
+        self.assertEqual([item["id"] for item in listing["items"]], [candidate_id])
+        status, events = self.request(f"/api-candidates/{candidate_id}/events")
+        self.assertEqual(status, 200)
+        self.assertEqual([event["kind"] for event in events["items"]], [
+            "candidate.created", "candidate.reviewed", "candidate.decision",
+        ])
+        self.assertTrue(all(event["actor"] == "api-owner" for event in events["items"]))
+        status, missing = self.request("/api-candidates/999999")
+        self.assertEqual(status, 404)
 
     def test_health_and_project_creation(self):
         status, health = self.request("/health")

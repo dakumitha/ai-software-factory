@@ -12,7 +12,7 @@ from datetime import datetime, timedelta, timezone
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import Any
-from urllib.parse import urlparse
+from urllib.parse import parse_qs, urlparse
 
 STATES = {
     "DRAFT", "NEEDS_CLARIFICATION", "SPEC_READY", "PLAN_READY", "AWAITING_APPROVAL",
@@ -591,6 +591,7 @@ def ready_tasks(tasks: list[dict[str, Any]], completed: set[str] | None = None) 
 class ApiHandler(BaseHTTPRequestHandler):
     store: Store
     specs: Any
+    api_registry: Any
 
     def log_message(self, format: str, *args: Any) -> None:
         return
@@ -624,7 +625,9 @@ class ApiHandler(BaseHTTPRequestHandler):
         return body
 
     def do_GET(self) -> None:
-        path = urlparse(self.path).path.rstrip("/") or "/"
+        parsed_url = urlparse(self.path)
+        path = parsed_url.path.rstrip("/") or "/"
+        query_params = parse_qs(parsed_url.query)
         if path == "/health":
             return self._send(200, {"ok": True, "service": "ai-software-factory-control-plane", "execution_enabled": False})
         if path == "/projects":
@@ -637,7 +640,30 @@ class ApiHandler(BaseHTTPRequestHandler):
                 "automatic_resume": False,
                 "note": "Candidates require operator review; worker ownership and task execution are not yet implemented.",
             })
+        if path == "/api-candidates":
+            return self._send(200, {"items": self.api_registry.list(
+                query=query_params.get("query", [""])[0],
+                category=query_params.get("category", [""])[0],
+                approval_status=query_params.get("status", [""])[0],
+            )})
+        if path == "/api-candidates/events":
+            return self._send(200, {"items": self.api_registry.events()})
         parts = path.strip("/").split("/")
+        if len(parts) == 2 and parts[0] == "api-candidates":
+            try:
+                candidate_id = int(parts[1])
+            except ValueError:
+                return self._send(400, {"error": "Candidate ID must be an integer."})
+            candidate = self.api_registry.get(candidate_id)
+            return self._send(200, candidate) if candidate else self._send(404, {"error": "API candidate not found"})
+        if len(parts) == 3 and parts[0] == "api-candidates" and parts[2] == "events":
+            try:
+                candidate_id = int(parts[1])
+            except ValueError:
+                return self._send(400, {"error": "Candidate ID must be an integer."})
+            if not self.api_registry.get(candidate_id):
+                return self._send(404, {"error": "API candidate not found"})
+            return self._send(200, {"items": self.api_registry.events(candidate_id)})
         if len(parts) == 2 and parts[0] == "projects":
             project = self.store.get_project(parts[1])
             return self._send(200, project) if project else self._send(404, {"error": "Project not found"})
@@ -666,12 +692,42 @@ class ApiHandler(BaseHTTPRequestHandler):
         path = urlparse(self.path).path.rstrip("/")
         try:
             body = self._body()
+            if path == "/api-candidates":
+                item = self.api_registry.add(
+                    body.get("name", ""), body.get("category", ""), body.get("source_url", ""),
+                    provider_url=body.get("provider_url", ""),
+                    pricing_status=body.get("pricing_status", "UNKNOWN"),
+                    licence_status=body.get("licence_status", "UNKNOWN"),
+                    notes=body.get("notes", ""), actor="api-owner",
+                )
+                return self._send(201, item)
             if path == "/projects":
                 return self._send(201, self.store.create_project(body.get("name", ""), body.get("idea", "")))
             if path == "/jobs":
                 return self._send(201, self.store.create_job(str(body.get("project_id", "")),
                     body.get("spec"), body.get("tasks"), body.get("budget")))
             parts = path.strip("/").split("/")
+            if len(parts) == 3 and parts[0] == "api-candidates" and parts[2] in {"review", "decision"}:
+                try:
+                    candidate_id = int(parts[1])
+                except ValueError:
+                    raise ValidationError("Candidate ID must be an integer.")
+                if not self.api_registry.get(candidate_id):
+                    return self._send(404, {"error": "API candidate not found"})
+                if parts[2] == "review":
+                    item = self.api_registry.review(
+                        candidate_id,
+                        verification_status=str(body.get("verification_status", "UNVERIFIED")),
+                        licence_status=str(body.get("licence_status", "UNKNOWN")),
+                        pricing_status=str(body.get("pricing_status", "UNKNOWN")),
+                        notes=body.get("notes", ""), actor="api-owner",
+                    )
+                else:
+                    item = self.api_registry.decide(
+                        candidate_id, str(body.get("approval_status", "")),
+                        reason=body.get("reason", ""), actor="api-owner",
+                    )
+                return self._send(200, item)
             if len(parts) == 3 and parts[0] == "jobs" and parts[2] == "transition":
                 return self._send(200, self.store.transition(parts[1], str(body.get("target", "")),
                     actor="api-owner", reason=str(body.get("reason", ""))))
@@ -728,9 +784,11 @@ def serve(host: str = "127.0.0.1", port: int = 8080, database: str = "data/facto
     if host not in {"127.0.0.1", "localhost", "::1"} and os.environ.get("FACTORY_ALLOW_REMOTE") != "1":
         raise RuntimeError("Remote binding is disabled by default. Set FACTORY_ALLOW_REMOTE=1 only behind authenticated TLS.")
     from .specs import SpecStore, build_plan
+    from .api_registry import ApiRegistry
     ApiHandler.build_plan = staticmethod(build_plan)
     ApiHandler.store = Store(database)
     ApiHandler.specs = SpecStore(ApiHandler.store)
+    ApiHandler.api_registry = ApiRegistry(database)
     server = ThreadingHTTPServer((host, port), ApiHandler)
     print(f"AI Software Factory control plane listening on http://{host}:{port}")
     print(f"Database: {database}; agent execution: disabled")

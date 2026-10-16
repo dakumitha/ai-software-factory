@@ -4,6 +4,15 @@ This log records meaningful project milestones and verified evidence. It is not 
 
 ## 2026-10-16
 
+### API Discovery Registry: control-plane integration
+- Exposed candidate creation, search/filtering, detail, review, approval/rejection, and audit history through the existing local JSON HTTP API.
+- Registry records now share the configured control-plane SQLite database; registry audit events are recorded transactionally with create/review/decision mutations.
+- Added HTTP integration coverage for blocked approval, successful review/approval, filtered listing, audit ordering/actor, and missing candidates.
+- The integration remains metadata-only. It does not crawl API-mega-list, call third-party providers, install packages, execute code, or store credentials.
+- Verification status for this commit: pending GitHub Actions; do not describe it as CI-verified until workflows pass.
+
+## 2026-10-16
+
 ### API Discovery Registry: first implementation slice
 - Added a separate SQLite-backed registry for third-party API candidates; the external API-mega-list catalogue remains a discovery reference, not a vendored dependency.
 - Added HTTPS URL validation, duplicate prevention, search/category/status filters, explicit pricing/licence/verification/approval fields, and persistent records.

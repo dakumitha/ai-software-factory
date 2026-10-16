@@ -22,7 +22,8 @@
 - [x] Add durable task-attempt records, idempotency-key conflict detection, and immutable terminal outcomes.
 
 - [x] Add a separate SQLite API Discovery Registry with URL validation, filtering, review states, and an approval gate.
-- [ ] Connect registry review/approval to the control-plane HTTP API and audit event stream.
+- [x] Connect registry candidate listing, creation, review, decisions, and audit history to the control-plane HTTP API.
+- [x] Record registry mutations in a dedicated append-only SQLite audit stream.
 - [ ] Add a safe, human-approved adapter interface for selected providers.
 
 **Gate:** schema evolution and recovery-candidate inventory are implemented; automatic interrupted-job resume, durable task-attempt recovery, encrypted/remote backup retention, and exactly-once external side-effect handling remain unimplemented.

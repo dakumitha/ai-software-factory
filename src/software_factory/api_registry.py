@@ -66,6 +66,16 @@ class ApiRegistry:
             """)
             db.execute("CREATE INDEX IF NOT EXISTS idx_api_candidates_category ON api_candidates(category)")
             db.execute("CREATE INDEX IF NOT EXISTS idx_api_candidates_review ON api_candidates(approval_status, verification_status)")
+            db.execute("""CREATE TABLE IF NOT EXISTS api_registry_events (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                candidate_id INTEGER NOT NULL,
+                at TEXT NOT NULL,
+                actor TEXT NOT NULL,
+                kind TEXT NOT NULL,
+                payload_json TEXT NOT NULL,
+                FOREIGN KEY(candidate_id) REFERENCES api_candidates(id)
+            )""")
+            db.execute("CREATE INDEX IF NOT EXISTS idx_api_registry_events_candidate_id ON api_registry_events(candidate_id, id)")
 
     def _connect(self) -> sqlite3.Connection:
         db = sqlite3.connect(self.path, timeout=10)
@@ -76,9 +86,36 @@ class ApiRegistry:
     def _record(row: sqlite3.Row) -> dict:
         return dict(row)
 
+    @staticmethod
+    def _audit(db: sqlite3.Connection, candidate_id: int, actor: str,
+               kind: str, payload: dict) -> None:
+        actor = actor.strip() if isinstance(actor, str) else ""
+        if not actor or len(actor) > 120:
+            raise RegistryError("actor is required and must be at most 120 characters.")
+        db.execute(
+            "INSERT INTO api_registry_events(candidate_id, at, actor, kind, payload_json) VALUES (?, ?, ?, ?, ?)",
+            (candidate_id, now_utc(), actor, kind, json.dumps(payload, sort_keys=True)),
+        )
+
+    def events(self, candidate_id: int | None = None) -> list[dict]:
+        sql = "SELECT * FROM api_registry_events"
+        args: tuple = ()
+        if candidate_id is not None:
+            sql += " WHERE candidate_id=?"
+            args = (candidate_id,)
+        sql += " ORDER BY id"
+        with self._connect() as db:
+            rows = db.execute(sql, args).fetchall()
+        result = []
+        for row in rows:
+            item = dict(row)
+            item["payload"] = json.loads(item.pop("payload_json"))
+            result.append(item)
+        return result
+
     def add(self, name: str, category: str, source_url: str, *,
             provider_url: str = "", pricing_status: str = "UNKNOWN",
-            licence_status: str = "UNKNOWN", notes: str = "") -> dict:
+            licence_status: str = "UNKNOWN", notes: str = "", actor: str = "system") -> dict:
         name = name.strip() if isinstance(name, str) else ""
         category = category.strip().lower() if isinstance(category, str) else ""
         if not name or len(name) > 200:
@@ -106,6 +143,9 @@ class ApiRegistry:
                 """, (name, category, source_url, provider_url, pricing_status, licence_status,
                       notes.strip(), now, now))
                 row = db.execute("SELECT * FROM api_candidates WHERE id=?", (cur.lastrowid,)).fetchone()
+                self._audit(db, int(cur.lastrowid), actor, "candidate.created", {
+                    "name": name, "category": category, "source_url": source_url,
+                })
         except sqlite3.IntegrityError as exc:
             raise RegistryError("This API candidate is already registered with the same source URL.") from exc
         return self._record(row)
@@ -136,7 +176,8 @@ class ApiRegistry:
             return [self._record(row) for row in db.execute(sql, args).fetchall()]
 
     def review(self, candidate_id: int, *, verification_status: str,
-               licence_status: str, pricing_status: str, notes: str = "") -> dict:
+               licence_status: str, pricing_status: str, notes: str = "",
+               actor: str = "system") -> dict:
         verification_status = verification_status.upper()
         licence_status = licence_status.upper()
         pricing_status = pricing_status.upper()
@@ -158,9 +199,15 @@ class ApiRegistry:
             """, (verification_status, licence_status, pricing_status,
                   notes.strip() or row["notes"], verified_at, now, candidate_id))
             updated = db.execute("SELECT * FROM api_candidates WHERE id=?", (candidate_id,)).fetchone()
+            self._audit(db, candidate_id, actor, "candidate.reviewed", {
+                "verification_status": verification_status,
+                "licence_status": licence_status,
+                "pricing_status": pricing_status,
+            })
         return self._record(updated)
 
-    def decide(self, candidate_id: int, approval_status: str, *, reason: str = "") -> dict:
+    def decide(self, candidate_id: int, approval_status: str, *, reason: str = "",
+               actor: str = "system") -> dict:
         approval_status = approval_status.upper()
         if approval_status not in APPROVAL:
             raise RegistryError(f"approval_status must be one of {sorted(APPROVAL)}.")
@@ -183,6 +230,9 @@ class ApiRegistry:
             db.execute("UPDATE api_candidates SET approval_status=?, notes=?, updated_at=? WHERE id=?",
                        (approval_status, notes[:4000], now_utc(), candidate_id))
             updated = db.execute("SELECT * FROM api_candidates WHERE id=?", (candidate_id,)).fetchone()
+            self._audit(db, candidate_id, actor, "candidate.decision", {
+                "approval_status": approval_status, "reason": reason.strip(),
+            })
         return self._record(updated)
 
 

@@ -16,7 +16,7 @@ Status: proposed architecture. Technology choices remain open until the integrat
 10. **Release controller**: evaluates required evidence, approval status, target configuration, rollback plan, and release state.
 11. **Integration registry**: records external repositories, versions, licences, maintenance evidence, risks, and adapter status.
 
-12. **API Discovery Registry (first slice implemented)**: a separate SQLite catalogue for candidate APIs, source/provider URLs, pricing and licence labels, verification state, and human approval state.
+12. **API Discovery Registry (first slice implemented)**: a SQLite catalogue for candidate APIs, source/provider URLs, pricing and licence labels, verification state, and human approval state. It now shares the control-plane database, exposes JSON endpoints for candidate search/review/decisions, and writes a dedicated append-only registry audit stream. This is not yet a provider invocation adapter.
 
 ## Trust boundaries
 

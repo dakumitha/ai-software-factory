@@ -38,7 +38,7 @@ The first slice exposes a Python interface for review/approval:
     registry.review(candidate["id"], verification_status="VERIFIED", licence_status="APPROVED", pricing_status="FREEMIUM", notes="Official documentation reviewed")
     registry.decide(candidate["id"], "APPROVED", reason="Approved for adapter prototype")
 
-The registry is not yet connected to the HTTP control-plane API, agent planner, model router, package manager, or execution environment. Approval is metadata, not proof that a provider is secure or appropriate for every use. Re-check terms, costs, quotas, data handling, maintenance, and permitted use before creating an adapter. Keep provider secrets out of source code, prompts, registry notes, and logs.
+The registry is now connected to the local HTTP control-plane API for candidate creation, search/filtering, detail, review, decisions, and audit history. Registry mutations are recorded in a dedicated SQLite audit stream in the same database configured for the control plane. It is not connected to the agent planner, model router, package manager, or execution environment. Approval is metadata, not proof that a provider is secure or appropriate for every use. The HTTP endpoints currently have no authentication and must remain loopback-only. Re-check terms, costs, quotas, data handling, maintenance, and permitted use before creating an adapter. Keep provider secrets out of source code, prompts, registry notes, and logs.
 
 ## External catalogue safety
 

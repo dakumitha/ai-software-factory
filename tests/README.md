@@ -21,7 +21,17 @@ PYTHONPATH=src python -m unittest discover -s tests -v
 
 ## API registry boundaries
 
-The registry records third-party API metadata only. It does not crawl websites, invoke provider endpoints, install dependencies, execute examples, or manage secrets. Approval requires a verified candidate, an approved/not-applicable licence status, and known pricing. This is a metadata policy gate, not a guarantee of provider security, availability, or future pricing.
+The registry records third-party API metadata only. It does not crawl websites, invoke provider endpoints, install dependencies, execute examples, or manage secrets. The control-plane HTTP API supports candidate creation/search/detail, review, approval/rejection, and audit history. Registry create/review/decision events are stored transactionally in a dedicated audit table in the configured SQLite database. Approval requires a verified candidate, an approved/not-applicable licence status, and known pricing. This is a metadata policy gate, not a guarantee of provider security, availability, or future pricing.
+
+HTTP endpoints:
+- `GET /api-candidates?query=&category=&status=`
+- `GET /api-candidates/{id}`
+- `GET /api-candidates/events` and `GET /api-candidates/{id}/events`
+- `POST /api-candidates`
+- `POST /api-candidates/{id}/review`
+- `POST /api-candidates/{id}/decision`
+
+These are currently local development endpoints without authentication; keep the service loopback-only. Do not expose them remotely until authentication, authorization, and production deployment controls are implemented.
 
 ## Checkpoint contract and limitations
 

@@ -76,6 +76,18 @@ class ApiRegistryTests(unittest.TestCase):
                                        licence_status="UNKNOWN", pricing_status="UNKNOWN")
         self.assertEqual(changed["approval_status"], "PENDING")
 
+    def test_registry_mutations_write_audit_events(self):
+        item = self.candidate()
+        self.registry.review(item["id"], verification_status="VERIFIED",
+                             licence_status="APPROVED", pricing_status="FREE", actor="reviewer")
+        self.registry.decide(item["id"], "APPROVED", reason="Reviewed", actor="owner")
+        events = self.registry.events(item["id"])
+        self.assertEqual([event["kind"] for event in events], [
+            "candidate.created", "candidate.reviewed", "candidate.decision",
+        ])
+        self.assertEqual([event["actor"] for event in events], ["system", "reviewer", "owner"])
+        self.assertEqual(events[-1]["payload"]["approval_status"], "APPROVED")
+
     def test_invalid_status_is_rejected(self):
         item = self.candidate()
         with self.assertRaises(RegistryError):
