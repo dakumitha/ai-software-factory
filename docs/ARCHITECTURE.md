@@ -78,3 +78,8 @@ Prefer the smallest coherent system that safely coordinates existing tools. Ever
 ## API registry operator workflow
 
 The registry CLI supports candidate creation, search, review, approval/rejection, and audit-history inspection against a chosen SQLite database. Review and decision commands use the same policy gates as the HTTP API. The CLI records operator-supplied evidence; it does not independently verify provider claims or retrieve API-mega-list entries.
+
+
+## Curated catalogue import
+
+`software_factory.catalogue_import` previews operator-supplied local JSON/CSV API catalogue files and can import validated rows into the review-gated registry. Preview is the default; `--apply` is explicit. Import is limited to 5,000 records per file, rejects unsupported fields, validates HTTPS URLs, reports duplicates, and leaves new entries PENDING/UNVERIFIED. It does not fetch a catalogue, scrape websites, or execute imported content.

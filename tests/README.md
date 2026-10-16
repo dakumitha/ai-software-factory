@@ -28,3 +28,9 @@ Checkpoints and task attempts are orchestration metadata, not a complete executo
 ## Backup
 
 Store.backup_to(destination) uses SQLite's online backup API. Protect backups, keep them outside public repositories, and test restoration. It does not encrypt or upload them remotely.
+
+## Curated API catalogue import
+
+- `software_factory.catalogue_import` reads local JSON/CSV only. Preview is read-only and default; `--apply` is required to write.
+- Only `name`, `category`, `source_url`, and optional `provider_url`, `pricing_status`, `licence_status`, `notes` are accepted. Files are capped at 5,000 rows and validated for HTTPS URLs and duplicates.
+- Imported records remain PENDING and UNVERIFIED. No remote fetching, crawling, package installation, sample execution, or provider invocation occurs.

@@ -4,6 +4,14 @@ This log records meaningful milestones and verified evidence. It does not replac
 
 ## 2026-10-16
 
+### API Discovery Registry: safe local catalogue import
+- Added preview-first JSON/CSV import for operator-supplied local catalogue subsets, without crawling or copying the full API-mega-list catalogue.
+- Added field allowlisting, a 5,000-record cap, HTTPS URL validation, duplicate detection, and explicit `--apply` opt-in.
+- Imported records remain PENDING and UNVERIFIED; no provider is called and no content is executed.
+- Added tests for preview, apply status, invalid URLs, duplicate handling, JSON/CSV input, unknown fields, and file-size limits.
+- Verification status: pending GitHub Actions.
+
+
 ### API Discovery Registry: operator CLI lifecycle
 - Added CLI commands for reviewing candidate evidence, approving/rejecting candidates, and inspecting audit history.
 - Added operator actor labels and constrained status choices; approval policy remains enforced by the registry.

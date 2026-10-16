@@ -56,3 +56,21 @@ PYTHONPATH=src python -m software_factory.api_registry --database data/api-regis
 ```
 
 Approval fails unless verification is VERIFIED, licence is APPROVED or NOT_APPLICABLE, and pricing is known. The CLI does not verify a service on your behalf; the operator must inspect evidence and enter accurate statuses. Running events without a candidate ID shows the full audit history. These commands make review usable without an HTTP client, but do not add a catalogue crawler or automatically import third-party directory entries.
+
+
+## Import a permitted local catalogue subset
+
+The importer supports local JSON and CSV files. It does not download or scrape API-mega-list. Obtain a permitted curated export/subset and confirm reuse rights first. Default mode only previews:
+
+```sh
+PYTHONPATH=src python -m software_factory.catalogue_import ./curated-apis.json --database data/api-registry.sqlite3
+PYTHONPATH=src python -m software_factory.catalogue_import ./curated-apis.csv --database data/api-registry.sqlite3
+```
+
+After reviewing the preview, persist records with explicit `--apply`:
+
+```sh
+PYTHONPATH=src python -m software_factory.catalogue_import ./curated-apis.json --database data/api-registry.sqlite3 --apply --actor operator
+```
+
+JSON may be an array or an object with an `apis` or `records` array. CSV headers use the same field names. Required: `name`, `category`, `source_url`. Optional: `provider_url`, `pricing_status`, `licence_status`, `notes`. Unsupported fields, non-text values, invalid HTTPS URLs, duplicates, or row validation errors stop the import. New records remain PENDING and UNVERIFIED. Run one importer at a time; never put credentials or confidential data in notes.

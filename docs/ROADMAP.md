@@ -16,6 +16,7 @@
 - [x] Registry candidate lifecycle exposed through the local control-plane API.
 - [x] Explicit adapter protocol and approval-gated in-process adapter registry.
 - [x] Command-line review, decision, and audit-history operations for the API registry.
+- [x] Preview-first local JSON/CSV catalogue import with field allowlisting, URL validation, duplicate detection, and pending-only records.
 - [ ] Safe phone-friendly control interface.
 - [ ] Provider-specific adapters only after provider terms, data flow, timeouts, quotas, and tests are reviewed.
 
