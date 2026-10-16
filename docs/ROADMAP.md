@@ -12,6 +12,7 @@
 - [x] Bounded local artifact writer with path checks, size cap, explicit overwrite, and SHA-256 receipt.
 - [x] Non-executing artifact verification for path, size, digest, and optional JSON syntax.
 - [x] Bounded create → read-back verify → persist evidence helper workflow; it always stops at human review.
+- [x] Explicit built-in `artifact_integrity` task handler with strict payload validation; unknown task kinds are rejected.
 - [ ] Independent code/build/test verification and safe isolated executor.
 - [ ] Authentication for any non-local access.
 
@@ -21,6 +22,7 @@
 - [x] Artifact evidence reports for digest and JSON syntax checks.
 - [x] Add read-only CLI commands for job listing and status inspection.
 - [ ] Add one-step execution CLI only after safe built-in task handlers and explicit execution policy are defined.
+- [x] Add a narrow artifact-integrity task adapter with regression tests; this is not a shell runner or isolated build/test executor.
 - [x] Add an isolated deterministic dry-run demo for spec approval, planning, leases, task attempts, and checkpoints without external model/API costs. The demo deliberately stops at review and does not claim acceptance tests passed.
 - [x] Add a bounded artifact workflow that persists read-back verification evidence. This is a file-integrity milestone, not a code build/test gate.
 
