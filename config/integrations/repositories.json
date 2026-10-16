@@ -153,6 +153,57 @@
         "block model calls when budget or billing state is unknown",
         "worker cannot approve its own output or release"
       ]
+    },
+    {
+      "id": "vercel-agent-skills-cli",
+      "repository": "https://github.com/vercel-labs/skills",
+      "role": "discover-and-manage-portable-agent-skills",
+      "priority": "P0",
+      "mode": "optional-developer-tool",
+      "status": "candidate-not-installed",
+      "license_review": "Review the exact pinned revision and bundled third-party notices before use",
+      "cost_class": "CLI is open source; individual skill providers and coding agents may have separate costs",
+      "enabled_by_default": false,
+      "guardrails": [
+        "prefer the canonical upstream over forks such as find-skills",
+        "list and inspect skills before installing",
+        "install only selected skills rather than all skills",
+        "review scripts, hooks, tools and network requirements in every skill"
+      ]
+    },
+    {
+      "id": "anthropic-claude-code",
+      "repository": "https://github.com/anthropics/claude-code",
+      "role": "optional-terminal-coding-agent-and-workflow-reference",
+      "priority": "P2",
+      "mode": "external-agent-evaluation-only",
+      "status": "candidate-not-installed",
+      "license_review": "Review the current licence and commercial terms; do not assume the service or model usage is free",
+      "cost_class": "May require an eligible Anthropic account and paid usage; excluded from zero-cost core",
+      "enabled_by_default": false,
+      "guardrails": [
+        "do not require Claude Code for factory core functionality",
+        "no credentials in repository files or logs",
+        "confirm account terms and cost limits before model use",
+        "worker output must pass factory tests and human approval"
+      ]
+    },
+    {
+      "id": "mintlify-starlight-docs",
+      "repository": "https://github.com/withastro/starlight",
+      "role": "candidate-documentation-portal-generator",
+      "priority": "P2",
+      "mode": "static-documentation-site-evaluation",
+      "status": "candidate-not-installed",
+      "license_review": "Review the exact release and dependency licences before adoption",
+      "cost_class": "Static site generation can be run locally; hosting is optional and may have separate costs",
+      "enabled_by_default": false,
+      "guardrails": [
+        "evaluate only if a dedicated browsable documentation website is needed",
+        "keep Markdown documentation portable and readable without the site generator",
+        "do not move canonical engineering decisions into generated website artifacts",
+        "check accessibility, search, build reproducibility and deployment costs"
+      ]
     }
   ]
 }
