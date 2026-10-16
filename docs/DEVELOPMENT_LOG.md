@@ -2,6 +2,13 @@
 
 ## 2026-10-16
 
+### API-connected phone + desktop control room
+- Added `web/connected.html`, a responsive interface that loads and creates projects through the factory JSON API instead of browser-local storage.
+- Added `software_factory.webapp` and the `--web` launch flag to serve the UI and existing API from one origin, retaining loopback-only defaults.
+- Added integration tests for the page route, health check, project creation and subsequent API listing.
+- Updated operating instructions and architecture docs. The connection is to the existing local API only; authentication, public hosting, cross-device access over the internet and remote agent execution remain unimplemented.
+- Verification status: implementation committed; GitHub Actions must validate the latest commit. No deployment or remote worker is claimed.
+
 ### Phone + desktop control room prototype
 - Added a responsive, dependency-free control-room UI with overview, project drafts, compute/agent setup guidance, and activity/evidence views.
 - Added browser-local project creation and explicit prototype-state messaging; it does not claim remote execution, real agent runs, or multi-device synchronization.
