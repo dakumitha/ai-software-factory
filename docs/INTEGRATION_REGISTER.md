@@ -73,3 +73,9 @@ For each candidate, record:
 
 These entries are not evidence of successful installation. The exact revision, complete transitive licence inventory, and runtime behaviour must be reviewed before any candidate changes to **Integrated**. See [External Repository Integration Guide](EXTERNAL_REPOSITORY_INTEGRATION_GUIDE.md) and the machine-readable [repository integration manifest](../config/integrations/repositories.json).
 
+| [vercel-labs/skills](https://github.com/vercel-labs/skills) | Discover and manage portable agent skills | Candidate, not installed | Prefer canonical upstream over forks; inspect skills before installing |
+| [anthropics/claude-code](https://github.com/anthropics/claude-code) | Optional terminal coding-agent path | Candidate, not installed | May require paid model usage; excluded from zero-cost core |
+| [Astro Starlight](https://github.com/withastro/starlight) | Optional searchable documentation website | Candidate, not installed | Not required for Markdown documentation; verify release/dependency licences |
+
+For these additions, see [External Repository Integration Guide](EXTERNAL_REPOSITORY_INTEGRATION_GUIDE.md). “AnyDoc” has not been identified as a specific canonical repository from the phrase alone; provide its exact GitHub URL if that is a repository name.
+
