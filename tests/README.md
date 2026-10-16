@@ -19,6 +19,10 @@ PYTHONPATH=src python -m unittest discover -s tests -v
 - SQLite online backup and restoration of projects, jobs, checkpoint state, and audit events.
 - HTTP API behaviour for projects, jobs, specification approval/planning, and checkpoint updates.
 
+## API registry boundaries
+
+The registry records third-party API metadata only. It does not crawl websites, invoke provider endpoints, install dependencies, execute examples, or manage secrets. Approval requires a verified candidate, an approved/not-applicable licence status, and known pricing. This is a metadata policy gate, not a guarantee of provider security, availability, or future pricing.
+
 ## Checkpoint contract and limitations
 
 A checkpoint stores orchestration progress in the job's SQLite record. `completed_task_ids` must refer to tasks belonging to that job and cannot remove a previously recorded completion. Repeating the exact same checkpoint does not create another audit event.

@@ -4,6 +4,17 @@ This log records meaningful project milestones and verified evidence. It is not 
 
 ## 2026-10-16
 
+### API Discovery Registry: first implementation slice
+- Added a separate SQLite-backed registry for third-party API candidates; the external API-mega-list catalogue remains a discovery reference, not a vendored dependency.
+- Added HTTPS URL validation, duplicate prevention, search/category/status filters, explicit pricing/licence/verification/approval fields, and persistent records.
+- Approval is blocked unless the candidate is verified, its licence status is approved or not applicable, and pricing is known. Any review update resets approval to pending.
+- Added a CLI for adding and searching records plus unit tests for persistence, validation, filtering, review gates, and approval reset behaviour.
+- Added `docs/API_DISCOVERY_REGISTRY.md` and updated architecture, roadmap, README, and test instructions.
+- Safety boundary: no network crawling, third-party API invocation, package installation, code execution, credential storage, or automatic provider integration is included.
+- Verification status for this commit: pending GitHub Actions. Do not describe the feature as CI-verified until workflows pass.
+
+## 2026-10-16
+
 ### Documentation is a continuous engineering requirement
 - Added `docs/DOCUMENTATION_STANDARD.md` defining documentation-before/during/after implementation, change-specific update expectations, accuracy labels, and a review checklist.
 - Updated the repository README to link the standard and this log.

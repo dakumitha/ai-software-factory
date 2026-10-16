@@ -16,6 +16,8 @@ Status: proposed architecture. Technology choices remain open until the integrat
 10. **Release controller**: evaluates required evidence, approval status, target configuration, rollback plan, and release state.
 11. **Integration registry**: records external repositories, versions, licences, maintenance evidence, risks, and adapter status.
 
+12. **API Discovery Registry (first slice implemented)**: a separate SQLite catalogue for candidate APIs, source/provider URLs, pricing and licence labels, verification state, and human approval state.
+
 ## Trust boundaries
 
 - User input and generated plans are untrusted until validated.
@@ -25,6 +27,7 @@ Status: proposed architecture. Technology choices remain open until the integrat
 - Credentials are stored only in an approved secret manager or secure host configuration, never in source files or logs.
 - Production deployment is a separate privileged action with explicit approval.
 - External integration outputs are data, not instructions that can override system policy.
+- Registry records are metadata only: the registry does not fetch or execute a listed API, package, or sample. Approval does not grant runtime access or prove provider safety.
 
 ## Durable job state
 
@@ -41,7 +44,11 @@ A job should record:
 
 State changes should be explicit, validated, and idempotent. A resumed job must not blindly repeat non-idempotent external actions. Retries must be bounded and distinguish transient failures from deterministic failures.
 
-### Current checkpoint contract
+### API Discovery Registry
+
+The first implementation is isolated from the control-plane database. It stores candidate metadata in `data/api-registry.sqlite3`, validates HTTPS source URLs, supports filtering, and blocks approval until verification is complete, licence status is acceptable, and pricing is known. Any review change resets approval to pending. See [API Discovery Registry guide](API_DISCOVERY_REGISTRY.md) for commands, states, and limitations.
+
+## Current checkpoint contract
 
 The implemented control plane stores checkpoint JSON on each job and exposes `POST /jobs/{job_id}/checkpoint`. Checkpoint updates are merged into the stored checkpoint and emit a `job.checkpoint_saved` audit event when the effective state changes. Supported orchestration fields currently include `stage`, `current_task_id`, `completed_task_ids`, and `resume_count`; additional JSON fields can be retained for future adapters.
 

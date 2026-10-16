@@ -25,6 +25,15 @@ Then use:
 
 The server binds to loopback by default. Remote binding is blocked unless `FACTORY_ALLOW_REMOTE=1` is explicitly set; do not expose it to the public internet without authentication, TLS, and a hardened deployment configuration. The current API is a development foundation, not a production-secure hosted service. Generated code execution is deliberately disabled.
 
+## API Discovery Registry
+
+A separate SQLite-backed registry can record and search third-party API candidates without invoking them:
+
+    PYTHONPATH=src python -m software_factory.api_registry add --name "Example API" --category developer-tools --source-url "https://github.com/example/catalogue"
+    PYTHONPATH=src python -m software_factory.api_registry list --status PENDING
+
+See [API Discovery Registry guide](docs/API_DISCOVERY_REGISTRY.md) for the review gate and limitations.
+
 ## Design principles
 
 1. **Reuse before rebuild:** evaluate existing projects and tools before writing replacements.
@@ -46,6 +55,7 @@ Idea → clarification interview → requirements and acceptance criteria → ar
 
 - [Product vision and scope](docs/PRODUCT_VISION.md)
 - [Architecture and trust boundaries](docs/ARCHITECTURE.md)
+- [API Discovery Registry](docs/API_DISCOVERY_REGISTRY.md)
 - [Integration register and audit rules](docs/INTEGRATION_REGISTER.md)
 - [Delivery roadmap and acceptance gates](docs/ROADMAP.md)
 - [Security policy](SECURITY.md)

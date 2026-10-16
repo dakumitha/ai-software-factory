@@ -21,6 +21,10 @@
 - [x] Add expiring worker leases with token-checked heartbeat/release; keep live-leased jobs out of the recovery inventory.
 - [x] Add durable task-attempt records, idempotency-key conflict detection, and immutable terminal outcomes.
 
+- [x] Add a separate SQLite API Discovery Registry with URL validation, filtering, review states, and an approval gate.
+- [ ] Connect registry review/approval to the control-plane HTTP API and audit event stream.
+- [ ] Add a safe, human-approved adapter interface for selected providers.
+
 **Gate:** schema evolution and recovery-candidate inventory are implemented; automatic interrupted-job resume, durable task-attempt recovery, encrypted/remote backup retention, and exactly-once external side-effect handling remain unimplemented.
 
 ## Phase 1: Free execution route and integration choices
