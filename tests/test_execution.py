@@ -45,7 +45,7 @@ class ExecutionControllerTests(unittest.TestCase):
         result = controller.run_next(self.job["id"], self.lease["token"])
         self.assertEqual(result["status"], "TASK_FAILED")
         self.assertEqual(self.store.list_task_attempts(self.job["id"])[0]["status"], "FAILED")
-        self.assertEqual(self.store.get_job(self.job["id"])["checkpoint"]["completed_task_ids"], [])
+        self.assertEqual(self.store.get_job(self.job["id"])["checkpoint"].get("completed_task_ids", []), [])
 
     def test_handler_output_must_be_json_serializable(self):
         controller = ExecutionController(self.store, {"echo": lambda _: object()})
