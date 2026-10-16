@@ -41,6 +41,18 @@ A job should record:
 
 State changes should be explicit, validated, and idempotent. A resumed job must not blindly repeat non-idempotent external actions. Retries must be bounded and distinguish transient failures from deterministic failures.
 
+### Current checkpoint contract
+
+The implemented control plane stores checkpoint JSON on each job and exposes `POST /jobs/{job_id}/checkpoint`. Checkpoint updates are merged into the stored checkpoint and emit a `job.checkpoint_saved` audit event when the effective state changes. Supported orchestration fields currently include `stage`, `current_task_id`, `completed_task_ids`, and `resume_count`; additional JSON fields can be retained for future adapters.
+
+- `current_task_id`, when supplied, must identify a task in the job.
+- `completed_task_ids` must contain unique IDs from that job's task graph.
+- Previously completed task IDs cannot be removed by a later checkpoint.
+- An identical checkpoint is a no-op and does not add duplicate audit events.
+- Checkpoints persist across SQLite store re-open.
+
+These checks protect the progress record from common accidental regressions. They do not establish exactly-once execution or prove that a task succeeded. Agent execution, task-attempt records, process-crash recovery, and output verification are still future work.
+
 ## Suggested job lifecycle
 
 `DRAFT → NEEDS_CLARIFICATION → SPEC_READY → PLAN_READY → AWAITING_APPROVAL → QUEUED → RUNNING → VERIFYING → REVIEW_REQUIRED → RELEASE_READY → RELEASED`

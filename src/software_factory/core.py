@@ -165,6 +165,54 @@ class Store:
             self._event(db, job_id, actor, "job.transition", {"from": current, "to": target, "reason": reason})
         return self.get_job(job_id)  # type: ignore[return-value]
 
+
+    def save_checkpoint(self, job_id: str, checkpoint: dict[str, Any],
+                        actor: str = "orchestrator") -> dict[str, Any]:
+        """Persist resumable progress without allowing completed tasks to be undone.
+
+        This records orchestration metadata only. It does not execute a task or
+        independently prove that a task's output passed verification.
+        """
+        if not isinstance(checkpoint, dict):
+            raise ValidationError("Checkpoint must be an object.")
+        with _LOCK, self.connect() as db:
+            row = db.execute("SELECT * FROM jobs WHERE id=?", (job_id,)).fetchone()
+            if not row:
+                raise ValidationError("Job does not exist.")
+            job = self._decode_job(row)
+            previous = job["checkpoint"]
+            merged = {**previous, **checkpoint}
+            task_ids = {task["id"] for task in job["tasks"]}
+
+            completed = merged.get("completed_task_ids", [])
+            if not isinstance(completed, list) or not all(isinstance(item, str) for item in completed):
+                raise ValidationError("completed_task_ids must be a list of task IDs.")
+            if len(completed) != len(set(completed)):
+                raise ValidationError("completed_task_ids must not contain duplicates.")
+            unknown = set(completed) - task_ids
+            if unknown:
+                raise ValidationError(f"Checkpoint contains unknown completed tasks: {sorted(unknown)}")
+            previous_completed = set(previous.get("completed_task_ids", []))
+            if not previous_completed.issubset(set(completed)):
+                raise ValidationError("Checkpoint cannot remove previously completed tasks.")
+
+            current_task = merged.get("current_task_id")
+            if current_task is not None and current_task not in task_ids:
+                raise ValidationError("current_task_id must refer to a task in this job.")
+            merged["completed_task_ids"] = sorted(completed)
+            if merged == previous:
+                return job
+
+            now = utc_now()
+            db.execute("UPDATE jobs SET checkpoint_json=?, updated_at=? WHERE id=?",
+                       (json.dumps(merged, sort_keys=True), now, job_id))
+            self._event(db, job_id, actor, "job.checkpoint_saved", {
+                "completed_task_ids": merged["completed_task_ids"],
+                "current_task_id": merged.get("current_task_id"),
+                "stage": merged.get("stage"),
+            })
+        return self.get_job(job_id)  # type: ignore[return-value]
+
     def events(self, job_id: str) -> list[dict[str, Any]]:
         with self.connect() as db:
             rows = db.execute("SELECT * FROM events WHERE job_id=? ORDER BY id", (job_id,)).fetchall()
@@ -306,6 +354,11 @@ class ApiHandler(BaseHTTPRequestHandler):
             if len(parts) == 3 and parts[0] == "jobs" and parts[2] == "transition":
                 return self._send(200, self.store.transition(parts[1], str(body.get("target", "")),
                     actor="api-owner", reason=str(body.get("reason", ""))))
+            if len(parts) == 3 and parts[0] == "jobs" and parts[2] == "checkpoint":
+                if "checkpoint" not in body:
+                    raise ValidationError("A checkpoint object is required.")
+                return self._send(200, self.store.save_checkpoint(
+                    parts[1], body["checkpoint"], actor="api-owner"))
             if len(parts) == 3 and parts[0] == "projects" and parts[2] == "specifications":
                 return self._send(201, self.specs.save(parts[1], body))
             if len(parts) == 3 and parts[0] == "specifications" and parts[2] == "approve":

@@ -26,6 +26,42 @@ class CoreTests(unittest.TestCase):
         self.assertEqual(reopened.get_job(job["id"])["spec"]["goal"], "demo")
         self.assertEqual(reopened.get_job(job["id"])["state"], "DRAFT")
 
+    def test_checkpoint_survives_store_reopen_and_records_audit_event(self):
+        job = self.store.create_job(self.project["id"], tasks=[
+            {"id": "design", "title": "Design"},
+            {"id": "build", "title": "Build", "depends_on": ["design"]},
+        ])
+        saved = self.store.save_checkpoint(job["id"], {
+            "stage": "building", "current_task_id": "build",
+            "completed_task_ids": ["design"], "resume_count": 1,
+        })
+        reopened = Store(Path(self.tmp.name) / "factory.sqlite3")
+        recovered = reopened.get_job(job["id"])
+        self.assertEqual(recovered["checkpoint"], saved["checkpoint"])
+        self.assertEqual(recovered["checkpoint"]["completed_task_ids"], ["design"])
+        self.assertEqual(reopened.events(job["id"])[-1]["kind"], "job.checkpoint_saved")
+
+    def test_checkpoint_save_is_idempotent_for_identical_state(self):
+        job = self.store.create_job(self.project["id"], tasks=[{"id": "one", "title": "One"}])
+        checkpoint = {"stage": "running", "current_task_id": "one", "completed_task_ids": []}
+        self.store.save_checkpoint(job["id"], checkpoint)
+        count = len(self.store.events(job["id"]))
+        self.store.save_checkpoint(job["id"], checkpoint)
+        self.assertEqual(len(self.store.events(job["id"])), count)
+
+    def test_checkpoint_rejects_unknown_or_regressed_completed_tasks(self):
+        job = self.store.create_job(self.project["id"], tasks=[{"id": "one", "title": "One"}])
+        with self.assertRaises(ValidationError):
+            self.store.save_checkpoint(job["id"], {"completed_task_ids": ["unknown"]})
+        self.store.save_checkpoint(job["id"], {"completed_task_ids": ["one"]})
+        with self.assertRaises(ValidationError):
+            self.store.save_checkpoint(job["id"], {"completed_task_ids": []})
+
+    def test_checkpoint_rejects_unknown_current_task(self):
+        job = self.store.create_job(self.project["id"], tasks=[{"id": "one", "title": "One"}])
+        with self.assertRaises(ValidationError):
+            self.store.save_checkpoint(job["id"], {"current_task_id": "missing"})
+
     def test_state_transition_is_logged_and_invalid_transition_rejected(self):
         job = self.store.create_job(self.project["id"])
         self.store.transition(job["id"], "NEEDS_CLARIFICATION", reason="Idea incomplete")
@@ -184,6 +220,24 @@ class ApiTests(unittest.TestCase):
         status, payload = self.request("/projects/missing-project/specifications")
         self.assertEqual(status, 404)
         self.assertIn("Project not found", payload["error"])
+
+    def test_checkpoint_api_persists_task_progress(self):
+        _, project = self.request("/projects", {"name": "Recovery API", "idea": "Test durable checkpoints"})
+        _, job = self.request("/jobs", {"project_id": project["id"], "tasks": [
+            {"id": "design", "title": "Design"},
+            {"id": "build", "title": "Build", "depends_on": ["design"]},
+        ]})
+        status, updated = self.request(f"/jobs/{job['id']}/checkpoint", {
+            "checkpoint": {"stage": "building", "current_task_id": "build",
+                           "completed_task_ids": ["design"]}
+        })
+        self.assertEqual(status, 200, updated)
+        self.assertEqual(updated["checkpoint"]["completed_task_ids"], ["design"])
+        status, error = self.request(f"/jobs/{job['id']}/checkpoint", {
+            "checkpoint": {"completed_task_ids": ["not-a-task"]}
+        })
+        self.assertEqual(status, 400)
+        self.assertIn("unknown completed tasks", error["error"])
 
     def test_spec_api_requires_approval_before_plan(self):
         _, project = self.request("/projects", {"name": "API Demo", "idea": "A small app"})

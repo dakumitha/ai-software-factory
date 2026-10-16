@@ -14,7 +14,10 @@
 - [x] Add API integration tests for the current control-plane and specification endpoints.
 - [ ] Build a safe phone-friendly control interface.
 
-**Gate:** current control-plane and specification tests pass in GitHub Actions. Persistence checks cover selected store-reopen cases; full interrupted-job resume and checkpoint consistency remain to be proven by dedicated recovery tests.
+- [x] Add durable checkpoint update API with validation and audit events.
+- [x] Test checkpoint persistence across store reopen, idempotent repeated writes, unknown task rejection, and completed-task regression rejection.
+
+**Gate:** current control-plane, specification, and checkpoint tests pass in GitHub Actions. Full interrupted-job resume, task-attempt recovery, backup/restore, and exactly-once external side-effect handling remain unimplemented.
 
 ## Phase 1: Free execution route and integration choices
 - [ ] Compare Spec Kit and OpenSpec on one representative feature; select one primary.
