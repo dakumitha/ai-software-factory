@@ -8,7 +8,7 @@ A cloud-first, repository-driven software production system designed to turn ide
 
 ## Phone + desktop control room
 
-A responsive UI prototype is available at [`web/index.html`](web/index.html). It is designed for use from both a phone and desktop while heavy work runs on separate compute. The current prototype saves project drafts in browser-local storage only; it does not yet connect to a remote worker or sync projects across devices. See [Phone + Compute Control Room](docs/PHONE_COMPUTE_CONTROL_ROOM.md) for the target architecture and acceptance criteria.
+A responsive, API-connected local control room is available through the `--web` launch option. It reads and creates projects through the existing SQLite-backed API, so records persist across browser sessions on that server. This is still a development prototype: it has no authentication, remote worker, hosted deployment, or safe public cross-device access. The standalone [`web/index.html`](web/index.html) remains the local-storage-only mockup. See [Phone + Compute Control Room](docs/PHONE_COMPUTE_CONTROL_ROOM.md) for architecture and limits.
 
 ## Run the current control plane
 
@@ -17,6 +17,14 @@ Requires Python 3.11 or newer. No Python runtime dependencies are required for t
 ```sh
 PYTHONPATH=src python -m software_factory --host 127.0.0.1 --port 8080
 ```
+
+To open the connected control room and API on the same local origin, run:
+
+```sh
+PYTHONPATH=src python -m software_factory --web --host 127.0.0.1 --port 8080
+```
+
+Open `http://127.0.0.1:8080/`. The connected UI uses the server API; it does not silently fall back to browser-only storage.
 
 Then use:
 - `GET /health` for service status
