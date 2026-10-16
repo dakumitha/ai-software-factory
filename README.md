@@ -37,6 +37,22 @@ Then use:
 
 The server binds to loopback by default. Remote binding is blocked unless `FACTORY_ALLOW_REMOTE=1` is explicitly set; do not expose it to the public internet without authentication, TLS, and a hardened deployment configuration. The current API is a development foundation, not a production-secure hosted service. Generated code execution is deliberately disabled.
 
+## Deterministic dry-run demo
+
+Run the factory's orchestration flow without paid services, network calls, an AI provider, or shell execution:
+
+```sh
+PYTHONPATH=src python -m software_factory --demo
+```
+
+The demo uses a disposable temporary database and reports the specification approval, generated task plan, worker lease, task attempts, and final review state. It is an orchestration demonstration only: it does not generate source code or run the acceptance tests. See [Deterministic Demo](docs/DETERMINISTIC_DEMO.md).
+
+Run the focused regression tests with:
+
+```sh
+PYTHONPATH=src python -m unittest discover -s tests -p 'test_demo.py' -v
+```
+
 ## API Discovery Registry
 
 The SQLite-backed API Discovery Registry is also exposed through the local JSON API. It supports candidate creation, filtering, review, approval/rejection, and audit history without invoking third-party services. For CLI use:
@@ -90,6 +106,7 @@ See [Multi-Product Software Factory Strategy](docs/PRODUCT_FAMILY_STRATEGY.md).
 - [External repository integration guide](docs/EXTERNAL_REPOSITORY_INTEGRATION_GUIDE.md)
 - [Machine-readable repository integration manifest](config/integrations/repositories.json)
 - [Delivery roadmap and acceptance gates](docs/ROADMAP.md)
+- [Deterministic control-plane demo](docs/DETERMINISTIC_DEMO.md)
 - [Multi-product strategy](docs/PRODUCT_FAMILY_STRATEGY.md)
 - [Free-first agent engine integration plan](docs/FREE_FIRST_AGENT_ENGINE.md)
 - [Reference research and design direction](docs/REFERENCE_RESEARCH.md)
