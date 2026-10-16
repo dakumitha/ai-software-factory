@@ -15,16 +15,23 @@ This register is the source of truth for candidate repositories and tools. A can
 
 | Candidate | Potential role | Current status | Required checks |
 |---|---|---|---|
-| GitHub Spec Kit | Spec-driven requirements and planning workflow | Candidate | Licence, supported workflow, CLI/runtime requirements, compatibility with desired agent setup |
-| OpenHands | Coding agent runtime/orchestration | Candidate | Licence, sandbox model, resource needs, supported inference providers, host compatibility, security posture |
-| LangGraph | Durable orchestration and checkpoint concepts | Candidate | Licence, persistence backend, operational complexity, fit versus simpler state machine |
-| OpenSpec | Specification/change-management workflow | Candidate | Licence, overlap with Spec Kit, maintenance, migration/interoperability |
-| Graphiti | Temporal/knowledge graph memory | Candidate | Licence, database and service requirements, necessity versus simpler relational/event storage |
-| Arize Phoenix | LLM tracing/evaluation | Candidate | Licence, hosting/storage footprint, data privacy, free-tier or self-host cost |
-| Graphify | Codebase graph/context | Candidate | Exact repository and licence, maintenance, language support, measured value on representative repositories |
-| REA (`morluto/rea`) | Possible agent-workflow integration | Candidate | Inspect exact source, licence, setup, permissions, runtime and threat surface before executing |
+| [GitHub Spec Kit](https://github.com/github/spec-kit) | Spec-driven requirements and planning workflow | **Auditing** | MIT licence file verified; inspect CLI/runtime, versioned workflows and compatibility before adoption |
+| [OpenHands](https://github.com/OpenHands/OpenHands) | Coding-agent control centre / execution integration | **Auditing** | MIT licence file verified; current README highlights Agent Canvas and multiple backends; host/runtime and model costs remain unresolved |
+| [OpenSpec](https://github.com/Fission-AI/OpenSpec) | Specification/change-management workflow | **Auditing** | MIT licence file verified; compare against Spec Kit to avoid duplicate process and tooling |
+| [LangGraph](https://github.com/langchain-ai/langgraph) | Durable orchestration and checkpoint concepts | Candidate | Licence, persistence backend, operational complexity, fit versus simpler state machine |
+| [Graphiti](https://github.com/getzep/graphiti) | Temporal/knowledge graph memory | Candidate | Licence, database and service requirements, necessity versus simpler relational/event storage |
+| [Arize Phoenix](https://github.com/Arize-ai/phoenix) | LLM tracing/evaluation | Candidate | Licence, hosting/storage footprint, data privacy, free-tier or self-host cost |
+| [Graphify](https://github.com/Graphify-Labs/graphify) | Codebase graph/context | Candidate | Exact repository and licence, maintenance, language support, measured value on representative repositories |
+| [REA](https://github.com/morluto/rea) | Specialist reverse-engineering MCP/tools | **Candidate, not core engine** | MIT licence file verified; README describes binary/app/runtime reverse engineering, so include only as an optional specialist tool after threat-surface and need review |
 
-This is an initial shortlist, not a claim that these components have been installed or proven compatible. More candidates may be added after focused GitHub discovery.
+This is an initial shortlist, not a claim that these components have been installed or proven compatible. Focused source inspection on 2026-10-16 verified the visible LICENSE files for Spec Kit, OpenHands, OpenSpec, and REA. This is a preliminary licence-file check only, not a complete legal review, dependency audit, security audit, or compatibility test. More candidates may be added after focused GitHub discovery.
+
+## Preliminary findings (2026-10-16)
+
+- **Do not combine Spec Kit and OpenSpec by default.** Both provide specification-oriented workflows. Compare them on one representative feature and choose one primary workflow to reduce duplicated documents and process overhead.
+- **OpenHands is not free compute by itself.** Its repository describes a self-hosted control centre that can connect to different agent backends. A host and an available model/inference route are still required; their free availability and quotas must be verified.
+- **REA is not a general software-building engine.** Its README positions it as a reverse-engineering toolset/MCP. Keep it optional for specialised analysis rather than making it a core dependency.
+- **No candidate has been installed or executed.** Initial review was limited to repository metadata, README content, and visible LICENSE files.
 
 ## Audit checklist
 
