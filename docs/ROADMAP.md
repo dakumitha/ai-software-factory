@@ -1,72 +1,70 @@
 # Accelerated Delivery Roadmap
 
-The fastest responsible route is to audit first, reuse proven components, and deliver in small verified increments. Calendar estimates remain provisional until the available hosting, model access, and candidate repositories are confirmed.
+**Deadline target: 7–14 days for a demonstrated end-to-end engine slice.** The target is aggressive and conditional on free execution/model access being available. The result should be a working, testable engine that creates and verifies a representative application, not a claim that every software category is production-perfect.
 
-## Phase 0: Establish the foundation
-- [x] Create a dedicated repository.
-- [x] Record product vision, requirements, architecture boundaries, integration audit rules, and roadmap.
-- [ ] Confirm repository access and baseline branch/commit.
-- [ ] Add contribution, security reporting, and decision-record conventions.
-- [ ] Establish lightweight CI that does not call paid AI services.
+## Phase 0: Foundation and control plane
+- [x] Create dedicated repository and product requirements.
+- [x] Add lightweight documentation CI.
+- [x] Implement SQLite project/job persistence.
+- [x] Implement explicit job lifecycle validation and append-only event history.
+- [x] Validate task dependency graphs and provide ready-task selection.
+- [x] Add JSON HTTP endpoints for projects, jobs, events, and state transitions.
+- [x] Add standard-library unit tests and a Python 3.11/3.12 GitHub Actions workflow.
+- [ ] Verify the core-test workflow is green.
+- [ ] Add API integration tests and a safe phone-friendly control interface.
 
-**Gate:** baseline documentation is internally consistent and repository changes are visible.
+**Gate:** control-plane tests pass in CI and persistence survives restart.
 
-## Phase 1: Candidate audit and hosting feasibility
-- [ ] Inspect the candidate repositories and exact licences.
-- [ ] Compare Spec Kit and OpenSpec; select one primary specification workflow unless evidence supports both.
-- [ ] Evaluate OpenHands or a lighter alternative against available free execution.
-- [ ] Verify available free model endpoints and actual usage restrictions.
-- [ ] Compare hosting/database options for sleeping, quota, storage, and persistence limits.
-- [ ] Publish a decision record with evidence and fallback options.
+## Phase 1: Free execution route and integration choices
+- [ ] Compare Spec Kit and OpenSpec on one representative feature; select one primary.
+- [ ] Identify an agent runner that can run on a genuinely available free host or free-tier runtime.
+- [ ] Verify at least one model route without paid API credit; document quotas, acceptable use, and fallback.
+- [ ] Confirm persistent artifact storage and job resume behaviour on the selected host.
+- [ ] Record decisions, limitations, and reproducible setup steps.
 
-**Gate:** one credible, affordable route exists for a working vertical slice. No service is described as free without checking its current terms.
+**Gate:** one real execution path is proven without assuming unlimited free compute.
 
-## Phase 2: Control-plane core
-- [ ] Define typed schemas for projects, requirements, tasks, jobs, checkpoints, approvals, artifacts, budgets, and audit events.
-- [ ] Implement validated job state transitions.
-- [ ] Add durable persistence and restart recovery.
-- [ ] Add bounded retries, cancellation, and quota pause/resume.
-- [ ] Add unit and state-transition tests.
+## Phase 2: Requirements-to-plan workflow
+- [ ] Build an adaptive discovery interview that stores answers, assumptions, unresolved questions, and conflicts.
+- [ ] Generate versioned project specifications and acceptance criteria.
+- [ ] Create dependency-aware plans with requirement traceability.
+- [ ] Require explicit owner approval before executing agent tasks.
+- [ ] Persist prompts/config versions, outputs, logs, checkpoints, and budget events.
 
-**Gate:** jobs resume from persisted state without duplicating unsafe side effects.
+**Gate:** a plain-language idea becomes a reviewable, saved specification and executable plan.
 
-## Phase 3: First complete vertical slice
-- [ ] Create a project from a plain-language idea.
-- [ ] Ask clarifying questions and save a versioned specification.
-- [ ] Generate a dependency-aware task plan.
-- [ ] Require approval before agent execution.
-- [ ] Run one small coding task in an isolated workspace.
-- [ ] Store patch, logs, test output, and usage evidence.
-- [ ] Show results in the phone-friendly interface.
+## Phase 3: Agent execution and verification
+- [ ] Integrate one coding-agent adapter, behind a narrow interface.
+- [ ] Use an isolated, disposable workspace with bounded time, output, and permissions.
+- [ ] Apply changes only to a separate working branch/workspace.
+- [ ] Run tests, lint/type checks, build, dependency/license checks, and secret scanning as appropriate.
+- [ ] Save patch/diff, logs, test reports, and evidence.
+- [ ] Pause safely on quota exhaustion and resume from persisted state.
 
-**Gate:** demonstrate idea-to-verified-change end-to-end with a sample repository and no paid service requirement for the tested path, or document exactly where a free-tier limit blocks it.
+**Gate:** one sample app is generated/modified and verification evidence is recorded; failures block completion.
 
-## Phase 4: Verification and governance
-- [ ] Test/lint/typecheck/build adapters.
-- [ ] Dependency, licence, secret and security scanning.
-- [ ] Diff review and approval records.
-- [ ] Artifact export and audit history.
-- [ ] Release readiness checks and rollback instructions.
+## Phase 4: Mobile control room and hand-off
+- [ ] Provide a responsive phone-first interface for projects, job status, logs, diffs, approval, and export.
+- [ ] Add safe API authentication and production deployment configuration.
+- [ ] Add exportable requirements, plans, patches, and reports.
+- [ ] Document limitations and owner-operated recovery.
 
-**Gate:** failed checks block completion and release claims.
+**Gate:** owner can supervise the full demonstrated workflow from a phone without needing a local development computer.
 
-## Phase 5: Scale integrations
-- [ ] Add additional agent/model adapters only after measuring quality and cost.
-- [ ] Add memory/search if baseline relational/event storage is insufficient.
-- [ ] Add repository graph/context tools where benchmarks show value.
-- [ ] Add issue triage, maintenance, and deployment adapters.
-- [ ] Add multi-project isolation and operational dashboards.
+## Phase 5: Broaden coverage after the vertical slice
+- [ ] Add further frameworks, languages, and agent providers based on benchmark evidence.
+- [ ] Add maintenance/bug triage and optional codebase indexing.
+- [ ] Add controlled deployment and rollback only after isolated verification is reliable.
+- [ ] Add more sophisticated memory/search only if baseline persistence is insufficient.
 
-**Gate:** each integration has a measurable benefit, tests, and a removal/fallback path.
+## Scope and honest completion
 
-## Scope and estimates
-
-A 6–12 week integration programme can be used as a planning target for a substantial integrated release, but is not a guarantee of complete production-grade coverage. The schedule depends on external quotas, available execution, integration compatibility, and the breadth of supported software types. The definition of complete remains evidence-based, not deadline-based.
+The 7–14 day target applies to the first demonstrated end-to-end engine slice. It does not guarantee a universal, production-grade autonomous software factory across every stack. The external model/host route is the principal risk because free tiers can change or exhaust quotas. If the free route fails, pause and report the blocker rather than silently using a paid service.
 
 ## CI budget rules
 
 - Prefer local/static checks and one targeted workflow run over blind retries.
-- Cache dependencies where safe.
+- Keep workflows short, pinned, and read-only unless a job truly requires more permission.
 - Do not run model-intensive jobs on every documentation change.
 - Never disable required checks or weaken tests to turn CI green.
 - Record CI usage and stop before known quota limits.
