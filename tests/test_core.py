@@ -182,8 +182,8 @@ class ApiTests(unittest.TestCase):
 
     def test_spec_list_rejects_unknown_project(self):
         status, payload = self.request("/projects/missing-project/specifications")
-        self.assertEqual(status, 400)
-        self.assertIn("Project does not exist", payload["error"])
+        self.assertEqual(status, 404)
+        self.assertIn("Project not found", payload["error"])
 
     def test_spec_api_requires_approval_before_plan(self):
         _, project = self.request("/projects", {"name": "API Demo", "idea": "A small app"})

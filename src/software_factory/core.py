@@ -288,6 +288,8 @@ class ApiHandler(BaseHTTPRequestHandler):
                 return self._send(404, {"error": "Specification not found"})
             return self._send(200, {"items": self.specs.events(parts[1])})
         if len(parts) == 3 and parts[0] == "projects" and parts[2] == "specifications":
+            if not self.store.get_project(parts[1]):
+                return self._send(404, {"error": "Project not found"})
             return self._send(200, {"items": self.specs.list(parts[1])})
         return self._send(404, {"error": "Not found"})
 
