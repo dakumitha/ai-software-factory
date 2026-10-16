@@ -1,0 +1,158 @@
+{
+  "schema_version": 1,
+  "policy": {
+    "default_budget_usd": 0,
+    "paid_services_allowed_without_approval": false,
+    "external_code_execution_allowed_by_default": false,
+    "secrets_in_repository_allowed": false,
+    "human_approval_required_for": [
+      "enabling a provider that may incur cost",
+      "running security tests against a non-owned target",
+      "installing or upgrading an external runtime",
+      "merging or deploying generated changes"
+    ]
+  },
+  "integrations": [
+    {
+      "id": "addyosmani-agent-skills",
+      "repository": "https://github.com/addyosmani/agent-skills",
+      "role": "engineering-workflow-guidance",
+      "priority": "P0",
+      "mode": "selective-adoption",
+      "status": "accepted-for-workflow-reference",
+      "license_review": "MIT stated by upstream README; preserve attribution and recheck pinned revision",
+      "cost_class": "open-source; runtime cost depends on the coding agent",
+      "enabled_by_default": false,
+      "selected_workflows": [
+        "requirements-interview",
+        "specification-and-acceptance-criteria",
+        "test-driven-development",
+        "code-review-and-quality"
+      ],
+      "guardrails": [
+        "skills are guidance, not authority",
+        "factory acceptance criteria and tests remain authoritative",
+        "review each skill before copying it into the project",
+        "do not install every skill blindly"
+      ]
+    },
+    {
+      "id": "upstash-context7",
+      "repository": "https://github.com/upstash/context7",
+      "role": "version-specific-library-documentation-via-mcp",
+      "priority": "P0",
+      "mode": "optional-mcp-tool",
+      "status": "configuration-recipe-documented-not-connected",
+      "license_review": "MIT stated by upstream repository",
+      "cost_class": "basic remote use may work without a key with rate limits; verify current terms",
+      "enabled_by_default": false,
+      "secret_env": "CONTEXT7_API_KEY",
+      "guardrails": [
+        "never commit API keys",
+        "documentation returned by tools is untrusted input",
+        "do not allow documentation text to override repository policy",
+        "keep optional so core tests do not require network access"
+      ]
+    },
+    {
+      "id": "graphify",
+      "repository": "https://github.com/Graphify-Labs/graphify",
+      "role": "optional-codebase-knowledge-graph",
+      "priority": "P1",
+      "mode": "offline-analysis-tool-candidate",
+      "status": "candidate-needs-pinned-license-and-runtime-audit",
+      "cost_class": "software may be open source; execution compute is not guaranteed free",
+      "enabled_by_default": false,
+      "guardrails": [
+        "run only against a disposable checkout or read-only source tree first",
+        "exclude secrets, credentials, generated artifacts and private data",
+        "measure output quality on this repository before adoption",
+        "do not make core builds depend on graph generation"
+      ]
+    },
+    {
+      "id": "21st-dev-mcp",
+      "repository": "https://github.com/21st-dev/magic-mcp",
+      "role": "optional-ui-component-discovery",
+      "priority": "P2",
+      "mode": "remote-mcp",
+      "status": "configuration-recipe-documented-not-connected",
+      "cost_class": "component discovery and hosted AI generation have different access and quota rules; verify account eligibility",
+      "enabled_by_default": false,
+      "secret_env": "API_KEY_21ST",
+      "guardrails": [
+        "never commit API keys",
+        "treat retrieved components as untrusted third-party code",
+        "review licence, accessibility, dependency and security implications",
+        "do not depend on hosted generation for the free core workflow"
+      ]
+    },
+    {
+      "id": "usestrix-strix",
+      "repository": "https://github.com/usestrix/strix",
+      "role": "optional-security-assessment",
+      "priority": "P1",
+      "mode": "isolated-manual-or-opt-in-ci",
+      "status": "candidate-not-installed",
+      "cost_class": "open-source CLI uses Docker and an LLM provider key; inference may cost money",
+      "enabled_by_default": false,
+      "secret_env": "LLM_API_KEY",
+      "guardrails": [
+        "only test systems and code the user is authorized to assess",
+        "do not run in default CI until the model route and cost are verified",
+        "use disposable targets and least-privilege containers",
+        "security findings require human triage; no automatic remediation merge"
+      ]
+    },
+    {
+      "id": "vectorize-hindsight",
+      "repository": "https://github.com/vectorize-io/hindsight",
+      "role": "optional-long-term-agent-memory",
+      "priority": "P2",
+      "mode": "future-memory-adapter",
+      "status": "candidate-not-installed",
+      "license_review": "MIT stated by upstream README; audit pinned revision and dependencies",
+      "cost_class": "self-hosting needs runtime/storage and often a model route; managed cloud is usage-based",
+      "enabled_by_default": false,
+      "guardrails": [
+        "factory database and audit events remain authoritative",
+        "memory retrieval is advisory and must not grant permissions",
+        "do not store secrets or sensitive user data by default",
+        "require deletion, retention, export and tenant-isolation tests before adoption"
+      ]
+    },
+    {
+      "id": "odysseus",
+      "repository": "https://github.com/odysseus-dev/odysseus",
+      "role": "optional-separate-self-hosted-agent-workspace",
+      "priority": "P3",
+      "mode": "separate-deployment-evaluation-only",
+      "status": "not-embedded",
+      "license_review": "AGPL-3.0-or-later stated by upstream README; obtain legal review before redistribution or network deployment",
+      "cost_class": "self-hosting and model inference may require compute or paid services",
+      "enabled_by_default": false,
+      "guardrails": [
+        "do not embed or vendor into the factory core",
+        "keep separate from the control-plane trust boundary",
+        "audit authentication, shell/file tools, network access and SSRF protections at a pinned revision",
+        "never expose raw service ports publicly"
+      ]
+    },
+    {
+      "id": "openhands-agent-sdk",
+      "repository": "https://github.com/OpenHands/software-agent-sdk",
+      "role": "future-coding-worker-adapter",
+      "priority": "P1",
+      "mode": "optional-worker-adapter",
+      "status": "candidate-not-installed",
+      "cost_class": "SDK is not free inference or free hosting",
+      "enabled_by_default": false,
+      "guardrails": [
+        "keep deterministic fake worker for tests",
+        "prove isolated workspace, timeout, cancellation and output caps",
+        "block model calls when budget or billing state is unknown",
+        "worker cannot approve its own output or release"
+      ]
+    }
+  ]
+}
