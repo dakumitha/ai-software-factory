@@ -6,15 +6,15 @@ The owner must be able to use the same software factory from both a phone and a 
 
 ## Current implementation
 
-`web/index.html` is a responsive, dependency-free control-room prototype:
-- Adapts to narrow mobile screens and desktop layouts.
-- Provides Overview, Projects, Compute & Agents, and Activity & Evidence sections.
-- Creates project planning records in browser local storage.
-- Shows a spend guard with a default budget target of ₹0.
-- Explains compute connection prerequisites.
-- Explicitly labels itself as a prototype and does not fabricate remote execution or test evidence.
+`web/index.html` is the original browser-local UI mockup. A second page, `web/connected.html`, is served with the existing API by `PYTHONPATH=src python -m software_factory --web --host 127.0.0.1 --port 8080`:
+- Responsive on phone and desktop.
+- Loads project records from `GET /projects` and creates them through `POST /projects`.
+- Stores those records in the factory's SQLite database, not browser local storage.
+- Reports API connection errors instead of silently saving to local storage.
+- Displays the ₹0 spend target and clearly states that no remote worker or agent is connected.
+- Uses the same origin for the UI and API, avoiding browser CORS configuration for this local mode.
 
-It is a UI prototype, not yet a remotely hosted or multi-device-synced application. Browser-local project records do not automatically appear on another device and may be lost if browser data is cleared.
+This is a local development connection, not a hosted or production-safe multi-device service. The API remains bound to loopback by default. The UI is not authenticated, and setting `FACTORY_ALLOW_REMOTE=1` is not a substitute for authentication, TLS, authorization and hardened hosting. Do not expose this server publicly.
 
 ## Target architecture
 
@@ -76,11 +76,11 @@ The prototype can be previewed as a static file, but this repository's eventual 
 
 ## Next implementation order
 
-1. Connect the UI to the existing factory API through a documented API client.
-2. Add authenticated server-side persistence and device-independent project listing.
-3. Add job status/event polling and actual evidence links.
+1. Add authentication and authorization before any hosted access; current API endpoints are development-only.
+2. Add job status/event polling and actual evidence links to the connected UI.
+3. Establish a secure, persistent hosted database and deployment path without enabling paid services by default.
 4. Add an isolated remote worker adapter, initially using a no-cost bounded CI job where appropriate.
 5. Evaluate OpenHands SDK as an optional agent worker only after model access, workspace isolation, licence and quota checks.
-6. Add end-to-end tests and a secure deployment path.
+6. Add end-to-end tests proving two devices see the same server-side project data, plus security and recovery tests.
 
 Do not claim the platform is cloud-connected until steps 1-4 have been demonstrated in a real run.
