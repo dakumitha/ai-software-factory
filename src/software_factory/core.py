@@ -14,6 +14,8 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import parse_qs, urlparse
 
+from .api_registry import ApiRegistry, RegistryError
+
 STATES = {
     "DRAFT", "NEEDS_CLARIFICATION", "SPEC_READY", "PLAN_READY", "AWAITING_APPROVAL",
     "QUEUED", "RUNNING", "VERIFYING", "REVIEW_REQUIRED", "RELEASE_READY", "RELEASED",
@@ -641,11 +643,15 @@ class ApiHandler(BaseHTTPRequestHandler):
                 "note": "Candidates require operator review; worker ownership and task execution are not yet implemented.",
             })
         if path == "/api-candidates":
-            return self._send(200, {"items": self.api_registry.list(
-                query=query_params.get("query", [""])[0],
-                category=query_params.get("category", [""])[0],
-                approval_status=query_params.get("status", [""])[0],
-            )})
+            try:
+                items = self.api_registry.list(
+                    query=query_params.get("query", [""])[0],
+                    category=query_params.get("category", [""])[0],
+                    approval_status=query_params.get("status", [""])[0],
+                )
+            except RegistryError as exc:
+                return self._send(400, {"error": str(exc)})
+            return self._send(200, {"items": items})
         if path == "/api-candidates/events":
             return self._send(200, {"items": self.api_registry.events()})
         parts = path.strip("/").split("/")
@@ -773,7 +779,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                 return self._send(200, {"spec_id": spec["id"], "version": spec["version"],
                                         "tasks": validated_plan})
             return self._send(404, {"error": "Not found"})
-        except (ValidationError, json.JSONDecodeError, TypeError) as exc:
+        except (ValidationError, RegistryError, json.JSONDecodeError, TypeError) as exc:
             return self._send(400, {"error": str(exc)})
         except Exception as exc:
             # Keep the API response useful for debugging without logging request bodies or secrets.
