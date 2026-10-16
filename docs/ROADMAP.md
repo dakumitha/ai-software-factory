@@ -18,7 +18,8 @@
 - [ ] Connect approved specification → task plan → explicit approval → bounded worker execution → independent verification → reviewable artifact.
 - [x] Safe artifact writer and tests for traversal, symlinks, size limits, and overwrite policy.
 - [x] Artifact evidence reports for digest and JSON syntax checks.
-- [ ] Add controller CLI commands for one-step execution and status inspection.
+- [x] Add read-only CLI commands for job listing and status inspection.
+- [ ] Add one-step execution CLI only after safe built-in task handlers and explicit execution policy are defined.
 - [ ] Demonstrate a small deterministic example without external model/API costs.
 
 ## Phase 2: Agent integration
