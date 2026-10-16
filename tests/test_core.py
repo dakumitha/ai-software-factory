@@ -154,7 +154,7 @@ class ApiTests(unittest.TestCase):
         self.assertEqual(status, 200)
         self.assertEqual(approved["status"], "APPROVED")
         status, plan = self.request(f"/specifications/{spec['id']}/plan", {})
-        self.assertEqual(status, 200)
+        self.assertEqual(status, 200, plan)
         self.assertEqual(plan["tasks"][-1]["id"], "integration-verification")
 
 
