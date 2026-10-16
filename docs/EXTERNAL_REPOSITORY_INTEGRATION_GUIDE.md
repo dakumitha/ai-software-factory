@@ -124,3 +124,22 @@ Do not add a mandatory dependency yet. First define a narrow worker interface an
 - [Hindsight](https://github.com/vectorize-io/hindsight)
 - [Odysseus](https://github.com/odysseus-dev/odysseus)
 - [OpenHands Software Agent SDK](https://github.com/OpenHands/software-agent-sdk)
+
+### 9. Add skill discovery, while preferring the canonical upstream
+
+The reel's “GitHub Find-Skills” card appears to refer to the open skills CLI ecosystem. Prefer the canonical [vercel-labs/skills](https://github.com/vercel-labs/skills) repository over unrelated forks named `find-skills`. The CLI can discover and install skills for multiple coding agents. It is a **skill manager**, not itself a coding model or compute provider.
+
+Do not install every discovered skill automatically. First list candidates, inspect the source and any scripts/hooks/tool permissions, select only what the project needs, and record the pinned source revision. Keep the factory's own security and acceptance rules authoritative.
+
+### 10. Claude Code setup is an optional external-agent path
+
+The reel's “Claude Code Setup” card points toward [anthropics/claude-code](https://github.com/anthropics/claude-code). It is a terminal coding agent, not a free compute layer. Its setup instructions and account/model terms can change, and using it may require an eligible Anthropic account and paid usage. Therefore it remains an optional external-agent evaluation, not a required dependency of the zero-budget core.
+
+The factory should expose a generic worker interface rather than bind its architecture to one commercial coding agent. Any worker must operate within a controlled workspace, respect cost limits, and return changes for independent tests and approval.
+
+### 11. Documentation website option
+
+If the factory later needs a searchable public documentation website, evaluate [Astro Starlight](https://github.com/withastro/starlight) as a static documentation-site generator. It is not necessary to write or maintain project documentation: Markdown files remain the source of truth and should remain readable without the website generator. Hosting can be optional; verify the exact licence and dependency tree for the chosen version.
+
+If “AnyDoc” refers to a specific repository literally named `AnyDoc`, its exact GitHub URL is needed before it can be safely evaluated. This guide currently treats the request as asking for additional documentation-focused GitHub repositories, not as evidence that a particular AnyDoc repository has been identified.
+
