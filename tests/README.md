@@ -12,6 +12,7 @@ PYTHONPATH=src python -m unittest discover -s tests -v
 - Validated lifecycle transitions and append-only job event history.
 - Task dependency graph validation and ready-task selection.
 - Checkpoint persistence across store reopen, task-ID validation, monotonic completed-task tracking, and idempotent repeated writes.
+- SQLite online backup and restoration of projects, jobs, checkpoint state, and audit events.
 - HTTP API behaviour for projects, jobs, specification approval/planning, and checkpoint updates.
 
 ## Checkpoint contract and limitations
@@ -21,3 +22,17 @@ A checkpoint stores orchestration progress in the job's SQLite record. `complete
 This is a durable progress ledger, **not yet a complete job executor or exactly-once execution guarantee**. The current application does not execute agent tasks. Before execution is added, each adapter must define idempotency keys, durable task attempt records, interruption recovery, bounded retry behaviour, and verification evidence. A checkpoint must not be treated as proof that generated code passed tests.
 
 The suite does not yet verify hosted deployment, authentication, sandbox isolation, database backup/restore, or production crash recovery.
+
+## Creating a database backup
+
+The `Store.backup_to(destination)` method uses SQLite's online backup API to create a consistent copy, including while the database is open. Example from the repository root:
+
+```python
+from software_factory.core import Store
+
+store = Store("data/factory.sqlite3")
+backup_path = store.backup_to("backups/factory-backup.sqlite3")
+print(f"Backup written to: {backup_path}")
+```
+
+Protect backups as carefully as the live database. Store them outside public repositories, restrict access, and apply your retention policy. A backup is not proven recoverable until a restore test opens the copied database and checks expected records. This method does not encrypt backups or upload them to remote storage.

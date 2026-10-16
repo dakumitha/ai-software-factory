@@ -57,6 +57,22 @@ class CoreTests(unittest.TestCase):
         with self.assertRaises(ValidationError):
             self.store.save_checkpoint(job["id"], {"completed_task_ids": []})
 
+    def test_database_backup_restores_project_job_checkpoint_and_events(self):
+        job = self.store.create_job(self.project["id"], tasks=[{"id": "one", "title": "One"}])
+        self.store.save_checkpoint(job["id"], {
+            "stage": "building", "current_task_id": "one", "completed_task_ids": [],
+        })
+        backup_path = Path(self.tmp.name) / "backup" / "factory-backup.sqlite3"
+        self.assertEqual(self.store.backup_to(backup_path), backup_path)
+        restored = Store(backup_path)
+        self.assertEqual(restored.get_project(self.project["id"])["name"], "Demo")
+        self.assertEqual(restored.get_job(job["id"])["checkpoint"]["stage"], "building")
+        self.assertEqual(restored.events(job["id"])[-1]["kind"], "job.checkpoint_saved")
+
+    def test_database_backup_rejects_live_database_as_destination(self):
+        with self.assertRaises(ValidationError):
+            self.store.backup_to(Path(self.store.path))
+
     def test_checkpoint_rejects_unknown_current_task(self):
         job = self.store.create_job(self.project["id"], tasks=[{"id": "one", "title": "One"}])
         with self.assertRaises(ValidationError):

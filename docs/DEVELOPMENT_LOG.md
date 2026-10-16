@@ -19,4 +19,11 @@ This log records meaningful project milestones and verified evidence. It is not 
 - Identical checkpoint submissions are idempotent and do not add duplicate audit events.
 - Added tests for persistence after reopening SQLite, repeated identical writes, unknown task IDs, completion regression, and API behaviour.
 - Updated architecture and test instructions to document the checkpoint contract and explicitly state what it does not guarantee.
-- **Pending verification:** CI for the checkpoint implementation commit. This is not yet a complete executor, exactly-once guarantee, or full process-crash recovery system.
+- Checkpoint implementation CI verified: [Core tests](https://github.com/dakumitha/ai-software-factory/actions/runs/38840675239), [Specification workflow tests](https://github.com/dakumitha/ai-software-factory/actions/runs/38840675240), and [Repository foundation checks](https://github.com/dakumitha/ai-software-factory/actions/runs/38840675265) passed for commit `1f9c6916d767db5e3e63bfe8d6e034c27aa012c7`.
+- **Not a complete executor:** exactly-once execution and full process-crash recovery remain unimplemented.
+
+### SQLite backup and restore verification
+- Added `Store.backup_to(destination)`, using SQLite's online backup API to make a consistent database copy.
+- Added tests that restore a copied database and verify project, job checkpoint, and audit-event records, and that reject the live database as its own backup destination.
+- Updated architecture and test instructions with the backup contract, example, and security caveats.
+- **Pending verification:** CI for this backup milestone.

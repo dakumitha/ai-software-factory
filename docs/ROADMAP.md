@@ -17,7 +17,7 @@
 - [x] Add durable checkpoint update API with validation and audit events.
 - [x] Test checkpoint persistence across store reopen, idempotent repeated writes, unknown task rejection, and completed-task regression rejection.
 
-**Gate:** current control-plane, specification, and checkpoint tests pass in GitHub Actions. Full interrupted-job resume, task-attempt recovery, backup/restore, and exactly-once external side-effect handling remain unimplemented.
+**Gate:** current control-plane, specification, and checkpoint tests pass in GitHub Actions. Full interrupted-job resume, task-attempt recovery, encrypted/remote backup retention, and exactly-once external side-effect handling remain unimplemented.
 
 ## Phase 1: Free execution route and integration choices
 - [ ] Compare Spec Kit and OpenSpec on one representative feature; select one primary.

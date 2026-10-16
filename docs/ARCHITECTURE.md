@@ -51,7 +51,11 @@ The implemented control plane stores checkpoint JSON on each job and exposes `PO
 - An identical checkpoint is a no-op and does not add duplicate audit events.
 - Checkpoints persist across SQLite store re-open.
 
-These checks protect the progress record from common accidental regressions. They do not establish exactly-once execution or prove that a task succeeded. Agent execution, task-attempt records, process-crash recovery, and output verification are still future work.
+These checks protect the progress record from common accidental regressions. They do not establish exactly-once execution or prove that a task succeeded.
+
+### Database backup
+
+`Store.backup_to(destination)` uses SQLite's online backup API to create a consistent database copy. It creates the destination directory if needed and rejects using the live database path as the destination. The method does not encrypt the copy, upload it remotely, or define retention. Operators must protect backup files and periodically test restoration by opening a copy and checking expected project/job/checkpoint/event records. Agent execution, task-attempt records, process-crash recovery, and output verification are still future work.
 
 ## Suggested job lifecycle
 

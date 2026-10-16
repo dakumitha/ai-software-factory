@@ -80,6 +80,26 @@ class Store:
                 );
             """)
 
+
+    def backup_to(self, destination: str | Path) -> Path:
+        """Create a consistent SQLite backup at destination.
+
+        The caller is responsible for protecting the backup file and its
+        containing directory because they may contain project and job data.
+        """
+        target = Path(destination)
+        if self.path != ":memory:" and Path(self.path).resolve() == target.resolve():
+            raise ValidationError("Backup destination must differ from the live database.")
+        target.parent.mkdir(parents=True, exist_ok=True)
+        source = self.connect()
+        backup = sqlite3.connect(str(target), timeout=10)
+        try:
+            source.backup(backup)
+        finally:
+            backup.close()
+            source.close()
+        return target
+
     def create_project(self, name: str, idea: str) -> dict[str, Any]:
         name, idea = name.strip(), idea.strip()
         if not name or not idea:
