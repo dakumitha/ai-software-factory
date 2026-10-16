@@ -4,7 +4,26 @@ A cloud-first, repository-driven software production system designed to turn ide
 
 ## Current status
 
-**Foundation and integration planning.** This repository is being established before selecting and integrating execution engines. No agent runtime, model provider, deployment, or end-to-end production capability is claimed to be operational yet.
+**Control-plane foundation implemented; automated tests running in GitHub Actions.** The repository now contains a dependency-free Python/SQLite core for projects, durable jobs, validated state transitions, append-only job events, task dependency validation, and an HTTP JSON API. Agent execution, model-provider integration, a hosted mobile UI, sandboxed builds, and release automation are not yet implemented or verified.
+
+## Run the current control plane
+
+Requires Python 3.11 or newer. No Python runtime dependencies are required for the current core.
+
+```sh
+PYTHONPATH=src python -m software_factory --host 127.0.0.1 --port 8080
+```
+
+Then use:
+- `GET /health` for service status
+- `POST /projects` with `{"name":"Demo","idea":"Build a task tracker"}`
+- `GET /projects` to list projects
+- `POST /jobs` with `{"project_id":"<project-id>","tasks":[]}`
+- `GET /jobs` to list jobs
+- `GET /jobs/<job-id>/events` to view audit events
+- `POST /jobs/<job-id>/transition` with `{"target":"NEEDS_CLARIFICATION","reason":"Need more detail"}`
+
+The server binds to loopback by default. Remote binding is blocked unless `FACTORY_ALLOW_REMOTE=1` is explicitly set; do not expose it to the public internet without authentication, TLS, and a hardened deployment configuration. The current API is a development foundation, not a production-secure hosted service. Generated code execution is deliberately disabled.
 
 ## Design principles
 
@@ -31,6 +50,7 @@ Idea → clarification interview → requirements and acceptance criteria → ar
 - [Delivery roadmap and acceptance gates](docs/ROADMAP.md)
 - [Security policy](SECURITY.md)
 - [Decision records](docs/decisions/README.md)
+- [Test instructions](tests/README.md)
 
 ## Important constraints
 
