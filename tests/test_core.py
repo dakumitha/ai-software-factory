@@ -41,24 +41,28 @@ class CoreTests(unittest.TestCase):
     def test_legacy_database_is_migrated_without_losing_records(self):
         import sqlite3
         legacy_path = Path(self.tmp.name) / "legacy.sqlite3"
-        with sqlite3.connect(legacy_path) as db:
-            db.executescript("""
-                CREATE TABLE projects (
-                    id TEXT PRIMARY KEY, name TEXT NOT NULL, idea TEXT NOT NULL, created_at TEXT NOT NULL
-                );
-                CREATE TABLE jobs (
-                    id TEXT PRIMARY KEY, project_id TEXT NOT NULL, state TEXT NOT NULL,
-                    spec_json TEXT NOT NULL, tasks_json TEXT NOT NULL, budget_json TEXT NOT NULL,
-                    checkpoint_json TEXT NOT NULL, created_at TEXT NOT NULL, updated_at TEXT NOT NULL,
-                    FOREIGN KEY(project_id) REFERENCES projects(id)
-                );
-                CREATE TABLE events (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT, job_id TEXT NOT NULL, at TEXT NOT NULL,
-                    actor TEXT NOT NULL, kind TEXT NOT NULL, payload_json TEXT NOT NULL,
-                    FOREIGN KEY(job_id) REFERENCES jobs(id)
-                );
-                INSERT INTO projects VALUES ('prj_legacy', 'Legacy project', 'Preserve me', '2026-01-01T00:00:00+00:00');
-            """)
+        raw_conn = sqlite3.connect(legacy_path)
+        try:
+            with raw_conn as db:
+                db.executescript("""
+                    CREATE TABLE projects (
+                        id TEXT PRIMARY KEY, name TEXT NOT NULL, idea TEXT NOT NULL, created_at TEXT NOT NULL
+                    );
+                    CREATE TABLE jobs (
+                        id TEXT PRIMARY KEY, project_id TEXT NOT NULL, state TEXT NOT NULL,
+                        spec_json TEXT NOT NULL, tasks_json TEXT NOT NULL, budget_json TEXT NOT NULL,
+                        checkpoint_json TEXT NOT NULL, created_at TEXT NOT NULL, updated_at TEXT NOT NULL,
+                        FOREIGN KEY(project_id) REFERENCES projects(id)
+                    );
+                    CREATE TABLE events (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT, job_id TEXT NOT NULL, at TEXT NOT NULL,
+                        actor TEXT NOT NULL, kind TEXT NOT NULL, payload_json TEXT NOT NULL,
+                        FOREIGN KEY(job_id) REFERENCES jobs(id)
+                    );
+                    INSERT INTO projects VALUES ('prj_legacy', 'Legacy project', 'Preserve me', '2026-01-01T00:00:00+00:00');
+                """)
+        finally:
+            raw_conn.close()
         migrated = Store(legacy_path)
         self.assertEqual(migrated.schema_version(), 4)
         self.assertEqual(migrated.get_project("prj_legacy")["name"], "Legacy project")

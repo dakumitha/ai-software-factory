@@ -2,6 +2,21 @@
 
 ## 2026-10-17
 
+### Deterministic stale-work inventory and recovery service
+- Added `software_factory.recovery` module implementing pure evaluation (`evaluate_job_recovery`) and store-connected reconciliation (`RecoveryService`).
+- Classifies lease conditions into `ACTIVE_VALID`, `EXPIRED`, `MISSING_LEASE`, and `HEARTBEAT_OVERDUE`.
+- Added structured recommendations: `RESUME_FROM_CHECKPOINT` when prior tasks completed cleanly, `OPERATOR_REVIEW_REQUIRED` when attempts were left in `STARTED` without confirmed completion, `RETRY_TASK` for eligible failures under the retry ceiling, and `EXCEEDED_MAX_RETRIES` to prevent runaway loops.
+- Extended `Store` in `software_factory.core` with `get_lease`, `revoke_expired_lease` (guarding against unexpired revocation unless authorized), and `mark_attempt_interrupted` (transitioning `STARTED` attempts to `UNCERTAIN` and recording audit events).
+- Added comprehensive test suite in `tests/test_recovery.py` verifying crash recovery, lease expiry, retry bounds, attempt preservation, and safety invariants (never transitioning to `RELEASED`).
+- Verification status: all 112 tests across the entire test suite pass locally on Windows 11 (`112 tests, OK, 2 skipped`).
+
+### Deterministic SQLite connection lifecycle and Windows test cleanup
+- Added `ClosableConnection` subclassing `sqlite3.Connection` in `software_factory.core` and `software_factory.api_registry`.
+- In standard library `sqlite3`, `with connection:` manages transactions (commit/rollback) but does not close the connection file descriptor. On Windows, open handles prevent deleting temporary directories, causing `PermissionError: [WinError 32]` in `tearDown()`, and emit `ResourceWarning` in Python 3.13+.
+- `ClosableConnection.__exit__` safely delegates to transaction completion and deterministically closes the connection upon context exit.
+- Explicitly closed raw test setup connection in `tests.test_core.test_legacy_database_is_migrated_without_losing_records`.
+- Verification status: verified locally on Windows 11 with Python 3.13.1; all 103 unit tests across all test suites pass cleanly (`103 tests, OK, 2 skipped`).
+
 ### Recoverable worker reliability contract
 - Added `docs/RECOVERABLE_WORKERS.md` defining persistence-before-action, stale lease interpretation, idempotency limits, bounded retries, structured evidence, circuit-breaker intent, and human-review boundaries.
 - The document distinguishes an expired lease from proof that a process has stopped; this avoids unsafe duplicate side effects after a disconnected terminal or agent.

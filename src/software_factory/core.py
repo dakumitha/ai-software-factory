@@ -52,6 +52,21 @@ class ValidationError(ValueError):
     """Input or state transition violates the domain contract."""
 
 
+class ClosableConnection(sqlite3.Connection):
+    """A SQLite connection that automatically commits/rolls back and closes upon context exit.
+
+    Standard library sqlite3.Connection context manager only manages transactions,
+    leaving the underlying connection open until garbage collection. This causes file locking
+    and PermissionErrors on Windows, and emits ResourceWarning in Python 3.13+.
+    """
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        try:
+            return super().__exit__(exc_type, exc_val, exc_tb)
+        finally:
+            self.close()
+
+
 class Store:
     def __init__(self, path: str | Path = "data/factory.sqlite3"):
         self.path = str(path)
@@ -60,7 +75,7 @@ class Store:
         self._init_db()
 
     def connect(self) -> sqlite3.Connection:
-        conn = sqlite3.connect(self.path, timeout=10)
+        conn = sqlite3.connect(self.path, timeout=10, factory=ClosableConnection)
         conn.row_factory = sqlite3.Row
         conn.execute("PRAGMA foreign_keys = ON")
         return conn
@@ -233,6 +248,78 @@ class Store:
                 raise ValidationError("Lease is missing or the token is invalid.")
             db.execute("DELETE FROM job_leases WHERE job_id=?", (job_id,))
             self._event(db, job_id, lease["owner_id"], "job.lease_released", {})
+
+    def get_lease(self, job_id: str) -> dict[str, Any] | None:
+        """Return the current lease record for a job, omitting secret token hashes."""
+        with self.connect() as db:
+            lease = db.execute("SELECT * FROM job_leases WHERE job_id=?", (job_id,)).fetchone()
+        if not lease:
+            return None
+        return {
+            "job_id": lease["job_id"],
+            "owner_id": lease["owner_id"],
+            "acquired_at": lease["acquired_at"],
+            "heartbeat_at": lease["heartbeat_at"],
+            "expires_at": lease["expires_at"],
+        }
+
+    def revoke_expired_lease(self, job_id: str, actor: str = "recovery", reason: str = "",
+                             now: str | None = None, force: bool = False) -> dict[str, Any] | None:
+        """Revoke a lease that has expired, or return None if no lease exists.
+
+        An active, unexpired lease cannot be revoked unless force=True is explicitly passed
+        under authorized operator policy.
+        """
+        current_ts = now or utc_now()
+        with _LOCK, self.connect() as db:
+            lease = db.execute("SELECT * FROM job_leases WHERE job_id=?", (job_id,)).fetchone()
+            if not lease:
+                return None
+            if lease["expires_at"] > current_ts and not force:
+                raise ValidationError("Cannot revoke an active, unexpired lease without explicit revocation authority.")
+            db.execute("DELETE FROM job_leases WHERE job_id=?", (job_id,))
+            prior = {
+                "job_id": lease["job_id"],
+                "owner_id": lease["owner_id"],
+                "acquired_at": lease["acquired_at"],
+                "heartbeat_at": lease["heartbeat_at"],
+                "expires_at": lease["expires_at"],
+            }
+            self._event(db, job_id, actor, "job.lease_revoked", {
+                "prior_owner_id": lease["owner_id"],
+                "expired_at": lease["expires_at"],
+                "reason": reason or "Lease expired without renewal; revoked by recovery policy.",
+            })
+            return prior
+
+    def mark_attempt_interrupted(self, job_id: str, attempt_id: str,
+                                 actor: str = "recovery", reason: str = "",
+                                 now: str | None = None) -> dict[str, Any]:
+        """Mark a STARTED attempt as UNCERTAIN after a crash, timeout, or expired lease.
+
+        Terminal attempts (SUCCEEDED, FAILED, UNCERTAIN) cannot be altered.
+        An attempt left in STARTED is uncertain because side effects may or may not have occurred.
+        """
+        current_ts = now or utc_now()
+        with _LOCK, self.connect() as db:
+            row = db.execute("SELECT * FROM task_attempts WHERE id=? AND job_id=?",
+                             (attempt_id, job_id)).fetchone()
+            if not row:
+                raise ValidationError("Task attempt does not exist for this job.")
+            if row["status"] != "STARTED":
+                raise ValidationError("Only STARTED task attempts can be marked interrupted.")
+            explanation = reason or "Attempt interrupted by worker crash, timeout, or lease expiry."
+            db.execute(
+                "UPDATE task_attempts SET status='UNCERTAIN', error_text=?, finished_at=? WHERE id=?",
+                (explanation[:4000], current_ts, attempt_id),
+            )
+            self._event(db, job_id, actor, "task.attempt_interrupted", {
+                "attempt_id": attempt_id,
+                "task_id": row["task_id"],
+                "status": "UNCERTAIN",
+                "reason": explanation,
+            })
+        return self.get_task_attempt(job_id, attempt_id)  # type: ignore[return-value]
 
     @staticmethod
     def _lease_for_worker(db: sqlite3.Connection, job_id: str, token: str) -> sqlite3.Row:

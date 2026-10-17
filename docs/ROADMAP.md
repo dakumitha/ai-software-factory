@@ -18,8 +18,8 @@
 
 ## Reliability milestone: recoverable workers
 - [x] Document the recovery contract and safe implementation order in `docs/RECOVERABLE_WORKERS.md`.
-- [ ] Add regression tests for expired/replaced leases, stale-worker rejection, and preserved attempt/checkpoint history.
-- [ ] Implement deterministic stale-work inventory and recovery recommendations without executing commands.
+- [x] Add regression tests for expired/replaced leases, stale-worker rejection, and preserved attempt/checkpoint history.
+- [x] Implement deterministic stale-work inventory and recovery recommendations without executing commands (`software_factory.recovery`).
 - [ ] Add heartbeat updates and structured worker outcomes with bounded, secret-safe diagnostics.
 - [ ] Add bounded retry policy and circuit breaker after outcome categories are stable.
 

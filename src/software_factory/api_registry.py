@@ -18,6 +18,21 @@ VERIFICATION = {"UNVERIFIED", "VERIFIED", "REJECTED"}
 APPROVAL = {"PENDING", "APPROVED", "REJECTED"}
 
 
+class ClosableConnection(sqlite3.Connection):
+    """A SQLite connection that automatically commits/rolls back and closes upon context exit.
+
+    Standard library sqlite3.Connection context manager only manages transactions,
+    leaving the underlying connection open until garbage collection. This causes file locking
+    and PermissionErrors on Windows, and emits ResourceWarning in Python 3.13+.
+    """
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        try:
+            return super().__exit__(exc_type, exc_val, exc_tb)
+        finally:
+            self.close()
+
+
 class RegistryError(ValueError):
     """A registry record is invalid or violates review policy."""
 
@@ -78,7 +93,7 @@ class ApiRegistry:
             db.execute("CREATE INDEX IF NOT EXISTS idx_api_registry_events_candidate_id ON api_registry_events(candidate_id, id)")
 
     def _connect(self) -> sqlite3.Connection:
-        db = sqlite3.connect(self.path, timeout=10)
+        db = sqlite3.connect(self.path, timeout=10, factory=ClosableConnection)
         db.row_factory = sqlite3.Row
         return db
 
