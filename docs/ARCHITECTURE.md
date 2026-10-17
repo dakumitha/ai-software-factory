@@ -16,49 +16,26 @@ Status: proposed architecture. Technology choices remain open until the integrat
 10. **Release controller**: evaluates required evidence, approval status, target configuration, rollback plan, and release state.
 11. **Integration registry**: records external repositories, versions, licences, maintenance evidence, risks, and adapter status.
 
+12. **API Discovery Registry**: SQLite catalogue with source/provider URLs, pricing/licence labels, verification and human approval state, filtering, and audit history.
+
+13. **Repository/Template Evaluator**: statically inspects an already-present local repository's bounded metadata files. It emits a JSON report and leaves adoption in REVIEW_REQUIRED. It does not clone, install, build, test, or execute repository code.
+
+14. **Deterministic Execution Controller**: selects one ready task in stable order, resolves its explicit handler type, persists an attempt before execution, checks JSON output size, and records task completion in a durable checkpoint. Handlers are trusted in-process code, not sandboxed; missing handlers block execution. No LLM or arbitrary code execution is included. See [Execution Controller](EXECUTION_CONTROLLER.md).
+
 ## Trust boundaries
 
 - User input and generated plans are untrusted until validated.
 - Public repository code, package scripts, model output, and agent-generated commands are untrusted.
-- Agent workspaces are isolated from secrets and control-plane authority.
-- The control plane validates every state transition and tool permission.
-- Credentials are stored only in an approved secret manager or secure host configuration, never in source files or logs.
-- Production deployment is a separate privileged action with explicit approval.
-- External integration outputs are data, not instructions that can override system policy.
+- Agent workspaces must be isolated from secrets and control-plane authority.
+- The control plane validates state transitions and tool permissions.
+- Registry records are metadata only; the registry does not fetch or execute a listed API, package, or sample.
+- Repository evaluation is static metadata triage, not a security certification.
+- The execution controller invokes only explicitly registered trusted handlers. It is not a sandbox, and it must not register model-generated code or arbitrary plugins.
 
-## Durable job state
+## Durable state and recovery
 
-A job should record:
-- stable job and project IDs;
-- specification revision and requirement IDs;
-- task graph revision and current task;
-- source repository and commit/branch references;
-- selected agent/model and configuration version;
-- budget limits and measured usage when available;
-- checkpoint ID and resumable state;
-- logs, artifacts, test results and security findings;
-- approval records and final outcome.
-
-State changes should be explicit, validated, and idempotent. A resumed job must not blindly repeat non-idempotent external actions. Retries must be bounded and distinguish transient failures from deterministic failures.
-
-## Suggested job lifecycle
-
-`DRAFT → NEEDS_CLARIFICATION → SPEC_READY → PLAN_READY → AWAITING_APPROVAL → QUEUED → RUNNING → VERIFYING → REVIEW_REQUIRED → RELEASE_READY → RELEASED`
-
-Terminal or interrupt states include `BLOCKED`, `FAILED`, `CANCELLED`, and `PAUSED_QUOTA`. Only the controller may transition a job to a release state after validating required evidence.
-
-## Initial implementation order
-
-1. Repository audit and architecture decisions.
-2. Data contracts and state machine.
-3. Persistent project/job/task records and event log.
-4. Mobile-friendly read-only status/control UI.
-5. Requirements and task planning workflow.
-6. One safe agent adapter in a constrained environment.
-7. Verification pipeline and evidence store.
-8. Approval flow, exports, and release controller.
-9. Additional agents/providers and integrations only after the first vertical slice is tested.
+The store persists project/job/task state, events, checkpoints, worker leases and task attempts. An attempt left STARTED after a crash is uncertain and must be reconciled before retry. Checkpoints are orchestration metadata, not independent verification. The current implementation does not guarantee exactly-once side effects or automatic crash recovery.
 
 ## Design rule
 
-Prefer the smallest coherent system that can safely coordinate existing tools. Do not add infrastructure merely because it is popular. Every dependency must justify its operational cost, security risk, licence, and free-tier feasibility.
+Prefer the smallest coherent system that safely coordinates existing tools. Dependencies must justify operational cost, security risk, licence, and free-tier feasibility.

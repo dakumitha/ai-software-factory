@@ -1,70 +1,53 @@
 # Accelerated Delivery Roadmap
 
-**Deadline target: 7–14 days for a demonstrated end-to-end engine slice.** The target is aggressive and conditional on free execution/model access being available. The result should be a working, testable engine that creates and verifies a representative application, not a claim that every software category is production-perfect.
+**Target:** demonstrate a useful end-to-end engine slice as quickly as free resources allow. This is a target, not a guarantee of a universal autonomous factory.
 
 ## Phase 0: Foundation and control plane
-- [x] Create dedicated repository and product requirements.
-- [x] Add lightweight documentation CI.
-- [x] Implement SQLite project/job persistence.
-- [x] Implement explicit job lifecycle validation and append-only event history.
-- [x] Validate task dependency graphs and provide ready-task selection.
-- [x] Add JSON HTTP endpoints for projects, jobs, events, and state transitions.
-- [x] Add standard-library unit tests and a Python 3.11/3.12 GitHub Actions workflow.
-- [ ] Verify the core-test workflow is green.
-- [ ] Add API integration tests and a safe phone-friendly control interface.
+- [x] SQLite project/job persistence, lifecycle validation, event history, task graph validation, and JSON HTTP API.
+- [x] Versioned specs, acceptance criteria, and approval-gated deterministic planning.
+- [x] Durable checkpoints, worker leases, task-attempt records, and interrupted-job inventory.
+- [x] API discovery registry, review lifecycle, explicit adapter interface, and preview-first local catalogue import.
+- [x] Static local repository metadata evaluator.
+- [x] Deterministic allowlisted execution controller for one task at a time.
+- [x] Bounded local artifact writer with path checks, size cap, explicit overwrite, and SHA-256 receipt.
+- [x] Non-executing artifact verification for path, size, digest, and optional JSON syntax.
+- [x] Bounded create → read-back verify → persist evidence helper workflow; it always stops at human review.
+- [x] Explicit built-in `artifact_integrity` task handler with strict payload validation; unknown task kinds are rejected.
+- [ ] Independent code/build/test verification and safe isolated executor.
+- [ ] Authentication for any non-local access.
 
-**Gate:** control-plane tests pass in CI and persistence survives restart.
+## Reliability milestone: recoverable workers
+- [x] Document the recovery contract and safe implementation order in `docs/RECOVERABLE_WORKERS.md`.
+- [x] Add regression tests for expired/replaced leases, stale-worker rejection, and preserved attempt/checkpoint history.
+- [x] Implement deterministic stale-work inventory and recovery recommendations without executing commands (`software_factory.recovery`).
+- [x] Add heartbeat updates and structured worker outcomes with bounded, secret-safe diagnostics (`software_factory.heartbeat`).
+- [x] Add bounded retry policy and circuit breaker after outcome categories are stable (`software_factory.resilience`).
 
-## Phase 1: Free execution route and integration choices
-- [ ] Compare Spec Kit and OpenSpec on one representative feature; select one primary.
-- [ ] Identify an agent runner that can run on a genuinely available free host or free-tier runtime.
-- [ ] Verify at least one model route without paid API credit; document quotas, acceptable use, and fallback.
-- [ ] Confirm persistent artifact storage and job resume behaviour on the selected host.
-- [ ] Record decisions, limitations, and reproducible setup steps.
+## Phase 1: Demonstrated end-to-end vertical slice
+- [x] Connect approved specification → task plan → explicit approval → bounded worker execution → independent verification → reviewable artifact (`software_factory.pipeline`).
+- [x] Safe artifact writer and tests for traversal, symlinks, size limits, and overwrite policy.
+- [x] Artifact evidence reports for digest and JSON syntax checks.
+- [x] Add read-only CLI commands for job listing and status inspection.
+- [ ] Add one-step execution CLI only after safe built-in task handlers and explicit execution policy are defined.
+- [x] Add a narrow artifact-integrity task adapter with regression tests; this is not a shell runner or isolated build/test executor.
+- [x] Add an isolated deterministic dry-run demo for spec approval, planning, leases, task attempts, and checkpoints without external model/API costs. The demo deliberately stops at review and does not claim acceptance tests passed.
+- [x] Add a bounded artifact workflow that persists read-back verification evidence. This is a file-integrity milestone, not a code build/test gate.
 
-**Gate:** one real execution path is proven without assuming unlimited free compute.
+## Phase 2: Agent integration
+- [x] Document the zero-spend policy, trust boundaries, and staged agent adoption gates.
+- [ ] Evaluate the OpenHands Software Agent SDK as an optional adapter; do not make it a mandatory dependency before review.
+- [ ] Choose a coding agent and model route after verifying terms, real free quotas, data flow, and persistence.
+- [ ] Use a disposable least-privilege workspace and explicit command allowlist.
+- [ ] Store diffs, test logs, verification evidence, and budget events.
+- [ ] Pause safely on quota exhaustion; never silently incur paid usage.
 
-## Phase 2: Requirements-to-plan workflow
-- [ ] Build an adaptive discovery interview that stores answers, assumptions, unresolved questions, and conflicts.
-- [ ] Generate versioned project specifications and acceptance criteria.
-- [ ] Create dependency-aware plans with requirement traceability.
-- [ ] Require explicit owner approval before executing agent tasks.
-- [ ] Persist prompts/config versions, outputs, logs, checkpoints, and budget events.
+## Phase 3: Control room and delivery
+- [ ] Phone-friendly project/task/status UI.
+- [ ] Authentication, permissions, deployment and rollback controls.
+- [ ] Additional language/framework templates based on reproducible evidence.
 
-**Gate:** a plain-language idea becomes a reviewable, saved specification and executable plan.
-
-## Phase 3: Agent execution and verification
-- [ ] Integrate one coding-agent adapter, behind a narrow interface.
-- [ ] Use an isolated, disposable workspace with bounded time, output, and permissions.
-- [ ] Apply changes only to a separate working branch/workspace.
-- [ ] Run tests, lint/type checks, build, dependency/license checks, and secret scanning as appropriate.
-- [ ] Save patch/diff, logs, test reports, and evidence.
-- [ ] Pause safely on quota exhaustion and resume from persisted state.
-
-**Gate:** one sample app is generated/modified and verification evidence is recorded; failures block completion.
-
-## Phase 4: Mobile control room and hand-off
-- [ ] Provide a responsive phone-first interface for projects, job status, logs, diffs, approval, and export.
-- [ ] Add safe API authentication and production deployment configuration.
-- [ ] Add exportable requirements, plans, patches, and reports.
-- [ ] Document limitations and owner-operated recovery.
-
-**Gate:** owner can supervise the full demonstrated workflow from a phone without needing a local development computer.
-
-## Phase 5: Broaden coverage after the vertical slice
-- [ ] Add further frameworks, languages, and agent providers based on benchmark evidence.
-- [ ] Add maintenance/bug triage and optional codebase indexing.
-- [ ] Add controlled deployment and rollback only after isolated verification is reliable.
-- [ ] Add more sophisticated memory/search only if baseline persistence is insufficient.
-
-## Scope and honest completion
-
-The 7–14 day target applies to the first demonstrated end-to-end engine slice. It does not guarantee a universal, production-grade autonomous software factory across every stack. The external model/host route is the principal risk because free tiers can change or exhaust quotas. If the free route fails, pause and report the blocker rather than silently using a paid service.
-
-## CI budget rules
-
-- Prefer local/static checks and one targeted workflow run over blind retries.
-- Keep workflows short, pinned, and read-only unless a job truly requires more permission.
-- Do not run model-intensive jobs on every documentation change.
-- Never disable required checks or weaken tests to turn CI green.
-- Record CI usage and stop before known quota limits.
+## Safety and CI budget
+- Keep generated code and repository plugins untrusted.
+- Never execute task titles, prompts, or generated code as shell commands.
+- Never disable tests or quality gates to make CI green.
+- Prefer targeted checks and do not blindly rerun workflows.

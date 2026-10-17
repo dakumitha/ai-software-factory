@@ -41,6 +41,10 @@ jobs:
             docs/ARCHITECTURE.md
             docs/INTEGRATION_REGISTER.md
             docs/ROADMAP.md
+            docs/DOCUMENTATION_STANDARD.md
+            docs/DEVELOPMENT_LOG.md
+            docs/SPEC_WORKFLOW.md
+            tests/README.md
             docs/decisions/README.md
           )
           for file in "${required[@]}"; do
