@@ -7,9 +7,17 @@ from __future__ import annotations
 
 import hashlib
 import json
+import time
 from typing import Any, Callable
 
 from .core import Store, ValidationError, ready_tasks
+from .heartbeat import (
+    HeartbeatKeeper,
+    OUTCOME_HANDLER_ERROR,
+    OUTCOME_OUTPUT_LIMIT_EXCEEDED,
+    OUTCOME_SUCCESS,
+    build_task_outcome,
+)
 
 TaskHandler = Callable[[dict[str, Any]], Any]
 
@@ -40,7 +48,15 @@ class ExecutionController:
         return {"task_id": task["id"], "title": task["title"],
                 "input": payload, "spec": job["spec"]}
 
-    def run_next(self, job_id: str, token: str, *, actor: str = "worker") -> dict[str, Any]:
+    def run_next(
+        self,
+        job_id: str,
+        token: str,
+        *,
+        actor: str = "worker",
+        enable_heartbeat: bool = False,
+        heartbeat_interval: float = 15.0,
+    ) -> dict[str, Any]:
         """Execute one ready task, or return a structured no-work/block result."""
         job = self.store.get_job(job_id)
         if not job:
@@ -74,19 +90,44 @@ class ExecutionController:
                     "attempt_id": attempt["id"], "attempt_status": attempt["status"],
                     "reason": "Existing attempt is terminal; controller will not replay it automatically."}
 
+        t0 = time.perf_counter()
         try:
-            output = handler(payload)
+            if enable_heartbeat:
+                with HeartbeatKeeper(self.store, job_id, token, interval_seconds=heartbeat_interval):
+                    output = handler(payload)
+            else:
+                output = handler(payload)
+            duration_ms = int((time.perf_counter() - t0) * 1000)
             encoded = json.dumps(output, sort_keys=True, ensure_ascii=False)
             if len(encoded.encode("utf-8")) > 1_000_000:
                 raise ExecutionError("Handler output exceeds the 1 MB limit")
         except Exception as exc:
+            duration_ms = int((time.perf_counter() - t0) * 1000)
+            cat = (
+                OUTCOME_OUTPUT_LIMIT_EXCEEDED
+                if isinstance(exc, ExecutionError) and "1 MB" in str(exc)
+                else OUTCOME_HANDLER_ERROR
+            )
+            outcome = build_task_outcome(
+                category=cat,
+                duration_ms=duration_ms,
+                task_id=task["id"],
+                attempt_id=attempt["id"],
+                error=f"{type(exc).__name__}: {exc}",
+            )
             self.store.finish_task_attempt(job_id, attempt["id"], token, "FAILED",
                                            error=f"{type(exc).__name__}: {exc}")
             return {"status": "TASK_FAILED", "job_id": job_id, "task_id": task["id"],
                     "attempt_id": attempt["id"], "error_type": type(exc).__name__,
-                    "error": str(exc)[:1000]}
+                    "error": str(exc)[:1000], "outcome": outcome}
 
         finished = self.store.finish_task_attempt(job_id, attempt["id"], token, "SUCCEEDED", output=output)
+        outcome = build_task_outcome(
+            category=OUTCOME_SUCCESS,
+            duration_ms=duration_ms,
+            task_id=task["id"],
+            attempt_id=attempt["id"],
+        )
         updated = self.store.save_checkpoint(job_id, {
             "completed_task_ids": sorted(completed | {task["id"]}),
             "current_task_id": None,
@@ -95,4 +136,5 @@ class ExecutionController:
         }, actor=actor)
         return {"status": "TASK_SUCCEEDED", "job_id": job_id, "task_id": task["id"],
                 "attempt_id": attempt["id"], "attempt_status": finished["status"],
-                "output": output, "completed_task_ids": updated["checkpoint"]["completed_task_ids"]}
+                "output": output, "completed_task_ids": updated["checkpoint"]["completed_task_ids"],
+                "outcome": outcome}

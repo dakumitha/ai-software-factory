@@ -20,7 +20,7 @@
 - [x] Document the recovery contract and safe implementation order in `docs/RECOVERABLE_WORKERS.md`.
 - [x] Add regression tests for expired/replaced leases, stale-worker rejection, and preserved attempt/checkpoint history.
 - [x] Implement deterministic stale-work inventory and recovery recommendations without executing commands (`software_factory.recovery`).
-- [ ] Add heartbeat updates and structured worker outcomes with bounded, secret-safe diagnostics.
+- [x] Add heartbeat updates and structured worker outcomes with bounded, secret-safe diagnostics (`software_factory.heartbeat`).
 - [ ] Add bounded retry policy and circuit breaker after outcome categories are stable.
 
 ## Phase 1: Demonstrated end-to-end vertical slice

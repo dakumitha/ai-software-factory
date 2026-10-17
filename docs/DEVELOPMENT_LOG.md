@@ -2,6 +2,15 @@
 
 ## 2026-10-17
 
+### Heartbeat renewal manager and structured task outcome records
+- Added `software_factory.heartbeat` providing `HeartbeatKeeper` context manager for background worker lease renewal, `sanitize_error` for redaction of secrets/tokens/credentials, and `build_task_outcome` for standardized diagnostic outcome objects.
+- Classified outcome categories: `OUTCOME_SUCCESS`, `OUTCOME_TIMEOUT`, `OUTCOME_HANDLER_ERROR`, `OUTCOME_PAYLOAD_INVALID`, `OUTCOME_OUTPUT_LIMIT_EXCEEDED`, and `OUTCOME_INTERRUPTED`.
+- Defined explicit retry eligibility: `TIMEOUT` and `HANDLER_ERROR` are retry eligible; `SUCCESS`, `PAYLOAD_INVALID`, `OUTPUT_LIMIT_EXCEEDED`, and `INTERRUPTED` are non-retryable.
+- Redacted credential patterns including Bearer tokens, API keys, passwords, auth tokens, secret keys, and hex digest tokens before persisting error summaries.
+- Integrated `HeartbeatKeeper` into `ExecutionController.run_next` with configurable interval and auto-lease refresh.
+- Added comprehensive unit tests in `tests/test_heartbeat.py` covering background heartbeats, revoked-lease handling, secret redaction, and outcome structuring.
+- Verification status: all 117 tests across the entire test suite pass locally on Windows 11 (`117 tests, OK, 2 skipped`).
+
 ### Deterministic stale-work inventory and recovery service
 - Added `software_factory.recovery` module implementing pure evaluation (`evaluate_job_recovery`) and store-connected reconciliation (`RecoveryService`).
 - Classifies lease conditions into `ACTIVE_VALID`, `EXPIRED`, `MISSING_LEASE`, and `HEARTBEAT_OVERDUE`.

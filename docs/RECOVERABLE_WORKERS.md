@@ -42,7 +42,7 @@ A lease timeout is not sufficient to safely repeat an external side effect. Exte
 
 1. **[Completed]** Add tests around lease expiry, stale-worker rejection, and audit history using a temporary SQLite database (`tests/test_recovery.py`).
 2. **[Completed]** Add a deterministic recovery service that inventories stale work and emits recommendations without running commands (`software_factory.recovery`).
-3. Add bounded heartbeat updates and a structured task outcome record.
+3. **[Completed]** Add bounded heartbeat updates and a structured task outcome record (`software_factory.heartbeat`).
 4. Add retry policy and an adapter circuit breaker after outcome categories are stable.
 5. Add a real isolated build/test worker only after sandbox boundaries, resource limits, logs, cancellation, and cleanup are independently reviewed.
 
