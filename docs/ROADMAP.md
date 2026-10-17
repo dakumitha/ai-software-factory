@@ -21,7 +21,7 @@
 - [x] Add regression tests for expired/replaced leases, stale-worker rejection, and preserved attempt/checkpoint history.
 - [x] Implement deterministic stale-work inventory and recovery recommendations without executing commands (`software_factory.recovery`).
 - [x] Add heartbeat updates and structured worker outcomes with bounded, secret-safe diagnostics (`software_factory.heartbeat`).
-- [ ] Add bounded retry policy and circuit breaker after outcome categories are stable.
+- [x] Add bounded retry policy and circuit breaker after outcome categories are stable (`software_factory.resilience`).
 
 ## Phase 1: Demonstrated end-to-end vertical slice
 - [ ] Connect approved specification → task plan → explicit approval → bounded worker execution → independent verification → reviewable artifact.

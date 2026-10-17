@@ -2,6 +2,14 @@
 
 ## 2026-10-17
 
+### Bounded retry policy, idempotency keys, and adapter circuit breaker
+- Added `software_factory.resilience` module implementing deterministic retry evaluation (`RetryPolicy`), canonical idempotency keys (`derive_idempotency_key`), 3-state circuit breaker (`CircuitBreaker`), and registry (`CircuitBreakerRegistry`).
+- Derived stable SHA-256 idempotency keys from task identity and canonically-serialized JSON payload to guard against duplicate side effects.
+- Implemented bounded `RetryPolicy` enforcing maximum retry ceilings, allowlisted retryable outcome categories, prohibition of automatic retries on non-idempotent operations, and deterministic exponential backoff calculation.
+- Implemented 3-state `CircuitBreaker` (`CLOSED`, `OPEN`, `HALF_OPEN`) with configurable failure threshold, cool-down timeout, secret-sanitized diagnostic reason reporting, and support for injected timestamps for testability.
+- Added comprehensive unit tests in `tests/test_resilience.py` covering key determinism, state transitions, cool-down elapsed probe permissions, consecutive probe recovery, immediate half-open trip on failure, secret redaction, and backoff caps.
+- Verification status: all 128 tests across the entire test suite pass locally on Windows 11 (`128 tests, OK, 2 skipped`).
+
 ### Heartbeat renewal manager and structured task outcome records
 - Added `software_factory.heartbeat` providing `HeartbeatKeeper` context manager for background worker lease renewal, `sanitize_error` for redaction of secrets/tokens/credentials, and `build_task_outcome` for standardized diagnostic outcome objects.
 - Classified outcome categories: `OUTCOME_SUCCESS`, `OUTCOME_TIMEOUT`, `OUTCOME_HANDLER_ERROR`, `OUTCOME_PAYLOAD_INVALID`, `OUTCOME_OUTPUT_LIMIT_EXCEEDED`, and `OUTCOME_INTERRUPTED`.
