@@ -24,7 +24,7 @@
 - [x] Add bounded retry policy and circuit breaker after outcome categories are stable (`software_factory.resilience`).
 
 ## Phase 1: Demonstrated end-to-end vertical slice
-- [ ] Connect approved specification → task plan → explicit approval → bounded worker execution → independent verification → reviewable artifact.
+- [x] Connect approved specification → task plan → explicit approval → bounded worker execution → independent verification → reviewable artifact (`software_factory.pipeline`).
 - [x] Safe artifact writer and tests for traversal, symlinks, size limits, and overwrite policy.
 - [x] Artifact evidence reports for digest and JSON syntax checks.
 - [x] Add read-only CLI commands for job listing and status inspection.

@@ -2,6 +2,14 @@
 
 ## 2026-10-17
 
+### End-to-end vertical slice pipeline
+- Added `software_factory.pipeline` module implementing `run_vertical_slice_pipeline` to wire together approved specification → deterministic task plan → explicit approval → bounded worker execution with heartbeat & resilience → independent read-back verification report → reviewable artifact evidence.
+- Connects `SpecStore` validation and approval, `build_plan` task graph creation, allowlisted `artifact_integrity` tasks, `ExecutionController` with background `HeartbeatKeeper`, and fail-safe circuit breaker protection.
+- Enforces independent read-back verification (`verify_artifact`) checking SHA-256 digests and JSON structure for every generated artifact.
+- Hard safety gate: transitions the job strictly to `REVIEW_REQUIRED` upon successful verification; never automatically promotes a job to `RELEASE_READY` or `RELEASED`.
+- Added unit test suite in `tests/test_pipeline.py` testing complete vertical slice execution, on-disk artifact verification, open-question rejection, and release safety invariants.
+- Verification status: all 131 tests across the entire test suite pass locally on Windows 11 (`131 tests, OK, 2 skipped`).
+
 ### Bounded retry policy, idempotency keys, and adapter circuit breaker
 - Added `software_factory.resilience` module implementing deterministic retry evaluation (`RetryPolicy`), canonical idempotency keys (`derive_idempotency_key`), 3-state circuit breaker (`CircuitBreaker`), and registry (`CircuitBreakerRegistry`).
 - Derived stable SHA-256 idempotency keys from task identity and canonically-serialized JSON payload to guard against duplicate side effects.
