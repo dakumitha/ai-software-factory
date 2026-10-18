@@ -105,6 +105,15 @@ class TemplatesAndDeliveryTests(unittest.TestCase):
         rolled_back = self.release_controller.rollback_release(job["id"], actor="ops", reason="Hotfix rollback")
         self.assertEqual(rolled_back["state"], "QUEUED")
 
+    def test_export_archetype_writes_files_to_disk(self):
+        from software_factory.templates import export_archetype
+        import tempfile
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            written = export_archetype("school_transport", tmp_dir, "Test School")
+            self.assertGreaterEqual(len(written), 6)
+            self.assertTrue(Path(tmp_dir, "pnpm-workspace.yaml").exists())
+            self.assertTrue(Path(tmp_dir, "apps", "parent-mobile", "src", "screens", "TrackingScreen.tsx").exists())
+
 
 if __name__ == "__main__":
     unittest.main()

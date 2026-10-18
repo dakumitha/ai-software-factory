@@ -23,3 +23,6 @@ data/backups/
 .DS_Store
 Thumbs.db
 
+# Generated outputs
+generated_apps/
+

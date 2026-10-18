@@ -6,6 +6,7 @@ templates for school transport, elder logistics, and commerce marketplace system
 from __future__ import annotations
 
 import json
+from pathlib import Path
 from typing import Any
 
 ARCHETYPE_SCHOOL_TRANSPORT = "school_transport"
@@ -277,4 +278,49 @@ def _elder_logistics_template(title: str) -> dict[str, str]:
             f"}}\n"
         ),
     }
+
+
+def export_archetype(
+    archetype: str,
+    output_dir: str | Path,
+    project_title: str = "Platform",
+) -> list[str]:
+    """Write all archetype files to the specified output directory on disk."""
+    out_path = Path(output_dir)
+    files = generate_archetype_files(archetype, project_title=project_title)
+    written: list[str] = []
+    for rel_path, content in files.items():
+        file_path = out_path / rel_path
+        file_path.parent.mkdir(parents=True, exist_ok=True)
+        file_path.write_text(content, encoding="utf-8")
+        written.append(str(file_path))
+    return written
+
+
+if __name__ == "__main__":
+    import argparse
+
+    parser = argparse.ArgumentParser(
+        description="Scaffold an autonomous software archetype monorepo."
+    )
+    parser.add_argument(
+        "--archetype",
+        default=ARCHETYPE_SCHOOL_TRANSPORT,
+        choices=sorted(SUPPORTED_ARCHETYPES),
+        help="Archetype to generate (default: school_transport)",
+    )
+    parser.add_argument(
+        "--out",
+        default="./generated_apps/school_transport",
+        help="Destination directory for generated files",
+    )
+    parser.add_argument(
+        "--title",
+        default="VidyaVahan School Transport",
+        help="Project display title",
+    )
+    args = parser.parse_args()
+    exported = export_archetype(args.archetype, args.out, project_title=args.title)
+    print(f"[OK] Generated {len(exported)} files for '{args.archetype}' in: {args.out}")
+
 
