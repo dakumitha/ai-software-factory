@@ -1,0 +1,35 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Start Factory Control Room",
+            "type": "shell",
+            "command": "python -m software_factory --web",
+            "options": {
+                "env": {
+                    "PYTHONPATH": "src"
+                }
+            },
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            }
+        },
+        {
+            "label": "Run All Tests",
+            "type": "shell",
+            "command": "python -m unittest discover -s tests",
+            "options": {
+                "env": {
+                    "PYTHONPATH": "src"
+                }
+            },
+            "problemMatcher": [],
+            "group": {
+                "kind": "test",
+                "isDefault": true
+            }
+        }
+    ]
+}
