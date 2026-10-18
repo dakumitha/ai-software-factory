@@ -13,6 +13,7 @@ class WorkerCliTests(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
         self.database = str(Path(self.tmp.name) / "factory.sqlite3")
+        self.workspace = str(Path(self.tmp.name) / "workspace")
         self.store = Store(self.database)
         self.project = self.store.create_project("CLI tests", "Inspect persisted jobs")
         self.job = self.store.create_job(
@@ -53,6 +54,66 @@ class WorkerCliTests(unittest.TestCase):
         code, output = self.run_cli("status", "job-does-not-exist")
         self.assertEqual(code, 2)
         self.assertEqual(json.loads(output)["error"], "Job not found")
+
+    def test_step_executes_ready_task_successfully(self):
+        executable_job = self.store.create_job(
+            self.project["id"],
+            tasks=[
+                {
+                    "id": "step-task-1",
+                    "title": "Artifact Task",
+                    "type": "artifact_integrity",
+                    "input": {
+                        "kind": "artifact_integrity",
+                        "path": "step_result.json",
+                        "content": '{"ok": true}\n',
+                        "require_json": True,
+                    },
+                }
+            ],
+        )
+        for s in ("NEEDS_CLARIFICATION", "SPEC_READY", "PLAN_READY", "AWAITING_APPROVAL", "QUEUED", "RUNNING"):
+            self.store.transition(executable_job["id"], s)
+
+        code, output = self.run_cli(
+            "step",
+            executable_job["id"],
+            "--workspace",
+            self.workspace,
+            "--worker-id",
+            "test-worker",
+            "--enable-heartbeat",
+            "--heartbeat-interval",
+            "0.05",
+        )
+        self.assertEqual(code, 0)
+        result = json.loads(output)
+        self.assertEqual(result["status"], "TASK_SUCCEEDED")
+        self.assertEqual(result["task_id"], "step-task-1")
+        self.assertEqual(result["completed_task_ids"], ["step-task-1"])
+        self.assertIn("outcome", result)
+        self.assertEqual(result["outcome"]["category"], "SUCCESS")
+
+        # Verify on-disk artifact
+        created_file = Path(self.workspace) / "step_result.json"
+        self.assertTrue(created_file.exists())
+        self.assertEqual(json.loads(created_file.read_text(encoding="utf-8")), {"ok": True})
+
+    def test_step_rejects_non_running_job(self):
+        code, output = self.run_cli("step", self.job["id"])
+        self.assertEqual(code, 1)
+        result = json.loads(output)
+        self.assertIn("Only RUNNING jobs", result["error"])
+
+    def test_step_reports_all_complete(self):
+        job = self.store.create_job(self.project["id"], tasks=[])
+        for s in ("NEEDS_CLARIFICATION", "SPEC_READY", "PLAN_READY", "AWAITING_APPROVAL", "QUEUED", "RUNNING"):
+            self.store.transition(job["id"], s)
+
+        code, output = self.run_cli("step", job["id"], "--workspace", self.workspace)
+        self.assertEqual(code, 0)
+        result = json.loads(output)
+        self.assertEqual(result["status"], "ALL_COMPLETE")
 
 
 if __name__ == "__main__":

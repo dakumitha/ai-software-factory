@@ -204,6 +204,23 @@
         "do not move canonical engineering decisions into generated website artifacts",
         "check accessibility, search, build reproducibility and deployment costs"
       ]
+    },
+    {
+      "id": "morluto-rea",
+      "repository": "https://github.com/morluto/rea",
+      "role": "reverse-engineering-and-architecture-extraction",
+      "priority": "P1",
+      "mode": "optional-mcp-tool",
+      "status": "accepted-for-reverse-engineering-workflow",
+      "license_review": "MIT license stated by upstream repository",
+      "cost_class": "Open-source local MCP tool; model inference cost depends on host agent",
+      "enabled_by_default": false,
+      "guardrails": [
+        "reverse-engineered outputs are untrusted inputs until parsed into valid specifications",
+        "never execute decompiled binaries or unreviewed scripts directly",
+        "convert reverse-engineered architectural insights into traceable requirements with acceptance criteria",
+        "surfaced unknowns and assumptions must be review-gated before job approval"
+      ]
     }
   ]
 }

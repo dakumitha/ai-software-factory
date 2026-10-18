@@ -1,5 +1,22 @@
 # Development Log
 
+## 2026-10-19
+
+### One-step worker execution CLI command
+- Added `step` command to `software_factory.worker_cli` enabling safe, bounded execution of one ready task under worker lease protection.
+- Validates job state (`RUNNING`), acquires a time-limited worker lease, executes the task using `ExecutionController` with `HeartbeatKeeper`, and safely commits checkpoint and task attempt records.
+- Guarantees lease release in `finally` block and outputs structured JSON diagnostics without leaking sensitive payloads.
+- Added comprehensive unit tests in `tests/test_worker_cli.py` covering task execution, on-disk artifact verification, non-running job rejection, and `ALL_COMPLETE` state reporting.
+- Verification status: all 134 tests pass locally on Windows 11 (`134 tests, OK, 2 skipped`).
+
+### Reverse-engineering analysis bridge and design-to-specification generator
+- Added `software_factory.reverse_engineering` module implementing `parse_rea_analysis_report` and `convert_rea_report_to_specification`.
+- Integrates findings from REA (Reverse Engineer Anything, `morluto/rea`) and UI design system extractions (Figma, Lovable) into clean-room, traceable factory specifications.
+- Maps discovered UI components and API contracts into formal requirements (`REQ-*`) with acceptance criteria, inferred logic into assumptions, limitations into constraints, and unknowns into `open_questions` (blocking approval until human review).
+- Registered `morluto-rea` in `config/integrations/repositories.json` with strict guardrails against executing decompiled binaries or unreviewed code.
+- Added comprehensive documentation in `docs/REVERSE_ENGINEERING_INTEGRATION.md` and regression tests in `tests/test_reverse_engineering.py`.
+- Verification status: all 136 tests across the entire test suite pass locally on Windows 11 (`136 tests, OK, 2 skipped`).
+
 ## 2026-10-17
 
 ### End-to-end vertical slice pipeline

@@ -28,13 +28,14 @@
 - [x] Safe artifact writer and tests for traversal, symlinks, size limits, and overwrite policy.
 - [x] Artifact evidence reports for digest and JSON syntax checks.
 - [x] Add read-only CLI commands for job listing and status inspection.
-- [ ] Add one-step execution CLI only after safe built-in task handlers and explicit execution policy are defined.
+- [x] Add one-step execution CLI only after safe built-in task handlers and explicit execution policy are defined (`software_factory.worker_cli step`).
 - [x] Add a narrow artifact-integrity task adapter with regression tests; this is not a shell runner or isolated build/test executor.
 - [x] Add an isolated deterministic dry-run demo for spec approval, planning, leases, task attempts, and checkpoints without external model/API costs. The demo deliberately stops at review and does not claim acceptance tests passed.
 - [x] Add a bounded artifact workflow that persists read-back verification evidence. This is a file-integrity milestone, not a code build/test gate.
 
 ## Phase 2: Agent integration
 - [x] Document the zero-spend policy, trust boundaries, and staged agent adoption gates.
+- [x] Add reverse-engineering and design-to-specification bridge for REA (`software_factory.reverse_engineering` and `docs/REVERSE_ENGINEERING_INTEGRATION.md`).
 - [ ] Evaluate the OpenHands Software Agent SDK as an optional adapter; do not make it a mandatory dependency before review.
 - [ ] Choose a coding agent and model route after verifying terms, real free quotas, data flow, and persistence.
 - [ ] Use a disposable least-privilege workspace and explicit command allowlist.
