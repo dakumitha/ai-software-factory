@@ -38,7 +38,7 @@
 - [x] Add reverse-engineering and design-to-specification bridge for REA (`software_factory.reverse_engineering` and `docs/REVERSE_ENGINEERING_INTEGRATION.md`).
 - [ ] Evaluate the OpenHands Software Agent SDK as an optional adapter; do not make it a mandatory dependency before review.
 - [ ] Choose a coding agent and model route after verifying terms, real free quotas, data flow, and persistence.
-- [ ] Use a disposable least-privilege workspace and explicit command allowlist.
+- [x] Use a disposable least-privilege workspace and explicit command allowlist (`software_factory.sandbox`).
 - [ ] Store diffs, test logs, verification evidence, and budget events.
 - [ ] Pause safely on quota exhaustion; never silently incur paid usage.
 

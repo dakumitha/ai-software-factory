@@ -2,6 +2,15 @@
 
 ## 2026-10-19
 
+### Isolated disposable workspace and command allowlist executor
+- Added `software_factory.sandbox` module implementing `IsolatedWorkspace`, `SandboxPolicy`, and `SandboxViolationError`.
+- Enforces strict executable allowlist (`python`, `git`, `pytest`, `node`, `npm`, `tsc`) and prohibits shell redirection tokens (`|`, `>`, `&`, `;`) and shell binaries (`bash`, `powershell`, `cmd`, `curl`, `wget`).
+- Provides disposable temporary workspace directories with automatic lifecycle cleanup and Windows NTFS lock resilience.
+- Sanitizes host environment variables, preventing API keys, cloud credentials, and database tokens from leaking into child execution processes.
+- Enforces process timeouts, maximum output capture limits (500 KB), and secret redaction on stdout/stderr output.
+- Added comprehensive unit tests in `tests/test_sandbox.py` covering allowlist acceptance, violation rejection, benign execution, environment sanitization, and timeout enforcement.
+- Verification status: all 142 tests pass locally on Windows 11 (`142 tests, OK, 2 skipped`).
+
 ### One-step worker execution CLI command
 - Added `step` command to `software_factory.worker_cli` enabling safe, bounded execution of one ready task under worker lease protection.
 - Validates job state (`RUNNING`), acquires a time-limited worker lease, executes the task using `ExecutionController` with `HeartbeatKeeper`, and safely commits checkpoint and task attempt records.
