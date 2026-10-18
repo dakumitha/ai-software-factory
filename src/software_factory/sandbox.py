@@ -107,11 +107,12 @@ class IsolatedWorkspace:
         self.policy = policy or SandboxPolicy()
         self.prefix = prefix
         self._temp_dir: tempfile.TemporaryDirectory | None = None
-        self._path: Path | None = None
+        self._path: Path | None = Path(base_dir).resolve() if (base_dir and Path(base_dir).is_dir()) else None
 
     def __enter__(self) -> IsolatedWorkspace:
-        self._temp_dir = tempfile.TemporaryDirectory(prefix=self.prefix, dir=self.base_dir)
-        self._path = Path(self._temp_dir.name).resolve()
+        if self._path is None:
+            self._temp_dir = tempfile.TemporaryDirectory(prefix=self.prefix, dir=self.base_dir)
+            self._path = Path(self._temp_dir.name).resolve()
         return self
 
     def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
@@ -133,6 +134,30 @@ class IsolatedWorkspace:
         if self._path is None:
             raise RuntimeError("IsolatedWorkspace has not been entered.")
         return self._path
+
+    def write_file(self, rel_path: str, content: str) -> Path:
+        """Write text file safely within the workspace boundary."""
+        target = (self.path / rel_path).resolve()
+        if not str(target).startswith(str(self.path)):
+            raise SandboxViolationError(f"Path traversal detected: {rel_path}")
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(content, encoding="utf-8")
+        return target
+
+    def read_file(self, rel_path: str) -> str:
+        """Read text file safely from within the workspace boundary."""
+        target = (self.path / rel_path).resolve()
+        if not str(target).startswith(str(self.path)):
+            raise SandboxViolationError(f"Path traversal detected: {rel_path}")
+        return target.read_text(encoding="utf-8")
+
+    def file_exists(self, rel_path: str) -> bool:
+        """Check if file exists safely within the workspace boundary."""
+        target = (self.path / rel_path).resolve()
+        if not str(target).startswith(str(self.path)):
+            return False
+        return target.is_file()
+
 
     def run_command(
         self,

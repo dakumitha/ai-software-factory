@@ -709,6 +709,8 @@ class ApiHandler(BaseHTTPRequestHandler):
     store: Store
     specs: Any
     api_registry: Any
+    ai_provider: str = "auto"
+    ai_key: str | None = None
 
     def log_message(self, format: str, *args: Any) -> None:
         return
@@ -721,6 +723,16 @@ class ApiHandler(BaseHTTPRequestHandler):
         self.send_header("Cache-Control", "no-store")
         self.end_headers()
         self.wfile.write(raw)
+
+    def _send_html(self, status: int, html_str: str) -> None:
+        raw = html_str.encode("utf-8")
+        self.send_response(status)
+        self.send_header("Content-Type", "text/html; charset=utf-8")
+        self.send_header("Content-Length", str(len(raw)))
+        self.send_header("Cache-Control", "no-store")
+        self.end_headers()
+        self.wfile.write(raw)
+
 
     def _body(self) -> dict[str, Any]:
         raw_length = self.headers.get("Content-Length", "0")
@@ -842,6 +854,24 @@ class ApiHandler(BaseHTTPRequestHandler):
             if not self.store.get_project(parts[1]):
                 return self._send(404, {"error": "Project not found"})
             return self._send(200, {"items": self.specs.list(parts[1])})
+        if path == "/ai/config":
+            gemini_key = self.ai_key or os.getenv("GEMINI_API_KEY")
+            groq_key = self.ai_key or os.getenv("GROQ_API_KEY")
+            return self._send(200, {
+                "preferred_provider": self.ai_provider,
+                "gemini_available": bool(gemini_key),
+                "groq_available": bool(groq_key),
+                "zero_spend_enforced": True,
+                "spend_usd": 0.0,
+            })
+        if path == "/preview/live":
+            from .preview import render_preview_bundle
+            return self._send_html(200, render_preview_bundle())
+        if len(parts) == 3 and parts[0] == "jobs" and parts[2] == "preview":
+            job = self.store.get_job(parts[1])
+            title = str(job.get("spec", {}).get("title", "School Transport System")) if job else "School Transport System"
+            from .preview import render_preview_bundle
+            return self._send_html(200, render_preview_bundle(project_title=title))
         return self._send(404, {"error": "Not found"})
 
     def do_POST(self) -> None:
@@ -1002,6 +1032,45 @@ class ApiHandler(BaseHTTPRequestHandler):
                     "files_count": len(files),
                     "files": list(files.keys()),
                 })
+            if path == "/ai/config":
+                provider = str(body.get("provider", ApiHandler.ai_provider))
+                api_key = body.get("api_key")
+                ApiHandler.ai_provider = provider
+                if api_key is not None:
+                    ApiHandler.ai_key = str(api_key).strip() or None
+                return self._send(200, {
+                    "preferred_provider": ApiHandler.ai_provider,
+                    "has_api_key": bool(ApiHandler.ai_key),
+                })
+            if len(parts) == 3 and parts[0] == "jobs" and parts[2] == "autonomous-generate":
+                job = self.store.get_job(parts[1])
+                if not job:
+                    return self._send(404, {"error": "Job not found"})
+                prompt = str(body.get("prompt", "Build component"))
+                target_file = str(body.get("target_file", "src/App.tsx"))
+                task_id = str(body.get("task_id", f"gen-{int(time.time())}"))
+                
+                from .agent_adapter import AutoSelectAgentAdapter
+                from .autonomous_engine import AutonomousCodingEngine
+                from .evidence_store import EvidenceStore
+                from .sandbox import IsolatedWorkspace
+
+                adapter = AutoSelectAgentAdapter(preferred_provider=ApiHandler.ai_provider, api_key=ApiHandler.ai_key)
+                ev = EvidenceStore(self.store.path)
+                engine = AutonomousCodingEngine(adapter=adapter, evidence_store=ev)
+
+                workspace_dir = Path("workspace") / parts[1]
+                workspace_dir.mkdir(parents=True, exist_ok=True)
+                ws = IsolatedWorkspace(workspace_dir)
+
+                receipt = engine.execute_autonomous_task(
+                    workspace=ws,
+                    job_id=parts[1],
+                    task_id=task_id,
+                    prompt=prompt,
+                    target_file=target_file,
+                )
+                return self._send(200, receipt)
             return self._send(404, {"error": "Not found"})
         except (ValidationError, RegistryError, json.JSONDecodeError, TypeError) as exc:
             return self._send(400, {"error": str(exc)})

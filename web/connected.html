@@ -591,6 +591,77 @@
         ></div>
       </section>
 
+      <section class="panel" aria-labelledby="aiStudioTitle">
+        <div class="panelhead">
+          <div>
+            <h2 id="aiStudioTitle">🧠 Autonomous AI Coding Studio & Live App Preview</h2>
+            <small class="muted"
+              >Live generative AI coding engine with self-healing reflection loops and real-time app preview.</small
+            >
+          </div>
+          <span class="pill" id="aiBrainBadge" style="background: rgba(56, 189, 248, 0.15); color: var(--accent);">AI Brain: Auto (₹0 Spend)</span>
+        </div>
+
+        <div class="card" style="margin: 14px 0; padding: 12px; background: #0c121c; border-radius: 12px; border: 1px solid var(--line);">
+          <div class="formgrid">
+            <div class="field">
+              <label for="aiProviderSelect">AI Engine Provider</label>
+              <select id="aiProviderSelect">
+                <option value="auto">Auto-Detect Best Available (Zero-Spend)</option>
+                <option value="gemini">Google Gemini 1.5 Flash (Free Tier)</option>
+                <option value="groq">Groq Llama 3 Instant (Free Tier)</option>
+                <option value="ollama">Local Ollama (qwen2.5-coder / offline)</option>
+                <option value="heuristic">Intelligent Synthesizer (Offline Zero-Key)</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="aiApiKeyInput">Free API Key (Optional)</label>
+              <div style="display: flex; gap: 8px;">
+                <input id="aiApiKeyInput" type="password" placeholder="Gemini / Groq key" style="flex: 1;" />
+                <button class="btn" id="btnSaveAiKey" type="button" style="width: auto;">Save</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="formgrid">
+          <div class="field" style="grid-column: 1 / -1;">
+            <label for="aiPromptInput">Natural Language Feature / App Prompt</label>
+            <textarea id="aiPromptInput" rows="3" style="width: 100%; border-radius: 10px; background: #0a0f18; border: 1px solid var(--line); color: var(--text); padding: 10px; font-family: inherit; font-size: 13px;" placeholder="e.g. Build live parent bus tracking screen with moving coordinates, student boarded badge, and emergency SOS alert button"></textarea>
+          </div>
+          <div class="field">
+            <label for="aiTargetFileInput">Target Source File Path</label>
+            <input id="aiTargetFileInput" type="text" value="apps/parent-mobile/src/screens/TrackingScreen.tsx" style="width: 100%;" />
+          </div>
+          <div class="field" style="display: flex; align-items: flex-end; gap: 8px;">
+            <button class="btn primary" id="btnRunAutonomousAi" type="button" style="flex: 1;">
+              ⚡ Run Autonomous Self-Healing Coding Loop
+            </button>
+            <button class="btn" id="btnToggleLivePreview" type="button" style="width: auto; background: var(--panel2);">
+              📱 Live App Preview
+            </button>
+          </div>
+        </div>
+
+        <p id="aiStudioMessage" class="error" role="status" aria-live="polite" style="margin-top: 8px;"></p>
+
+        <label class="muted" style="font-size: 12px; display: block; margin-top: 14px;">Autonomous Reflection Stream & Compiler Telemetry</label>
+        <div class="console-log" id="aiStudioConsole" style="max-height: 220px;">
+          [AI Studio Engine] Standing by. Enter a prompt and launch autonomous self-healing loop.
+        </div>
+
+        <div id="livePreviewContainer" class="hidden" style="margin-top: 16px; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; background: #000;">
+          <div style="padding: 10px 16px; background: #111827; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center;">
+            <strong style="font-size: 13px;">📱 Live Interactive App Preview (Parent, Driver, Admin)</strong>
+            <div>
+              <button class="btn" onclick="document.getElementById('livePreviewFrame').src = '/preview/live'" style="width: auto; padding: 4px 10px; font-size: 11px;">🔄 Reload</button>
+              <a href="/preview/live" target="_blank" class="btn" style="width: auto; padding: 4px 10px; font-size: 11px; text-decoration: none; display: inline-flex;">↗️ Open New Tab</a>
+            </div>
+          </div>
+          <iframe id="livePreviewFrame" src="/preview/live" style="width: 100%; height: 740px; border: none; display: block;"></iframe>
+        </div>
+      </section>
+
       <section class="panel" aria-labelledby="createTitle">
         <div class="panelhead">
           <h2 id="createTitle">Start a project</h2>
@@ -1135,8 +1206,92 @@
           }
         });
 
-        $("refresh").addEventListener("click", load);
+        async function loadAiConfig() {
+          try {
+            const cfg = await api("/ai/config");
+            $("aiBrainBadge").textContent = `AI Brain: ${cfg.preferred_provider.toUpperCase()} (₹0 Spend)`;
+            $("aiProviderSelect").value = cfg.preferred_provider;
+            if (cfg.gemini_available || cfg.groq_available) {
+              $("aiApiKeyInput").placeholder = "Key Configured (Saved)";
+            }
+          } catch (e) {
+            // ignore
+          }
+        }
+
+        $("btnSaveAiKey").addEventListener("click", async () => {
+          const provider = $("aiProviderSelect").value;
+          const key = $("aiApiKeyInput").value.trim();
+          try {
+            await api("/ai/config", {
+              method: "POST",
+              body: JSON.stringify({ provider, api_key: key || undefined }),
+            });
+            $("aiStudioMessage").className = "good";
+            $("aiStudioMessage").textContent = "AI engine configuration updated.";
+            loadAiConfig();
+          } catch (err) {
+            $("aiStudioMessage").className = "error";
+            $("aiStudioMessage").textContent = err.message;
+          }
+        });
+
+        $("btnToggleLivePreview").addEventListener("click", () => {
+          const container = $("livePreviewContainer");
+          container.classList.toggle("hidden");
+          if (!container.classList.contains("hidden")) {
+            $("livePreviewFrame").src = `/jobs/${currentJobId || "default"}/preview`;
+          }
+        });
+
+        $("btnRunAutonomousAi").addEventListener("click", async () => {
+          if (!currentJobId) {
+            $("aiStudioMessage").className = "error";
+            $("aiStudioMessage").textContent = "Please select or start a project first.";
+            return;
+          }
+          const prompt = $("aiPromptInput").value.trim();
+          if (!prompt) {
+            $("aiStudioMessage").className = "error";
+            $("aiStudioMessage").textContent = "Please enter a feature instruction or prompt.";
+            return;
+          }
+          const target_file = $("aiTargetFileInput").value.trim() || "src/App.tsx";
+          $("aiStudioMessage").className = "good";
+          $("aiStudioMessage").textContent = "Launching autonomous coding loop with self-healing reflection…";
+
+          const consoleEl = $("aiStudioConsole");
+          consoleEl.textContent = `[AI Studio] Starting autonomous cycle for ${target_file}…\nPrompt: "${prompt}"\n`;
+
+          try {
+            const receipt = await api(`/jobs/${currentJobId}/autonomous-generate`, {
+              method: "POST",
+              body: JSON.stringify({ prompt, target_file }),
+            });
+
+            let logText = `[AI Studio] Execution Complete!\nStatus: ${receipt.status}\nIterations Used: ${receipt.iterations_used}\nTokens Consumed: ${receipt.budget_tokens}\nZero-Spend Compliant: ${receipt.zero_spend_compliant}\n\n--- REPAIR ATTEMPTS ---\n`;
+            receipt.attempts.forEach((a) => {
+              logText += `Iteration ${a.iteration}: Verified = ${a.verified} ${a.error_message ? `(Error: ${a.error_message})` : "(Syntax Clean)"}\n`;
+            });
+            logText += `\n--- FINAL GENERATED CODE (${target_file}) ---\n${receipt.final_code.slice(0, 500)}...\n`;
+            consoleEl.textContent = logText;
+
+            $("aiStudioMessage").className = "good";
+            $("aiStudioMessage").textContent = `Code generated and verified in ${receipt.iterations_used} iteration(s)!`;
+            await fetchEvidence(currentJobId);
+          } catch (err) {
+            $("aiStudioMessage").className = "error";
+            $("aiStudioMessage").textContent = err.message;
+            consoleEl.textContent += `\n[ERROR] ${err.message}`;
+          }
+        });
+
+        $("refresh").addEventListener("click", () => {
+          load();
+          loadAiConfig();
+        });
         load();
+        loadAiConfig();
       })();
     </script>
   </body>

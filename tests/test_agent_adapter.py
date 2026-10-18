@@ -5,8 +5,13 @@ from pathlib import Path
 
 from software_factory.agent_adapter import (
     AgentBudget,
+    AutoSelectAgentAdapter,
     DeterministicAgentAdapter,
     FreeQuotaAgentAdapter,
+    GeminiFreeAgentAdapter,
+    GroqFreeAgentAdapter,
+    HeuristicSynthesisAdapter,
+    OllamaAgentAdapter,
     OpenHandsAgentAdapter,
     QuotaExhaustedError,
 )
@@ -115,7 +120,49 @@ class AgentAdapterAndEvidenceTests(unittest.TestCase):
         self.assertEqual(summary["total_spend_usd"], 0.0)
         self.assertTrue(summary["zero_spend_compliant"])
 
+    def test_heuristic_synthesis_adapter_generates_domain_logic(self):
+        adapter = HeuristicSynthesisAdapter()
+        budget = AgentBudget()
+
+        # Parent tracking screen
+        resp_parent = adapter.generate(
+            "Build parent tracking screen for school bus route 4",
+            {"task_id": "parent-track"},
+            budget,
+        )
+        self.assertEqual(resp_parent.status, "COMPLETED")
+        self.assertIn("ParentLiveTrackingScreen", resp_parent.code)
+        self.assertIn("BusLocation", resp_parent.code)
+
+        # Driver attendance screen
+        resp_driver = adapter.generate(
+            "Build driver QR attendance scanner screen",
+            {"task_id": "driver-att"},
+            budget,
+        )
+        self.assertIn("DriverAttendanceScreen", resp_driver.code)
+        self.assertIn("StudentAttendee", resp_driver.code)
+
+    def test_gemini_and_groq_fallback_when_no_api_key(self):
+        budget = AgentBudget()
+        gemini = GeminiFreeAgentAdapter(api_key="")
+        resp_g = gemini.generate("Create school bus admin dashboard", {"task_id": "admin-fleet"}, budget)
+        self.assertEqual(resp_g.status, "COMPLETED")
+        self.assertIn("SchoolFleetAdminConsole", resp_g.code)
+
+        groq = GroqFreeAgentAdapter(api_key="")
+        resp_gr = groq.generate("Create parent screen", {"task_id": "parent"}, budget)
+        self.assertEqual(resp_gr.status, "COMPLETED")
+
+    def test_autoselect_adapter_falls_back_cleanly(self):
+        budget = AgentBudget()
+        auto = AutoSelectAgentAdapter(preferred_provider="auto")
+        resp = auto.generate("Build emergency SOS alert", {"task_id": "sos"}, budget)
+        self.assertEqual(resp.status, "COMPLETED")
+        self.assertEqual(resp.cost_usd, 0.0)
+
 
 if __name__ == "__main__":
     unittest.main()
+
 
