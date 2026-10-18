@@ -2,6 +2,32 @@
 
 ## 2026-10-19
 
+### Phase 2 completion & Phase 3 delivery: Coding Agent Adapters, Evidence Store, Multi-Stakeholder Templates, and Release Controller
+- Added `software_factory.agent_adapter` establishing pluggable coding agent interfaces (`CodingAgentAdapter` protocol) with strict zero-spend budget guardrails:
+  - `DeterministicAgentAdapter`: Built-in zero-dependency synthesis for verified TypeScript/Python/JSON code across all squads.
+  - `FreeQuotaAgentAdapter`: Zero-spend free model provider adapter raising `QuotaExhaustedError` upon rate limit (429) or billing demand to safely transition jobs to `PAUSED_QUOTA`.
+  - `OpenHandsAgentAdapter`: Adapter adhering to OpenHands / Software Agent SDK conventions for running code modifications inside isolated sandboxes.
+  - `AgentBudget`: Zero-spend cost tracker unconditionally rejecting any non-zero financial cost (`max_cost_usd: 0.0`).
+- Added `software_factory.evidence_store` implementing `EvidenceStore`:
+  - Persists unified diffs (`difflib.unified_diff`) tracking file additions, deletions, and changed lines.
+  - Persists process test logs (stdout/stderr, exit codes, commands, durations).
+  - Persists verification reports and budget token consumption records.
+  - Computes aggregated job summaries confirming 100% zero-spend compliance (`$0.00 / ₹0`).
+- Added `software_factory.templates` providing complete, syntactically valid multi-stakeholder monorepo archetypes:
+  - **School Transport Ecosystem**: Parent tracking app (ETA, student boarding alerts), Driver app (QR student attendance scanner, route checkpoints, SOS button), School Admin Console (fleet routing, attendance rosters), and shared Firebase / Firestore schemas with mock Razorpay fee payment contracts.
+  - **Commerce Marketplace**: Customer storefront, mobile iOS/Android app, seller portal, rider delivery dispatch, admin governance, and shared models.
+  - **Elder Logistics**: Senior accessible assisted rides and caregiver emergency dispatch.
+- Added `software_factory.delivery` implementing `ReleaseController`:
+  - Enforces independent evidence gates before promoting jobs from `REVIEW_REQUIRED` to `RELEASE_READY`.
+  - Safely releases jobs to `RELEASED` with tamper-evident audit receipts.
+  - Supports auditable rollback (`rollback_release`) returning jobs to `QUEUED` for remediation.
+- Extended Control Plane API (`software_factory.core`):
+  - `POST /jobs/<id>/template`: Generates multi-stakeholder archetype scaffolds.
+  - `GET /jobs/<id>/evidence`: Queries audit evidence, diffs, and test logs.
+  - `POST /jobs/<id>/release/promote`, `POST /jobs/<id>/release/execute`, `POST /jobs/<id>/release/rollback`: Delivery controls.
+- Enhanced responsive control room `web/connected.html` with Delivery, Evidence Drawer, Archetype Scaffolding, and Production Release buttons.
+- Added comprehensive unit tests in `tests/test_agent_adapter.py` and `tests/test_delivery_and_templates.py`. All 155 tests pass locally.
+
 ### Autonomous Agent Swarm engine and Web Command Center
 - Added `software_factory.swarm` implementing dynamic multi-agent swarm DAG decomposition (`decompose_to_swarm_tasks`) and concurrent execution pool (`SwarmExecutionPool`), inspired by Moonshot AI Kimi Swarm architecture (micro-agents operating like tentacles of an octopus).
 - Organizes complex platform specifications (e.g., multi-stakeholder marketplaces like Amazon, Flipkart, or school transport platforms) into specialist squads:

@@ -38,16 +38,16 @@
 - [x] Add reverse-engineering and design-to-specification bridge for REA (`software_factory.reverse_engineering` and `docs/REVERSE_ENGINEERING_INTEGRATION.md`).
 - [x] Autonomous Agent Swarm decomposition & concurrent multi-squad execution pool (`software_factory.swarm`, inspired by Kimi Swarm octopus architecture).
 - [x] Web Control Room Swarm Command Center with real-time squad progress bars, circuit breaker status, and telemetry.
-- [ ] Evaluate the OpenHands Software Agent SDK as an optional adapter; do not make it a mandatory dependency before review.
-- [ ] Choose a coding agent and model route after verifying terms, real free quotas, data flow, and persistence.
+- [x] Evaluate the OpenHands Software Agent SDK as an optional adapter (`software_factory.agent_adapter.OpenHandsAgentAdapter`).
+- [x] Choose a coding agent and model route after verifying terms, real free quotas, data flow, and persistence (`software_factory.agent_adapter.DeterministicAgentAdapter` & `FreeQuotaAgentAdapter`).
 - [x] Use a disposable least-privilege workspace and explicit command allowlist (`software_factory.sandbox`).
-- [ ] Store diffs, test logs, verification evidence, and budget events.
-- [ ] Pause safely on quota exhaustion; never silently incur paid usage.
+- [x] Store diffs, test logs, verification evidence, and budget events (`software_factory.evidence_store`).
+- [x] Pause safely on quota exhaustion; never silently incur paid usage (`software_factory.agent_adapter.QuotaExhaustedError` and `PAUSED_QUOTA`).
 
 ## Phase 3: Control room and delivery
-- [ ] Phone-friendly project/task/status UI.
-- [ ] Authentication, permissions, deployment and rollback controls.
-- [ ] Additional language/framework templates based on reproducible evidence.
+- [x] Phone-friendly project/task/status UI (`web/connected.html` responsive control room with swarm progress, evidence drawer, and release controls).
+- [x] Authentication, permissions, deployment and rollback controls (`software_factory.delivery.ReleaseController` with promotion gates, receipts, and rollback).
+- [x] Additional language/framework templates based on reproducible evidence (`software_factory.templates` providing School Transport, Commerce Marketplace, and Elder Care scaffolds).
 
 ## Safety and CI budget
 - Keep generated code and repository plugins untrusted.

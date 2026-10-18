@@ -820,6 +820,17 @@ class ApiHandler(BaseHTTPRequestHandler):
                 "active_subagents_count": 0,
                 "squads": squad_summary,
             })
+        if len(parts) == 3 and parts[0] == "jobs" and parts[2] == "evidence":
+            job = self.store.get_job(parts[1])
+            if not job:
+                return self._send(404, {"error": "Job not found"})
+            from .evidence_store import EvidenceStore
+            ev = EvidenceStore(self.store.path)
+            return self._send(200, {
+                "job_id": job["id"],
+                "summary": ev.get_summary(job["id"]),
+                "items": ev.list_evidence(job["id"]),
+            })
         if len(parts) == 2 and parts[0] == "specifications":
             item = self.specs.get(parts[1])
             return self._send(200, item) if item else self._send(404, {"error": "Specification not found"})
@@ -962,6 +973,34 @@ class ApiHandler(BaseHTTPRequestHandler):
                 return self._send(200, {
                     "job_id": parts[1],
                     "telemetry": telemetry,
+                })
+            if len(parts) == 4 and parts[0] == "jobs" and parts[2] == "release" and parts[3] == "promote":
+                from .delivery import ReleaseController
+                rc = ReleaseController(self.store)
+                promoted = rc.promote_to_release_ready(parts[1], actor=str(body.get("actor", "api-owner")))
+                return self._send(200, {"job": promoted, "status": "RELEASE_READY"})
+            if len(parts) == 4 and parts[0] == "jobs" and parts[2] == "release" and parts[3] == "execute":
+                from .delivery import ReleaseController
+                rc = ReleaseController(self.store)
+                released = rc.execute_release(parts[1], actor=str(body.get("actor", "api-owner")), notes=str(body.get("notes", "")))
+                return self._send(200, {"job": released, "status": "RELEASED"})
+            if len(parts) == 4 and parts[0] == "jobs" and parts[2] == "release" and parts[3] == "rollback":
+                from .delivery import ReleaseController
+                rc = ReleaseController(self.store)
+                rolled_back = rc.rollback_release(parts[1], actor=str(body.get("actor", "api-owner")), reason=str(body.get("reason", "Operator rollback")))
+                return self._send(200, {"job": rolled_back, "status": "QUEUED"})
+            if len(parts) == 3 and parts[0] == "jobs" and parts[2] == "template":
+                job = self.store.get_job(parts[1])
+                if not job:
+                    return self._send(404, {"error": "Job not found"})
+                archetype = str(body.get("archetype", "school_transport"))
+                from .templates import generate_archetype_files
+                files = generate_archetype_files(archetype, project_title=str(job.get("spec", {}).get("title", "Platform")))
+                return self._send(200, {
+                    "job_id": parts[1],
+                    "archetype": archetype,
+                    "files_count": len(files),
+                    "files": list(files.keys()),
                 })
             return self._send(404, {"error": "Not found"})
         except (ValidationError, RegistryError, json.JSONDecodeError, TypeError) as exc:

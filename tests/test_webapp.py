@@ -132,6 +132,57 @@ class ConnectedWebTests(unittest.TestCase):
         telem = json.loads(body)
         self.assertEqual(telem["completed_tasks_count"], 4)
 
+    def test_template_and_evidence_and_release_api_endpoints(self):
+        _, _, body = self.request("/projects", "POST", {
+            "name": "Delhi Public School Fleet",
+            "idea": "Multi-stakeholder school bus transport ecosystem",
+        })
+        project = json.loads(body)
+
+        _, _, body = self.request("/jobs", "POST", {
+            "project_id": project["id"],
+            "spec": {"title": "School Transport System"},
+            "tasks": [{"id": "t1", "title": "Foundation Schema", "type": "artifact_integrity"}],
+        })
+        job = json.loads(body)
+
+        # 1. Test template scaffolding endpoint
+        status, _, body = self.request(f"/jobs/{job['id']}/template", "POST", {
+            "archetype": "school_transport",
+        })
+        self.assertEqual(status, 200)
+        tpl_res = json.loads(body)
+        self.assertEqual(tpl_res["archetype"], "school_transport")
+        self.assertIn("packages/shared/types/transport.ts", tpl_res["files"])
+        self.assertIn("apps/school-admin-web/src/App.tsx", tpl_res["files"])
+
+        # 2. Test evidence endpoint
+        status, _, body = self.request(f"/jobs/{job['id']}/evidence")
+        self.assertEqual(status, 200)
+        ev_res = json.loads(body)
+        self.assertEqual(ev_res["job_id"], job["id"])
+        self.assertTrue(ev_res["summary"]["zero_spend_compliant"])
+
+        # 3. Transition to REVIEW_REQUIRED and complete task
+        for s in ("NEEDS_CLARIFICATION", "SPEC_READY", "PLAN_READY", "AWAITING_APPROVAL", "QUEUED", "RUNNING", "VERIFYING", "REVIEW_REQUIRED"):
+            self.request(f"/jobs/{job['id']}/transition", "POST", {"target": s})
+        self.request(f"/jobs/{job['id']}/checkpoint", "POST", {"checkpoint": {"completed_task_ids": ["t1"]}})
+
+        # 4. Release promote
+        status, _, body = self.request(f"/jobs/{job['id']}/release/promote", "POST", {})
+        self.assertEqual(status, 200)
+        self.assertEqual(json.loads(body)["status"], "RELEASE_READY")
+
+        # 5. Release execute
+        status, _, body = self.request(f"/jobs/{job['id']}/release/execute", "POST", {"notes": "Production release"})
+        self.assertEqual(status, 200)
+        self.assertEqual(json.loads(body)["status"], "RELEASED")
+
+        # 6. Release rollback
+        status, _, body = self.request(f"/jobs/{job['id']}/release/rollback", "POST", {"reason": "Hotfix"})
+        self.assertEqual(status, 200)
+        self.assertEqual(json.loads(body)["status"], "QUEUED")
+
 
 if __name__ == "__main__":
     unittest.main()
