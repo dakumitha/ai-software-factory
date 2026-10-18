@@ -2,6 +2,25 @@
 
 ## 2026-10-19
 
+### Autonomous Agent Swarm engine and Web Command Center
+- Added `software_factory.swarm` implementing dynamic multi-agent swarm DAG decomposition (`decompose_to_swarm_tasks`) and concurrent execution pool (`SwarmExecutionPool`), inspired by Moonshot AI Kimi Swarm architecture (micro-agents operating like tentacles of an octopus).
+- Organizes complex platform specifications (e.g., multi-stakeholder marketplaces like Amazon, Flipkart, or school transport platforms) into specialist squads:
+  1. `backend_core`: Unified database schema, models, auth, and API contracts.
+  2. `customer_web`: Storefront, search, cart, and checkout components.
+  3. `customer_mobile`: React Native / mobile screens for iOS and Android.
+  4. `seller_portal`: Merchant catalog, order management, and dashboard views.
+  5. `rider_dispatch`: Route mapping, checkpoint tracking, and driver workflows.
+  6. `admin_operations`: User management, dispute resolution, and platform operations.
+  7. `qa_verification`: Cross-app contract integrity and verification receipt.
+- Designed single coordinator lease pattern (`swarm-coordinator`) with background `HeartbeatKeeper` and per-task attempts, enabling concurrent micro-agent execution without lease collisions or database deadlocks.
+- Extended `software_factory.core`:
+  - `Store.set_job_tasks` to update pre-execution task graphs.
+  - `validate_task_graph` to preserve `squad` identifiers on normalized tasks.
+  - API endpoints: `POST /jobs/<id>/swarm/decompose`, `POST /jobs/<id>/swarm/run`, and `GET /jobs/<id>/swarm/telemetry`.
+- Enhanced responsive control room `web/connected.html` with the **Octopus Agent Swarm Command Center**, featuring live squad progress bars, active subagent counters, circuit breaker safety indicators, and real-time telemetry stream.
+- Added comprehensive unit tests in `tests/test_swarm.py` and `tests/test_webapp.py`.
+- Verification status: all 145 tests across the entire test suite pass locally on Windows 11.
+
 ### Isolated disposable workspace and command allowlist executor
 - Added `software_factory.sandbox` module implementing `IsolatedWorkspace`, `SandboxPolicy`, and `SandboxViolationError`.
 - Enforces strict executable allowlist (`python`, `git`, `pytest`, `node`, `npm`, `tsc`) and prohibits shell redirection tokens (`|`, `>`, `&`, `;`) and shell binaries (`bash`, `powershell`, `cmd`, `curl`, `wget`).

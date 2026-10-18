@@ -547,6 +547,24 @@ class Store:
         db.execute("INSERT INTO events(job_id, at, actor, kind, payload_json) VALUES (?, ?, ?, ?, ?)",
                    (job_id, utc_now(), actor, kind, json.dumps(payload, sort_keys=True)))
 
+    def set_job_tasks(self, job_id: str, tasks: list[dict[str, Any]], actor: str = "orchestrator") -> dict[str, Any]:
+        """Update or replace the task graph for a job prior to execution."""
+        task_list = validate_task_graph(tasks or [])
+        with _LOCK, self.connect() as db:
+            row = db.execute("SELECT * FROM jobs WHERE id=?", (job_id,)).fetchone()
+            if not row:
+                raise ValidationError("Job does not exist.")
+            job = self._decode_job(row)
+            if job["state"] in {"RUNNING", "VERIFYING", "SUCCEEDED", "FAILED", "RELEASED"}:
+                raise ValidationError(f"Cannot update tasks for job in state {job['state']}.")
+            checkpoint = job["checkpoint"]
+            checkpoint["completed_task_ids"] = []
+            now = utc_now()
+            db.execute("UPDATE jobs SET tasks_json=?, checkpoint_json=?, updated_at=? WHERE id=?",
+                       (json.dumps(task_list), json.dumps(checkpoint), now, job_id))
+            self._event(db, job_id, actor, "job.tasks_updated", {"task_count": len(task_list)})
+        return self.get_job(job_id)  # type: ignore[return-value]
+
     def transition(self, job_id: str, target: str, actor: str = "owner", reason: str = "") -> dict[str, Any]:
         if target not in STATES:
             raise ValidationError(f"Unknown state: {target}")
@@ -652,9 +670,12 @@ def validate_task_graph(tasks: list[dict[str, Any]]) -> list[dict[str, Any]]:
         if not isinstance(checks, list) or not all(isinstance(x, str) for x in checks):
             raise ValidationError(f"Task {task_id} acceptance_checks must be a list of strings.")
         ids.add(task_id)
-        normalized.append({"id": task_id, "title": title, "type": task_type.strip(), "input": task_input,
-                           "requirement_ids": sorted(set(requirements)), "depends_on": sorted(set(depends)),
-                           "acceptance_checks": checks})
+        item: dict[str, Any] = {"id": task_id, "title": title, "type": task_type.strip(), "input": task_input,
+                                "requirement_ids": sorted(set(requirements)), "depends_on": sorted(set(depends)),
+                                "acceptance_checks": checks}
+        if "squad" in task and isinstance(task["squad"], str) and task["squad"].strip():
+            item["squad"] = task["squad"].strip()
+        normalized.append(item)
     by_id = {task["id"]: task for task in normalized}
     for task in normalized:
         missing = set(task["depends_on"]) - ids
@@ -775,6 +796,30 @@ class ApiHandler(BaseHTTPRequestHandler):
                 return self._send(404, {"error": "Job not found"})
             return self._send(200, {"items": self.store.events(parts[1])}
             )
+        if len(parts) == 4 and parts[0] == "jobs" and parts[2] == "swarm" and parts[3] == "telemetry":
+            job = self.store.get_job(parts[1])
+            if not job:
+                return self._send(404, {"error": "Job not found"})
+            tasks = job.get("tasks", [])
+            completed = set(job.get("checkpoint", {}).get("completed_task_ids", []))
+            squad_summary: dict[str, Any] = {}
+            for t in tasks:
+                sq = t.get("squad", "general")
+                if sq not in squad_summary:
+                    squad_summary[sq] = {"total": 0, "completed": 0, "failed": 0}
+                squad_summary[sq]["total"] += 1
+                if t["id"] in completed:
+                    squad_summary[sq]["completed"] += 1
+            return self._send(200, {
+                "job_id": job["id"],
+                "state": job["state"],
+                "total_tasks_count": len(tasks),
+                "completed_tasks_count": len(completed),
+                "failed_tasks_count": 0,
+                "circuit_breaker_state": "CLOSED",
+                "active_subagents_count": 0,
+                "squads": squad_summary,
+            })
         if len(parts) == 2 and parts[0] == "specifications":
             item = self.specs.get(parts[1])
             return self._send(200, item) if item else self._send(404, {"error": "Specification not found"})
@@ -872,6 +917,52 @@ class ApiHandler(BaseHTTPRequestHandler):
                     raise
                 return self._send(200, {"spec_id": spec["id"], "version": spec["version"],
                                         "tasks": validated_plan})
+            if len(parts) == 4 and parts[0] == "jobs" and parts[2] == "swarm" and parts[3] == "decompose":
+                job = self.store.get_job(parts[1])
+                if not job:
+                    return self._send(404, {"error": "Job not found"})
+                from .swarm import decompose_to_swarm_tasks
+                squads = body.get("squads")
+                tasks_per_squad = int(body.get("tasks_per_squad", 2))
+                tasks = decompose_to_swarm_tasks(job.get("spec", {}), squads=squads, tasks_per_squad=tasks_per_squad)
+                updated_job = self.store.set_job_tasks(parts[1], tasks, actor="api-owner")
+                return self._send(200, {
+                    "job_id": parts[1],
+                    "tasks_count": len(tasks),
+                    "tasks": tasks,
+                    "job": updated_job,
+                })
+            if len(parts) == 4 and parts[0] == "jobs" and parts[2] == "swarm" and parts[3] == "run":
+                job = self.store.get_job(parts[1])
+                if not job:
+                    return self._send(404, {"error": "Job not found"})
+                from .swarm import SwarmExecutionPool
+                from .artifact_task import handle_artifact_integrity_task
+
+                if body.get("auto_transition", True) and job["state"] in {"DRAFT", "SPEC_READY", "PLAN_READY", "AWAITING_APPROVAL", "QUEUED"}:
+                    for target in ("SPEC_READY", "PLAN_READY", "AWAITING_APPROVAL", "QUEUED", "RUNNING"):
+                        curr = self.store.get_job(parts[1])["state"]
+                        if curr == "RUNNING":
+                            break
+                        if target in TRANSITIONS.get(curr, set()):
+                            self.store.transition(parts[1], target, actor="swarm-launcher", reason="Swarm execution startup")
+
+                workspace_path = body.get("workspace", "workspace")
+                Path(workspace_path).mkdir(parents=True, exist_ok=True)
+                max_workers = int(body.get("max_workers", 4))
+                pool = SwarmExecutionPool(self.store, parts[1], workspace_path, max_workers=max_workers)
+
+                def handler(payload: dict[str, Any]) -> Any:
+                    inp = payload.get("input", {})
+                    if inp.get("kind") == "artifact_integrity":
+                        return handle_artifact_integrity_task(workspace_path, inp)
+                    return {"status": "completed", "task_id": payload.get("task_id")}
+
+                telemetry = pool.run_swarm_until_complete(handler)
+                return self._send(200, {
+                    "job_id": parts[1],
+                    "telemetry": telemetry,
+                })
             return self._send(404, {"error": "Not found"})
         except (ValidationError, RegistryError, json.JSONDecodeError, TypeError) as exc:
             return self._send(400, {"error": str(exc)})

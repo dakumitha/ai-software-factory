@@ -5,10 +5,17 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#101722">
 <meta name="description" content="Phone and desktop control room for the AI Software Factory.">
-<title>Factory Control Room</title>
+<title>Factory Control Room - Agent Swarm</title>
 <style>
-:root{color-scheme:dark;--bg:#0c1119;--panel:#141c28;--panel2:#192433;--line:#293749;--text:#eef4fb;--muted:#9aabc0;--accent:#9be2c0;--warn:#f4cb80}
+:root{color-scheme:dark;--bg:#0c1119;--panel:#141c28;--panel2:#192433;--line:#293749;--text:#eef4fb;--muted:#9aabc0;--accent:#9be2c0;--warn:#f4cb80;--info:#82aaff;--danger:#ff869a}
 *{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 85% -20%,#1b3540 0,transparent 40%),var(--bg);color:var(--text);font:15px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}button,input,textarea,select{font:inherit}button{cursor:pointer}button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}.layout{max-width:1180px;margin:auto;padding:24px clamp(14px,3vw,34px) 90px}.top{display:flex;justify-content:space-between;align-items:center;gap:14px}.brand{display:flex;align-items:center;gap:11px}.mark{width:40px;height:40px;border-radius:13px;display:grid;place-items:center;background:var(--accent);color:#102019;font-weight:900;font-size:21px}.brand strong{display:block}.brand small{color:var(--muted)}.status{font-size:12px;color:var(--warn);border:1px solid #655333;border-radius:99px;padding:5px 10px}.eyebrow{margin-top:36px;color:var(--accent);font-size:11px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase}h1{font-size:clamp(28px,5vw,43px);letter-spacing:-1.4px;line-height:1.1;margin:7px 0 12px}.intro{color:var(--muted);max-width:690px}.banner{margin:23px 0;border:1px solid #655333;background:#302819;color:#f7dfb3;padding:14px 16px;border-radius:14px}.banner strong{display:block}.banner p{margin:4px 0 0;color:#dfcba6;font-size:13px}.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:20px 0}.stat,.panel{border:1px solid var(--line);border-radius:17px;background:linear-gradient(145deg,var(--panel),#111925)}.stat{padding:16px}.stat label{color:var(--muted);font-size:13px}.stat b{display:block;font-size:27px;margin:5px 0}.stat small{color:var(--muted)}.panel{padding:20px;margin-top:15px}.panelhead{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:15px}.panel h2{font-size:18px;margin:0}.btn{border:1px solid var(--line);background:var(--panel2);color:var(--text);border-radius:11px;padding:10px 14px;font-weight:700}.primary{background:var(--accent);border-color:var(--accent);color:#102019}.field{display:grid;gap:6px;margin:12px 0}.field label{color:var(--muted);font-size:13px}input,textarea,select{width:100%;border:1px solid var(--line);border-radius:10px;padding:11px 12px;background:#0d141e;color:var(--text)}textarea{min-height:100px;resize:vertical}.formgrid{display:grid;grid-template-columns:1fr 1fr;gap:0 14px}.full{grid-column:1/-1}.actions{display:flex;gap:9px;align-items:center;flex-wrap:wrap}.muted{color:var(--muted)}.project{padding:15px 0;border-top:1px solid var(--line);display:flex;gap:12px}.project:first-child{border-top:0}.projecticon{width:39px;height:39px;flex:0 0 39px;border-radius:12px;background:#203243;display:grid;place-items:center}.projectmain{min-width:0}.projectmain strong{overflow-wrap:anywhere}.projectmain p{color:var(--muted);margin:4px 0;font-size:13px;overflow-wrap:anywhere}.pill{display:inline-block;border:1px solid var(--line);border-radius:99px;color:var(--muted);font-size:11px;padding:3px 8px;margin:4px 4px 0 0}.empty{padding:20px 0;text-align:center;color:var(--muted)}.error{color:#ffb4a9;margin-top:10px;font-size:13px}.good{color:var(--accent)}.foot{margin-top:20px;color:var(--muted);font-size:12px}.hidden{display:none!important}
+.squadgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;margin:15px 0}
+.squadcard{border:1px solid var(--line);border-radius:14px;background:var(--panel2);padding:14px;display:grid;gap:8px}
+.squadhead{display:flex;justify-content:space-between;align-items:center}
+.squadhead strong{font-size:14px}
+.progress-track{height:6px;border-radius:99px;background:#0d141e;overflow:hidden;margin:4px 0}
+.progress-fill{height:100%;background:var(--accent);width:0%;transition:width .3s ease}
+.console-log{background:#090d14;border:1px solid var(--line);border-radius:10px;padding:12px;font:12px/1.4 monospace;color:#b3c5da;max-height:180px;overflow-y:auto;white-space:pre-wrap}
 @media(max-width:600px){.layout{padding-top:17px}.top{align-items:flex-start}.status{max-width:120px;text-align:center}.eyebrow{margin-top:28px}.stats{gap:8px}.stat{padding:11px}.stat b{font-size:22px}.stat small{font-size:11px}.panel{padding:14px}.formgrid{grid-template-columns:1fr}.full{grid-column:auto}.panelhead{align-items:flex-start}.btn{padding:9px 11px}}
 </style>
 </head>
@@ -17,51 +24,151 @@
 <header class="top"><div class="brand"><div class="mark">F</div><div><strong>AI Software Factory</strong><small>Phone + desktop control room</small></div></div><div class="status" id="connection">Checking API…</div></header>
 <div class="eyebrow">Your command centre</div>
 <h1>Ideas in. Verified software out.</h1>
-<p class="intro">The target is one workspace for phone and desktop. This development build currently runs on the machine hosting the API; it is not yet securely reachable from your phone over the internet. Projects are saved by the API in its database, not in this browser. Remote agents and cloud builds are not connected yet.</p>
-<div class="banner"><strong>Honest status: API-connected prototype</strong><p>This page can read and create projects through the local factory API. It does not run an AI agent, execute generated code, or sync across devices unless both devices reach the same securely hosted API and database.</p></div>
+<p class="intro">The target is one workspace for phone and desktop. This development build runs on the machine hosting the API with native Agent Swarm execution. Projects and swarm state are managed by the API in SQLite with zero cloud spend.</p>
+<div class="banner"><strong>Honest status: Multi-Agent Swarm Connected</strong><p>Local swarm coordinator executes concurrent specialist squads (Backend Schema, Customer Web, Mobile iOS/Android, Seller Portal, Rider Logistics, Admin Operations, and Cross-App QA) in isolated sandboxes with circuit breaker safety.</p></div>
 <div class="stats">
  <div class="stat"><label>Server projects</label><b id="projectCount">—</b><small>Read from API</small></div>
- <div class="stat"><label>Spend limit</label><b>₹0</b><small>No paid fallback</small></div>
- <div class="stat"><label>Compute worker</label><b style="font-size:19px">Not linked</b><small>Build execution disabled</small></div>
+ <div class="stat"><label>Spend limit</label><b>₹0</b><small>Strict ₹0 limit</small></div>
+ <div class="stat"><label>Swarm Engine</label><b style="font-size:19px;color:var(--accent)">Active</b><small>Multi-agent pool ready</small></div>
 </div>
+
+<section class="panel" aria-labelledby="swarmTitle">
+ <div class="panelhead">
+  <div>
+   <h2 id="swarmTitle">Octopus Agent Swarm Command Center</h2>
+   <small class="muted">Inspired by Moonshot AI Kimi Swarm: Specialist sub-agents operate like octopus tentacles working concurrently on each subsystem.</small>
+  </div>
+  <span class="pill" id="swarmStatusBadge">Swarm Ready</span>
+ </div>
+ <div class="stats" style="margin:12px 0">
+  <div class="stat"><label>Active Subagents</label><b id="activeSubagentsCount">0</b><small>Concurrent workers</small></div>
+  <div class="stat"><label>Completed Tasks</label><b id="completedTasksCount">0 / 0</b><small>Across squads</small></div>
+  <div class="stat"><label>Circuit Breaker</label><b id="breakerState" style="color:var(--accent)">CLOSED</b><small>Safety healthy</small></div>
+ </div>
+ <div class="formgrid">
+  <div class="field">
+   <label for="swarmJobSelect">Target Job / Project</label>
+   <select id="swarmJobSelect"><option value="">Loading jobs…</option></select>
+  </div>
+  <div class="field">
+   <label for="swarmSquadSelect">Target Squad Architecture</label>
+   <select id="swarmSquadSelect">
+    <option value="all">Full Marketplace (All 6 Squads + QA)</option>
+    <option value="core">Core Web Platform (Backend + Customer Web + QA)</option>
+    <option value="mobile">Cross-Platform (Backend + Mobile iOS/Android + QA)</option>
+   </select>
+  </div>
+ </div>
+ <div class="actions" style="margin-top:10px">
+  <button class="btn" id="btnDecompose" type="button">Decompose into Swarm DAG</button>
+  <button class="btn primary" id="btnLaunchSwarm" type="button">⚡ Launch Agent Swarm</button>
+ </div>
+ <p id="swarmMessage" class="error" role="status" aria-live="polite"></p>
+
+ <label class="muted" style="font-size:12px;display:block;margin-top:14px">Active Specialist Squads</label>
+ <div class="squadgrid" id="squadGrid">
+  <div class="empty">Decompose a project to visualize active squads.</div>
+ </div>
+
+ <label class="muted" style="font-size:12px;display:block;margin-top:12px">Swarm Telemetry & Micro-Agent Event Stream</label>
+ <div class="console-log" id="swarmConsole">[Swarm Engine] Standing by. Select a job and launch swarm.</div>
+</section>
+
 <section class="panel" aria-labelledby="createTitle">
  <div class="panelhead"><h2 id="createTitle">Start a project</h2><span class="pill">Server saved</span></div>
  <form id="projectForm">
   <div class="formgrid">
-   <div class="field"><label for="name">Project name</label><input id="name" required maxlength="120" placeholder="e.g. Global marketplace"></div>
-   <div class="field"><label for="family">Product family</label><select id="family"><option>Publishing / newsletter</option><option>Commerce marketplace</option><option>Booking / travel marketplace</option><option>Business / productivity</option><option>Other</option></select></div>
+   <div class="field"><label for="name">Project name</label><input id="name" required maxlength="120" placeholder="e.g. Amazon-Scale Multi-Stakeholder Marketplace"></div>
+   <div class="field"><label for="family">Product family</label><select id="family"><option>Commerce marketplace (Amazon/Flipkart)</option><option>Booking / travel marketplace (Airbnb)</option><option>School transport & elder logistics</option><option>Publishing / newsletter</option><option>Other</option></select></div>
    <div class="field full"><label for="idea">What should it do?</label><textarea id="idea" required maxlength="5000" placeholder="Describe who will use it, the most important features, and what success means."></textarea></div>
   </div>
   <div class="actions"><button class="btn primary" id="save" type="submit">Save project to factory</button><button class="btn" id="refresh" type="button">Refresh projects</button></div>
   <p id="formMessage" class="error" role="status" aria-live="polite"></p>
  </form>
 </section>
+
 <section class="panel" aria-labelledby="projectsTitle">
  <div class="panelhead"><h2 id="projectsTitle">Projects in the factory database</h2><span class="pill" id="lastUpdated">Not loaded</span></div>
  <div id="projects"><div class="empty">Connecting to the factory API…</div></div>
 </section>
-<section class="panel"><h2>What comes next</h2>
- <p class="muted">The next engineering stages are authenticated hosting, secure cross-device access, job status and evidence views, then an isolated remote worker. Free compute is quota-limited, so the system must pause rather than spend money when a free route is unavailable.</p>
- <p><a href="https://github.com/dakumitha/ai-software-factory/blob/feature/spec-workflow/docs/PHONE_COMPUTE_CONTROL_ROOM.md">Read the phone + compute architecture ↗</a></p>
-</section>
+
 <p class="foot">Development mode only. The API is intentionally bound to loopback by default. Do not expose this server to the public internet without authentication, TLS, authorization and a hardened deployment.</p>
 </main>
 <script>
 (function(){
  const $=id=>document.getElementById(id);
- let online=false, projects=[];
+ let online=false, projects=[], jobs=[], currentJobId=null;
  const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ 
+ function log(msg){
+  const el=$('swarmConsole');
+  const ts=new Date().toLocaleTimeString();
+  el.textContent+=`\n[${ts}] ${msg}`;
+  el.scrollTop=el.scrollHeight;
+ }
+
  async function api(path,options={}){
   const response=await fetch(path,{...options,headers:{'Accept':'application/json','Content-Type':'application/json',...(options.headers||{})},cache:'no-store'});
   let data;try{data=await response.json()}catch(_){throw new Error('The factory API returned an unreadable response.')}
   if(!response.ok)throw new Error(data.error||('API request failed ('+response.status+').'));
   return data;
  }
+
+ function renderSquads(squads, telemetry){
+  if(!squads||!Object.keys(squads).length){
+   $('squadGrid').innerHTML='<div class="empty">Decompose a project to visualize active squads.</div>';
+   return;
+  }
+  const squadNames={
+   'backend_core':'⚙️ Backend Core & Database',
+   'customer_web':'🌐 Customer Web Storefront',
+   'customer_mobile':'📱 Customer Mobile (iOS/Android)',
+   'seller_portal':'🏬 Seller Portal Dashboard',
+   'rider_dispatch':'🛵 Rider Dispatch & Maps',
+   'admin_operations':'🛡️ Admin Operations Console',
+   'qa_verification':'🧪 QA & Contract Verification',
+  };
+  $('squadGrid').innerHTML=Object.entries(squads).map(([sq,info])=>{
+   const title=squadNames[sq]||sq.replace('_',' ').toUpperCase();
+   const pct=info.total>0?Math.round((info.completed/info.total)*100):0;
+   const status=info.completed===info.total&&info.total>0?'Completed':(info.failed>0?'Error':'Pending');
+   return `<div class="squadcard">
+    <div class="squadhead"><strong>${esc(title)}</strong><span class="pill">${status}</span></div>
+    <div class="progress-track"><div class="progress-fill" style="width:${pct}%"></div></div>
+    <div style="font-size:12px;color:var(--muted);display:flex;justify-content:space-between">
+     <span>Progress: ${info.completed} / ${info.total} tasks</span>
+     <span>${pct}%</span>
+    </div>
+   </div>`;
+  }).join('');
+ }
+
+ function updateTelemetryUI(telem){
+  if(!telem)return;
+  $('activeSubagentsCount').textContent=String(telem.active_subagents_count||0);
+  $('completedTasksCount').textContent=`${telem.completed_tasks_count||0} / ${telem.total_tasks_count||0}`;
+  const brk=$('breakerState');
+  brk.textContent=telem.circuit_breaker_state||'CLOSED';
+  brk.style.color=telem.circuit_breaker_state==='CLOSED'?'var(--accent)':'var(--danger)';
+  $('swarmStatusBadge').textContent=telem.completed_tasks_count===telem.total_tasks_count&&telem.total_tasks_count>0?'Swarm Complete':(telem.active_subagents_count>0?'Swarm Running':'Swarm Ready');
+  renderSquads(telem.squads,telem);
+ }
+
  function render(){
   $('projectCount').textContent=String(projects.length);
   if(!projects.length){$('projects').innerHTML='<div class="empty"><strong>No projects yet</strong><br>Create your first project above. It will be saved in the factory database.</div>';return}
-  $('projects').innerHTML=projects.map(p=>'<article class="project"><div class="projecticon">✦</div><div class="projectmain"><strong>'+esc(p.name)+'</strong><p>'+esc(p.idea)+'</p><span class="pill">'+esc(p.id)+'</span><span class="pill">Planning record</span><span class="pill">Not executed</span></div></article>').join('');
+  $('projects').innerHTML=projects.map(p=>'<article class="project"><div class="projecticon">✦</div><div class="projectmain"><strong>'+esc(p.name)+'</strong><p>'+esc(p.idea)+'</p><span class="pill">'+esc(p.id)+'</span><span class="pill">Planning record</span></div></article>').join('');
+
+  // Update jobs dropdown
+  const sel=$('swarmJobSelect');
+  sel.innerHTML='<option value="">Select a job for swarm execution…</option>'+jobs.map(j=>{
+   const prj=projects.find(p=>p.id===j.project_id);
+   const label=(prj?prj.name:j.id)+` [State: ${j.state}, Tasks: ${j.tasks?j.tasks.length:0}]`;
+   return `<option value="${esc(j.id)}">${esc(label)}</option>`;
+  }).join('');
+  if(currentJobId)sel.value=currentJobId;
  }
+
  async function load(){
   $('refresh').disabled=true;$('connection').textContent='Checking API…';
   try{
@@ -70,27 +177,112 @@
    $('connection').textContent=online?'API connected':'API unavailable';
    $('connection').style.color=online?'var(--accent)':'var(--warn)';
    if(!online)throw new Error('Factory API health check did not pass.');
-   const result=await api('/projects');
-   projects=Array.isArray(result.items)?result.items:[];
-   render();$('lastUpdated').textContent='Updated '+new Date().toLocaleTimeString();
-   $('formMessage').textContent='';return true;
+   const prjRes=await api('/projects');
+   projects=Array.isArray(prjRes.items)?prjRes.items:[];
+   const jobRes=await api('/jobs');
+   jobs=Array.isArray(jobRes.items)?jobRes.items:[];
+   render();
+   $('lastUpdated').textContent='Updated '+new Date().toLocaleTimeString();
+   $('formMessage').textContent='';
+
+   if(!currentJobId&&jobs.length>0){
+    currentJobId=jobs[0].id;
+    $('swarmJobSelect').value=currentJobId;
+    fetchTelemetry(currentJobId);
+   }
+   return true;
   }catch(error){
    online=false;$('connection').textContent='API disconnected';$('connection').style.color='var(--warn)';
-   $('projects').innerHTML='<div class="empty"><strong>Cannot reach the factory API</strong><br>Start the app with <code>python -m software_factory --web</code> and open the address it prints. No data has been saved to this browser as a fallback.</div>';
+   $('projects').innerHTML='<div class="empty"><strong>Cannot reach the factory API</strong><br>Start the app with <code>python -m software_factory --web</code>.</div>';
    $('formMessage').textContent=error.message;return false;
   }finally{$('refresh').disabled=false}
  }
+
+ async function fetchTelemetry(jobId){
+  if(!jobId)return;
+  try{
+   const telem=await api(`/jobs/${jobId}/swarm/telemetry`);
+   updateTelemetryUI(telem);
+  }catch(e){/* ignore background telemetry errors */}
+ }
+
+ $('swarmJobSelect').addEventListener('change',e=>{
+  currentJobId=e.target.value;
+  if(currentJobId)fetchTelemetry(currentJobId);
+ });
+
+ $('btnDecompose').addEventListener('click',async()=>{
+  $('swarmMessage').textContent='';
+  if(!currentJobId){
+   $('swarmMessage').textContent='Please select a job first, or create a project above.';
+   return;
+  }
+  const squadMode=$('swarmSquadSelect').value;
+  let squads=null;
+  if(squadMode==='core')squads=['backend_core','customer_web'];
+  else if(squadMode==='mobile')squads=['backend_core','customer_mobile'];
+  $('btnDecompose').disabled=true;$('btnDecompose').textContent='Decomposing…';
+  try{
+   log(`Decomposing specification for job ${currentJobId} into multi-squad DAG…`);
+   const res=await api(`/jobs/${currentJobId}/swarm/decompose`,{
+    method:'POST',
+    body:JSON.stringify({squads,tasks_per_squad:2})
+   });
+   log(`Decomposition complete! Generated ${res.tasks_count} tasks across specialist squads.`);
+   await load();
+   await fetchTelemetry(currentJobId);
+  }catch(err){
+   $('swarmMessage').textContent=err.message;
+   log(`[Error] Decomposition failed: ${err.message}`);
+  }finally{
+   $('btnDecompose').disabled=false;$('btnDecompose').textContent='Decompose into Swarm DAG';
+  }
+ });
+
+ $('btnLaunchSwarm').addEventListener('click',async()=>{
+  $('swarmMessage').textContent='';
+  if(!currentJobId){
+   $('swarmMessage').textContent='Please select a job first.';
+   return;
+  }
+  const btn=$('btnLaunchSwarm');
+  btn.disabled=true;btn.textContent='🚀 Swarm Running…';
+  log(`[Octopus Swarm] Launching concurrent micro-agents for job ${currentJobId}…`);
+  try{
+   const res=await api(`/jobs/${currentJobId}/swarm/run`,{
+    method:'POST',
+    body:JSON.stringify({max_workers:4,auto_transition:true})
+   });
+   log(`[Octopus Swarm] Swarm execution complete! Succeeded: ${res.telemetry.completed_tasks_count}, Failed: ${res.telemetry.failed_tasks_count}`);
+   updateTelemetryUI(res.telemetry);
+   await load();
+  }catch(err){
+   $('swarmMessage').textContent=err.message;
+   log(`[Error] Swarm execution error: ${err.message}`);
+  }finally{
+   btn.disabled=false;btn.textContent='⚡ Launch Agent Swarm';
+  }
+ });
+
  $('projectForm').addEventListener('submit',async event=>{
   event.preventDefault();if(!online){$('formMessage').textContent='The API is offline. Reconnect before saving.';return}
   const name=$('name').value.trim(),idea=$('idea').value.trim();
   if(!name||!idea)return;
   const button=$('save');button.disabled=true;button.textContent='Saving…';$('formMessage').textContent='';
   try{
-   await api('/projects',{method:'POST',body:JSON.stringify({name,idea:'['+$('family').value+'] '+idea})});
-   $('projectForm').reset();const refreshed=await load();if(refreshed){$('formMessage').className='good';$('formMessage').textContent='Project saved to the factory database. No compute was started.';}
+   const prj=await api('/projects',{method:'POST',body:JSON.stringify({name,idea:'['+$('family').value+'] '+idea})});
+   // Automatically initialize job for new project
+   const newJob=await api('/jobs',{method:'POST',body:JSON.stringify({project_id:prj.id,spec:{title:name,idea}})});
+   currentJobId=newJob.id;
+   $('projectForm').reset();
+   await load();
+   $('formMessage').className='good';$('formMessage').textContent='Project & Swarm Job initialized in factory database.';
+   log(`Created project "${name}" and initialized job ${newJob.id}.`);
+   fetchTelemetry(currentJobId);
   }catch(error){$('formMessage').className='error';$('formMessage').textContent=error.message}
   finally{button.disabled=false;button.textContent='Save project to factory'}
  });
+
  $('refresh').addEventListener('click',load);
  load();
 })();

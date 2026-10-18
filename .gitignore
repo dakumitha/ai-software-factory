@@ -1,0 +1,24 @@
+# Python bytecode and caches
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Environment and SQLite storage
+.env
+.venv
+env/
+venv/
+ENV/
+data/*.sqlite3
+data/*.sqlite3-journal
+data/*.sqlite3-wal
+data/*.sqlite3-shm
+data/backups/
+
+# Operating System artifacts
+.DS_Store
+Thumbs.db

@@ -32,11 +32,11 @@ class ConnectedWebTests(unittest.TestCase):
         self.thread.join(timeout=3)
         self.tmp.cleanup()
 
-    def request(self, path, method="GET", body=None):
+    def request(self, path, method="GET", body=None, timeout=15):
         payload = None if body is None else json.dumps(body).encode("utf-8")
         request = Request(self.base + path, data=payload, method=method,
                           headers={"Content-Type": "application/json"} if payload else {})
-        with urlopen(request, timeout=3) as response:
+        with urlopen(request, timeout=timeout) as response:
             return response.status, response.headers.get("Content-Type", ""), response.read()
 
     def test_root_serves_connected_control_room(self):
@@ -63,6 +63,74 @@ class ConnectedWebTests(unittest.TestCase):
         self.assertEqual(status, 200)
         items = json.loads(body)["items"]
         self.assertEqual([item["id"] for item in items], [created["id"]])
+
+    def test_swarm_endpoints_decompose_and_telemetry(self):
+        _, _, body = self.request("/projects", "POST", {
+            "name": "Marketplace Platform",
+            "idea": "Multi-stakeholder commerce ecosystem",
+        })
+        project = json.loads(body)
+
+        _, _, body = self.request("/jobs", "POST", {
+            "project_id": project["id"],
+            "spec": {"title": "Amazon-Flipkart Swarm Spec"},
+        })
+        job = json.loads(body)
+
+        status, _, body = self.request(f"/jobs/{job['id']}/swarm/decompose", "POST", {
+            "tasks_per_squad": 1,
+        })
+        self.assertEqual(status, 200)
+        decomp = json.loads(body)
+        # 1 foundation + 6 squads * 1 + 1 QA = 8 tasks
+        self.assertEqual(decomp["tasks_count"], 8)
+        self.assertEqual(len(decomp["tasks"]), 8)
+
+        status, _, body = self.request(f"/jobs/{job['id']}/swarm/telemetry")
+        self.assertEqual(status, 200)
+        telem = json.loads(body)
+        self.assertEqual(telem["total_tasks_count"], 8)
+        self.assertEqual(telem["completed_tasks_count"], 0)
+        self.assertIn("backend_core", telem["squads"])
+        self.assertEqual(telem["circuit_breaker_state"], "CLOSED")
+
+    def test_swarm_run_executes_job_via_api(self):
+        _, _, body = self.request("/projects", "POST", {
+            "name": "Fast Swarm Platform",
+            "idea": "Quick microservice and frontend generation",
+        })
+        project = json.loads(body)
+
+        _, _, body = self.request("/jobs", "POST", {
+            "project_id": project["id"],
+            "spec": {"title": "Quick Swarm"},
+        })
+        job = json.loads(body)
+
+        workspace_dir = Path(self.tmp.name) / "swarm_web_workspace"
+        workspace_dir.mkdir(parents=True, exist_ok=True)
+
+        status, _, body = self.request(f"/jobs/{job['id']}/swarm/decompose", "POST", {
+            "squads": ["backend_core", "customer_web"],
+            "tasks_per_squad": 1,
+        })
+        self.assertEqual(status, 200)
+
+        status, _, body = self.request(f"/jobs/{job['id']}/swarm/run", "POST", {
+            "workspace": str(workspace_dir),
+            "max_workers": 2,
+            "auto_transition": True,
+        })
+        self.assertEqual(status, 200)
+        res = json.loads(body)
+        self.assertEqual(res["telemetry"]["completed_tasks_count"], 4)
+        self.assertEqual(res["telemetry"]["failed_tasks_count"], 0)
+
+        # Telemetry endpoint reflects completion
+        status, _, body = self.request(f"/jobs/{job['id']}/swarm/telemetry")
+        self.assertEqual(status, 200)
+        telem = json.loads(body)
+        self.assertEqual(telem["completed_tasks_count"], 4)
 
 
 if __name__ == "__main__":

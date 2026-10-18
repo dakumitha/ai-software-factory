@@ -36,6 +36,8 @@
 ## Phase 2: Agent integration
 - [x] Document the zero-spend policy, trust boundaries, and staged agent adoption gates.
 - [x] Add reverse-engineering and design-to-specification bridge for REA (`software_factory.reverse_engineering` and `docs/REVERSE_ENGINEERING_INTEGRATION.md`).
+- [x] Autonomous Agent Swarm decomposition & concurrent multi-squad execution pool (`software_factory.swarm`, inspired by Kimi Swarm octopus architecture).
+- [x] Web Control Room Swarm Command Center with real-time squad progress bars, circuit breaker status, and telemetry.
 - [ ] Evaluate the OpenHands Software Agent SDK as an optional adapter; do not make it a mandatory dependency before review.
 - [ ] Choose a coding agent and model route after verifying terms, real free quotas, data flow, and persistence.
 - [x] Use a disposable least-privilege workspace and explicit command allowlist (`software_factory.sandbox`).
