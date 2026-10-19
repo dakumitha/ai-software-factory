@@ -38,6 +38,7 @@ TRANSITIONS = {
     "RELEASED": set(), "CANCELLED": set(),
 }
 _LOCK = threading.RLock()
+SYNTHESIZED_APPS: dict[str, Any] = {}
 
 
 def utc_now() -> str:
@@ -911,6 +912,30 @@ class ApiHandler(BaseHTTPRequestHandler):
             title = str(job.get("spec", {}).get("title", "School Transport System")) if job else "School Transport System"
             from .preview import render_preview_bundle
             return self._send_html(200, render_preview_bundle(project_title=title))
+        if path == "/apps":
+            items = [pkg.to_dict() for pkg in SYNTHESIZED_APPS.values()]
+            return self._send(200, {"items": items, "count": len(items)})
+        if len(parts) == 2 and parts[0] == "apps":
+            app_id = parts[1]
+            pkg = SYNTHESIZED_APPS.get(app_id)
+            if not pkg:
+                export_meta = Path("generated_apps") / app_id / "blueprint.json"
+                if export_meta.exists():
+                    try:
+                        return self._send(200, json.loads(export_meta.read_text(encoding="utf-8")))
+                    except Exception:
+                        pass
+                return self._send(404, {"error": "Synthesized app not found"})
+            return self._send(200, pkg.to_dict())
+        if len(parts) == 3 and parts[0] == "apps" and parts[2] == "preview":
+            app_id = parts[1]
+            pkg = SYNTHESIZED_APPS.get(app_id)
+            if pkg:
+                return self._send_html(200, pkg.preview_html)
+            preview_file = Path("generated_apps") / app_id / "preview.html"
+            if preview_file.exists():
+                return self._send_html(200, preview_file.read_text(encoding="utf-8"))
+            return self._send(404, {"error": "Preview not found for synthesized app"})
         return self._send(404, {"error": "Not found"})
 
     def do_POST(self) -> None:
@@ -1131,6 +1156,36 @@ class ApiHandler(BaseHTTPRequestHandler):
                     tags=body.get("tags", []),
                 )
                 return self._send(201, {"id": mem_id, "job_id": parts[1], "saved": True})
+            if path == "/apps/synthesize":
+                prompt = str(body.get("prompt", "")).strip()
+                if not prompt:
+                    raise ValidationError("Prompt is required to synthesize an application.")
+                title = body.get("title")
+                if title is not None:
+                    title = str(title).strip()
+                from .universal_synthesizer import UniversalAppSynthesizer
+                from .agent_adapter import AutoSelectAgentAdapter
+                adapter = AutoSelectAgentAdapter(preferred_provider=ApiHandler.ai_provider, api_key=ApiHandler.ai_key)
+                synthesizer = UniversalAppSynthesizer(adapter=adapter)
+                pkg = synthesizer.synthesize_application(prompt=prompt, user_title=title)
+                SYNTHESIZED_APPS[pkg.blueprint.app_id] = pkg
+                export_dir = Path("generated_apps") / pkg.blueprint.app_id
+                pkg.export(export_dir)
+                (export_dir / "blueprint.json").write_text(json.dumps(pkg.to_dict(), indent=2), encoding="utf-8")
+                return self._send(201, pkg.to_dict())
+            if len(parts) == 3 and parts[0] == "apps" and parts[2] == "export":
+                app_id = parts[1]
+                pkg = SYNTHESIZED_APPS.get(app_id)
+                if not pkg:
+                    return self._send(404, {"error": "Synthesized app not found"})
+                target_dir = Path(str(body.get("target_dir", Path("generated_apps") / app_id)))
+                out_path = pkg.export(target_dir)
+                (out_path / "blueprint.json").write_text(json.dumps(pkg.to_dict(), indent=2), encoding="utf-8")
+                return self._send(200, {
+                    "app_id": app_id,
+                    "export_path": str(out_path.resolve()),
+                    "files_written": len(pkg.files) + 2,
+                })
             return self._send(404, {"error": "Not found"})
         except (ValidationError, RegistryError, json.JSONDecodeError, TypeError) as exc:
             return self._send(400, {"error": str(exc)})
