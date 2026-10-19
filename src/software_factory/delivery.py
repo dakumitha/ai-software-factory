@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import json
 import sqlite3
+from pathlib import Path
 from typing import Any
 
 from .core import Store, ValidationError, _LOCK, utc_now
@@ -55,6 +56,17 @@ class ReleaseController:
         # Ensure budget was strictly ₹0 / $0
         if evidence_summary["total_spend_usd"] > 0.0:
             blocking_reasons.append("Zero-spend violation: non-zero financial cost detected.")
+
+        # Strix Security Audit Gate
+        workspace_path = Path("workspace") / job_id
+        if workspace_path.exists():
+            from .security import SecurityAuditEngine
+            auditor = SecurityAuditEngine()
+            sec_report = auditor.audit_workspace(workspace_path, job_id=job_id)
+            if sec_report.risk_level in ("CRITICAL", "HIGH"):
+                blocking_reasons.append(
+                    f"Security gate failed: {sec_report.total_findings} vulnerability findings (Risk: {sec_report.risk_level})."
+                )
 
         return {
             "job_id": job_id,

@@ -9,6 +9,8 @@ import json
 from pathlib import Path
 from typing import Any
 
+from .agent_standards import AgentEnvironmentBootstrapper
+
 ARCHETYPE_SCHOOL_TRANSPORT = "school_transport"
 ARCHETYPE_COMMERCE_MARKETPLACE = "commerce_marketplace"
 ARCHETYPE_ELDER_LOGISTICS = "elder_logistics"
@@ -39,7 +41,12 @@ def generate_archetype_files(
 
 def _school_transport_template(title: str) -> dict[str, str]:
     """Multi-stakeholder School Transport System monorepo template."""
+    standards_text = AgentEnvironmentBootstrapper.generate_claude_md(title)
+    agent_cfg = json.dumps(AgentEnvironmentBootstrapper.generate_agent_config(title), indent=2) + "\n"
     return {
+        "CLAUDE.md": standards_text,
+        "AGENT.md": standards_text,
+        ".agent/config.json": agent_cfg,
         "pnpm-workspace.yaml": "packages:\n  - 'apps/*'\n  - 'packages/*'\n",
         "turbo.json": json.dumps({
             "$schema": "https://turbo.build/schema.json",

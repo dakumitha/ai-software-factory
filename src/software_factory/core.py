@@ -867,6 +867,35 @@ class ApiHandler(BaseHTTPRequestHandler):
         if path == "/preview/live":
             from .preview import render_preview_bundle
             return self._send_html(200, render_preview_bundle())
+        if path == "/ai/health":
+            from .free_router import FreeLlmRouter
+            router = FreeLlmRouter()
+            return self._send(200, router.get_health_status())
+        if len(parts) == 3 and parts[0] == "jobs" and parts[2] == "security":
+            job = self.store.get_job(parts[1])
+            if not job:
+                return self._send(404, {"error": "Job not found"})
+            from .security import SecurityAuditEngine
+            auditor = SecurityAuditEngine()
+            ws_path = Path("workspace") / parts[1]
+            report = auditor.audit_workspace(ws_path, job_id=parts[1])
+            return self._send(200, {
+                "job_id": report.job_id,
+                "status": report.status,
+                "risk_level": report.risk_level,
+                "total_findings": report.total_findings,
+                "scanned_files_count": report.scanned_files_count,
+                "findings": [f.__dict__ for f in report.findings],
+            })
+        if len(parts) == 3 and parts[0] == "jobs" and parts[2] == "memories":
+            job = self.store.get_job(parts[1])
+            if not job:
+                return self._send(404, {"error": "Job not found"})
+            from .memory import AgentMemoryStore
+            mem_store = AgentMemoryStore(self.store.path)
+            q = query_params.get("q", [""])[0]
+            cat = query_params.get("category", [None])[0]
+            return self._send(200, {"items": mem_store.query_memories(job_id=parts[1], query=q, category=cat)})
         if len(parts) == 3 and parts[0] == "jobs" and parts[2] == "preview":
             job = self.store.get_job(parts[1])
             title = str(job.get("spec", {}).get("title", "School Transport System")) if job else "School Transport System"
@@ -1071,6 +1100,27 @@ class ApiHandler(BaseHTTPRequestHandler):
                     target_file=target_file,
                 )
                 return self._send(200, receipt)
+            if path == "/claws/webhook":
+                from .claws import ClawBridge
+                bridge = ClawBridge(self.store)
+                cmd = bridge.parse_webhook_payload(body)
+                resp = bridge.execute_command(cmd)
+                return self._send(200, resp.__dict__)
+            if len(parts) == 3 and parts[0] == "jobs" and parts[2] == "memories":
+                job = self.store.get_job(parts[1])
+                if not job:
+                    return self._send(404, {"error": "Job not found"})
+                from .memory import AgentMemoryStore
+                mem_store = AgentMemoryStore(self.store.path)
+                mem_id = mem_store.record_memory(
+                    job_id=parts[1],
+                    task_id=str(body.get("task_id", "manual")),
+                    category=str(body.get("category", "architecture")),
+                    summary=str(body.get("summary", "")),
+                    details=str(body.get("details", "")),
+                    tags=body.get("tags", []),
+                )
+                return self._send(201, {"id": mem_id, "job_id": parts[1], "saved": True})
             return self._send(404, {"error": "Not found"})
         except (ValidationError, RegistryError, json.JSONDecodeError, TypeError) as exc:
             return self._send(400, {"error": str(exc)})

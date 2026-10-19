@@ -563,6 +563,12 @@
           <button class="btn" id="btnInspectEvidence" type="button">
             🔍 Inspect Verification Evidence
           </button>
+          <button class="btn" id="btnSecurityAudit" type="button" style="border-color: #f59e0b; color: #f59e0b;">
+            🛡️ Strix Security Audit
+          </button>
+          <button class="btn" id="btnViewMemories" type="button" style="border-color: #38bdf8; color: #38bdf8;">
+            🧠 Long-Term Memory
+          </button>
           <button class="btn" id="btnPromoteRelease" type="button">
             Promote to Release Ready
           </button>
@@ -1082,6 +1088,61 @@
             await fetchEvidence(currentJobId);
           } catch (err) {
             $("deliveryMessage").textContent = err.message;
+          }
+        });
+
+        $("btnSecurityAudit").addEventListener("click", async () => {
+          $("deliveryMessage").textContent = "";
+          if (!currentJobId) {
+            $("deliveryMessage").textContent = "Select a job first.";
+            return;
+          }
+          const drawer = $("evidenceDrawer");
+          drawer.classList.remove("hidden");
+          drawer.textContent = `[Strix Security Engine] Auditing workspace for job ${currentJobId}…`;
+          try {
+            const rep = await api(`/jobs/${currentJobId}/security`);
+            let out = `=== STRIX AUTONOMOUS SECURITY AUDIT REPORT ===\n`;
+            out += `Job ID: ${rep.job_id}\nStatus: ${rep.status}\nRisk Level: ${rep.risk_level}\nScanned Files: ${rep.scanned_files_count}\nVulnerabilities Found: ${rep.total_findings}\n\n`;
+            if (rep.findings.length === 0) {
+              out += `✓ CLEAN: No hardcoded secrets, wildcard permissions, or XSS vulnerabilities detected.\nZero-Spend Security Gate: PASSED.\n`;
+            } else {
+              rep.findings.forEach((f, idx) => {
+                out += `[FINDING #${idx + 1}] [${f.severity}] ${f.title}\n`;
+                out += `File: ${f.file_path}:${f.line_number || 1}\nDescription: ${f.description}\nRemediation: ${f.remediation}\n\n`;
+              });
+            }
+            drawer.textContent = out;
+            log(`Strix security audit complete: Risk Level is ${rep.risk_level}.`);
+          } catch (err) {
+            drawer.textContent = `[Security Audit Error] ${err.message}`;
+          }
+        });
+
+        $("btnViewMemories").addEventListener("click", async () => {
+          $("deliveryMessage").textContent = "";
+          if (!currentJobId) {
+            $("deliveryMessage").textContent = "Select a job first.";
+            return;
+          }
+          const drawer = $("evidenceDrawer");
+          drawer.classList.remove("hidden");
+          drawer.textContent = `[Claude-Mem Engine] Querying persistent agent memory for job ${currentJobId}…`;
+          try {
+            const data = await api(`/jobs/${currentJobId}/memories`);
+            let out = `=== CLAUDE-MEM PERSISTENT AGENT MEMORY ===\nJob ID: ${currentJobId}\nTotal Memories Indexed: ${data.items.length}\n\n`;
+            if (data.items.length === 0) {
+              out += `No memories recorded yet for this job. Memories are automatically recorded during autonomous agent tasks.\n`;
+            } else {
+              data.items.forEach((m, idx) => {
+                out += `[#${idx + 1}] [${m.category.toUpperCase()}] ${m.summary}\n`;
+                if (m.details) out += `Details: ${m.details}\n`;
+                out += `Tags: ${(m.tags || []).join(", ") || "none"}\n\n`;
+              });
+            }
+            drawer.textContent = out;
+          } catch (err) {
+            drawer.textContent = `[Memory Query Error] ${err.message}`;
           }
         });
 
