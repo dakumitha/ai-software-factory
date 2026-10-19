@@ -1,4 +1,5 @@
 {
+    "terminal.integrated.windowsUseConptyDll": true,
     "terminal.integrated.defaultProfile.windows": "Command Prompt",
     "terminal.integrated.profiles.windows": {
         "Command Prompt": {
