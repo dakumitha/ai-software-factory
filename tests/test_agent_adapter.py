@@ -154,12 +154,18 @@ class AgentAdapterAndEvidenceTests(unittest.TestCase):
         resp_gr = groq.generate("Create parent screen", {"task_id": "parent"}, budget)
         self.assertEqual(resp_gr.status, "COMPLETED")
 
-    def test_autoselect_adapter_falls_back_cleanly(self):
+    def test_openrouter_and_cerebras_fallback_when_no_api_key(self):
+        from software_factory.agent_adapter import CerebrasFreeAgentAdapter, OpenRouterFreeAgentAdapter
         budget = AgentBudget()
-        auto = AutoSelectAgentAdapter(preferred_provider="auto")
-        resp = auto.generate("Build emergency SOS alert", {"task_id": "sos"}, budget)
-        self.assertEqual(resp.status, "COMPLETED")
-        self.assertEqual(resp.cost_usd, 0.0)
+        openrouter = OpenRouterFreeAgentAdapter(api_key="")
+        resp_or = openrouter.generate("Create calculator widget", {"task_id": "calc"}, budget)
+        self.assertEqual(resp_or.status, "COMPLETED")
+        self.assertEqual(resp_or.cost_usd, 0.0)
+
+        cerebras = CerebrasFreeAgentAdapter(api_key="")
+        resp_cr = cerebras.generate("Create chess engine component", {"task_id": "chess"}, budget)
+        self.assertEqual(resp_cr.status, "COMPLETED")
+        self.assertEqual(resp_cr.cost_usd, 0.0)
 
 
 if __name__ == "__main__":

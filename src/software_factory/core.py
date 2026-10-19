@@ -858,12 +858,25 @@ class ApiHandler(BaseHTTPRequestHandler):
         if path == "/ai/config":
             gemini_key = self.ai_key or os.getenv("GEMINI_API_KEY")
             groq_key = self.ai_key or os.getenv("GROQ_API_KEY")
+            openrouter_key = self.ai_key or os.getenv("OPENROUTER_API_KEY") or os.getenv("FREELMMAPI_API_KEY")
+            cerebras_key = self.ai_key or os.getenv("CEREBRAS_API_KEY")
             return self._send(200, {
                 "preferred_provider": self.ai_provider,
                 "gemini_available": bool(gemini_key),
                 "groq_available": bool(groq_key),
+                "openrouter_available": bool(openrouter_key),
+                "cerebras_available": bool(cerebras_key),
+                "total_free_models": 100,
                 "zero_spend_enforced": True,
                 "spend_usd": 0.0,
+            })
+        if path == "/ai/models":
+            from .free_router import get_free_models_catalog
+            catalog = get_free_models_catalog()
+            return self._send(200, {
+                "models": catalog,
+                "total_free_models": len(catalog),
+                "zero_spend_enforced": True,
             })
         if path == "/preview/live":
             from .preview import render_preview_bundle

@@ -664,6 +664,193 @@ class GroqFreeAgentAdapter:
         )
 
 
+class OpenRouterFreeAgentAdapter:
+    """Zero-cost coding adapter using OpenRouter Free Tier and FreeLLMAPI endpoints.
+
+    Supports 50+ free models (e.g. meta-llama/llama-3.3-70b-instruct:free,
+    deepseek/deepseek-r1:free, qwen/qwen-2.5-coder-32b-instruct:free,
+    google/gemini-2.0-flash-exp:free) with strict ₹0 budget policy.
+    """
+
+    def __init__(
+        self,
+        api_key: str | None = None,
+        model: str = "meta-llama/llama-3.3-70b-instruct:free",
+        base_url: str = "https://openrouter.ai/api/v1",
+        name: str = "openrouter-free-agent",
+        timeout: float = 30.0,
+    ):
+        self._api_key = api_key or os.getenv("OPENROUTER_API_KEY") or os.getenv("FREELMMAPI_API_KEY", "")
+        self._model = model
+        self._base_url = (base_url or os.getenv("FREELMMAPI_BASE_URL", "https://openrouter.ai/api/v1")).rstrip("/")
+        self._name = name
+        self._timeout = timeout
+
+    @property
+    def adapter_name(self) -> str:
+        return self._name
+
+    def generate(
+        self,
+        prompt: str,
+        context: dict[str, Any],
+        budget: AgentBudget,
+    ) -> AgentResponse:
+        budget.check_call_allowed()
+
+        if not self._api_key:
+            fallback = HeuristicSynthesisAdapter(name=f"{self._name}-offline")
+            return fallback.generate(prompt, context, budget)
+
+        url = f"{self._base_url}/chat/completions"
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {self._api_key}",
+            "HTTP-Referer": "http://127.0.0.1:8080",
+            "X-Title": "AI Software Factory",
+        }
+
+        body = {
+            "model": self._model,
+            "messages": [
+                {
+                    "role": "system",
+                    "content": "You are a senior full-stack engineer. Return ONLY clean, production-ready code.",
+                },
+                {"role": "user", "content": prompt},
+            ],
+            "temperature": 0.2,
+            "max_tokens": 4096,
+        }
+
+        data = json.dumps(body).encode("utf-8")
+        req = urllib.request.Request(url, data=data, headers=headers, method="POST")
+
+        try:
+            with urllib.request.urlopen(req, timeout=self._timeout) as resp:
+                resp_json = json.loads(resp.read().decode("utf-8"))
+        except urllib.error.HTTPError as e:
+            if e.code == 429:
+                raise QuotaExhaustedError("OpenRouter rate limit reached. Pausing factory safely.") from e
+            if e.code in (401, 403):
+                raise QuotaExhaustedError(f"OpenRouter API unauthorized (HTTP {e.code}).") from e
+            raise AgentAdapterError(f"OpenRouter API error (HTTP {e.code}): {e.reason}") from e
+        except Exception as e:
+            raise AgentAdapterError(f"Network error communicating with OpenRouter: {e}") from e
+
+        try:
+            raw_text = resp_json["choices"][0]["message"]["content"]
+        except (KeyError, IndexError) as e:
+            raise AgentAdapterError(f"Malformed OpenRouter response: {resp_json}") from e
+
+        code = _extract_code(raw_text)
+        path = context.get("input", {}).get("path", f"src/{context.get('task_id', 'code')}.ts")
+        tokens_estimate = len(prompt.split()) + len(code.split())
+
+        budget.record_usage(tokens=tokens_estimate, cost_usd=0.0)
+
+        return AgentResponse(
+            code=code,
+            files_modified={path: code},
+            tokens_used=tokens_estimate,
+            cost_usd=0.0,
+            explanation=f"Generated via OpenRouter/FreeLLMAPI ({self._model}) at zero cost.",
+            status="COMPLETED",
+        )
+
+
+class CerebrasFreeAgentAdapter:
+    """Zero-cost ultra-high-speed coding adapter using Cerebras Cloud Free Tier.
+
+    Enforces strict ₹0 / $0 spend limit.
+    """
+
+    def __init__(
+        self,
+        api_key: str | None = None,
+        model: str = "llama3.1-8b",
+        base_url: str = "https://api.cerebras.ai/v1",
+        name: str = "cerebras-free-agent",
+        timeout: float = 30.0,
+    ):
+        self._api_key = api_key or os.getenv("CEREBRAS_API_KEY", "")
+        self._model = model
+        self._base_url = base_url.rstrip("/")
+        self._name = name
+        self._timeout = timeout
+
+    @property
+    def adapter_name(self) -> str:
+        return self._name
+
+    def generate(
+        self,
+        prompt: str,
+        context: dict[str, Any],
+        budget: AgentBudget,
+    ) -> AgentResponse:
+        budget.check_call_allowed()
+
+        if not self._api_key:
+            fallback = HeuristicSynthesisAdapter(name=f"{self._name}-offline")
+            return fallback.generate(prompt, context, budget)
+
+        url = f"{self._base_url}/chat/completions"
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {self._api_key}",
+        }
+
+        body = {
+            "model": self._model,
+            "messages": [
+                {
+                    "role": "system",
+                    "content": "You are a senior full-stack engineer. Return ONLY clean, production-ready code.",
+                },
+                {"role": "user", "content": prompt},
+            ],
+            "temperature": 0.2,
+            "max_tokens": 4096,
+        }
+
+        data = json.dumps(body).encode("utf-8")
+        req = urllib.request.Request(url, data=data, headers=headers, method="POST")
+
+        try:
+            with urllib.request.urlopen(req, timeout=self._timeout) as resp:
+                resp_json = json.loads(resp.read().decode("utf-8"))
+        except urllib.error.HTTPError as e:
+            if e.code == 429:
+                raise QuotaExhaustedError("Cerebras rate limit reached. Pausing factory safely.") from e
+            if e.code in (401, 403):
+                raise QuotaExhaustedError(f"Cerebras API unauthorized (HTTP {e.code}).") from e
+            raise AgentAdapterError(f"Cerebras API error (HTTP {e.code}): {e.reason}") from e
+        except Exception as e:
+            raise AgentAdapterError(f"Network error communicating with Cerebras: {e}") from e
+
+        try:
+            raw_text = resp_json["choices"][0]["message"]["content"]
+        except (KeyError, IndexError) as e:
+            raise AgentAdapterError(f"Malformed Cerebras response: {resp_json}") from e
+
+        code = _extract_code(raw_text)
+        path = context.get("input", {}).get("path", f"src/{context.get('task_id', 'code')}.ts")
+        tokens_estimate = len(prompt.split()) + len(code.split())
+
+        budget.record_usage(tokens=tokens_estimate, cost_usd=0.0)
+
+        return AgentResponse(
+            code=code,
+            files_modified={path: code},
+            tokens_used=tokens_estimate,
+            cost_usd=0.0,
+            explanation=f"Generated via Cerebras ({self._model}) at zero cost.",
+            status="COMPLETED",
+        )
+
+
+
 class OllamaAgentAdapter:
     """Zero-cost local LLM adapter using local Ollama instance (e.g. qwen2.5-coder)."""
 
@@ -747,7 +934,13 @@ class AutoSelectAgentAdapter:
     def get_active_adapter(self) -> CodingAgentAdapter:
         gemini_key = self._api_key or os.getenv("GEMINI_API_KEY")
         groq_key = self._api_key or os.getenv("GROQ_API_KEY")
+        openrouter_key = self._api_key or os.getenv("OPENROUTER_API_KEY") or os.getenv("FREELMMAPI_API_KEY")
+        cerebras_key = self._api_key or os.getenv("CEREBRAS_API_KEY")
 
+        if self._preferred in {"openrouter", "freellmapi"} or (self._preferred == "auto" and openrouter_key):
+            return OpenRouterFreeAgentAdapter(api_key=openrouter_key)
+        if self._preferred == "cerebras" or (self._preferred == "auto" and cerebras_key):
+            return CerebrasFreeAgentAdapter(api_key=cerebras_key)
         if self._preferred == "gemini" or (self._preferred == "auto" and gemini_key):
             return GeminiFreeAgentAdapter(api_key=gemini_key)
         if self._preferred == "groq" or (self._preferred == "auto" and groq_key):

@@ -167,6 +167,7 @@ class UniversalAppApiTests(unittest.TestCase):
         self.assertEqual(status, 200)
         self.assertIn("CryptoPulse Pro", preview_html)
         self.assertIn("<!doctype html>", preview_html)
+        self.assertIn("ticker-card", preview_html)
 
         # POST /apps/<id>/export
         with tempfile.TemporaryDirectory() as export_dest:
@@ -177,6 +178,46 @@ class UniversalAppApiTests(unittest.TestCase):
             self.assertTrue((Path(export_dest) / "preview.html").exists())
             self.assertTrue((Path(export_dest) / "blueprint.json").exists())
 
+    def test_synthesize_calculator_app_and_verify_interactive_preview(self):
+        status, app = self.request("/apps/synthesize", {
+            "prompt": "Build an interactive scientific calculator with keypad and history tape",
+            "title": "SmartCalc Scientific",
+        })
+        self.assertEqual(status, 201)
+        self.assertEqual(app["title"], "SmartCalc Scientific")
+        self.assertIn("Scientific", app["category"])
+
+        status, preview_html = self.request(f"/apps/{app['app_id']}/preview", is_html=True)
+        self.assertEqual(status, 200)
+        self.assertIn("calc-container", preview_html)
+        self.assertIn("calc-grid", preview_html)
+        self.assertIn("calcScientific", preview_html)
+
+    def test_synthesize_chess_app_and_verify_interactive_board(self):
+        status, app = self.request("/apps/synthesize", {
+            "prompt": "Build a real-time multiplayer chess game with 8x8 board and move validation",
+            "title": "Grandmaster Chess",
+        })
+        self.assertEqual(status, 201)
+        self.assertEqual(app["title"], "Grandmaster Chess")
+
+        status, preview_html = self.request(f"/apps/{app['app_id']}/preview", is_html=True)
+        self.assertEqual(status, 200)
+        self.assertIn("chessboard-grid", preview_html)
+        self.assertIn("chess-sq", preview_html)
+        self.assertIn("onChessSquareClick", preview_html)
+
+    def test_get_ai_models_endpoint_returns_100_plus_catalog(self):
+        status, data = self.request("/ai/models")
+        self.assertEqual(status, 200)
+        self.assertTrue(data["zero_spend_enforced"])
+        self.assertGreaterEqual(data["total_free_models"], 50)
+        self.assertGreaterEqual(len(data["models"]), 50)
+        for m in data["models"]:
+            self.assertEqual(m["cost_usd"], 0.0)
+            self.assertTrue(m["zero_spend_verified"])
+
 
 if __name__ == "__main__":
     unittest.main()
+

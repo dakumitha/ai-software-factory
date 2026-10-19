@@ -423,132 +423,547 @@
         </div>
       </div>
 
-      <section class="panel" id="universalAppSection" aria-labelledby="universalAppTitle" style="border: 2px solid var(--accent); background: linear-gradient(145deg, #0f1c2e, #132238); box-shadow: 0 10px 30px rgba(155, 226, 192, 0.08);">
+      <section
+        class="panel"
+        id="universalAppSection"
+        aria-labelledby="universalAppTitle"
+        style="
+          border: 2px solid var(--accent);
+          background: linear-gradient(145deg, #0f1c2e, #132238);
+          box-shadow: 0 10px 30px rgba(155, 226, 192, 0.08);
+        "
+      >
         <div class="panelhead">
           <div>
-            <h2 id="universalAppTitle" style="display: flex; align-items: center; gap: 8px;">
+            <h2
+              id="universalAppTitle"
+              style="display: flex; align-items: center; gap: 8px"
+            >
               <span>✨</span> Universal Autonomous App Creation Engine
             </h2>
             <small class="muted">
-              Imagine ANY application you want (Games, SaaS, Crypto, Health, Social, Recipes, Tools). The software factory deconstructs the architecture, synthesizes the complete full-stack monorepo, and launches a live interactive preview with 1-Click.
+              Imagine ANY application you want (Games, SaaS, Crypto, Health,
+              Social, Recipes, Tools). The software factory deconstructs the
+              architecture, synthesizes the complete full-stack monorepo, and
+              launches a live interactive preview with 1-Click.
             </small>
           </div>
-          <span class="pill" style="background: rgba(155, 226, 192, 0.15); color: var(--accent); border-color: var(--accent); font-weight: bold;">
+          <span
+            class="pill"
+            style="
+              background: rgba(155, 226, 192, 0.15);
+              color: var(--accent);
+              border-color: var(--accent);
+              font-weight: bold;
+            "
+          >
             Zero-Spend Verified (₹0 / $0)
           </span>
         </div>
 
-        <!-- Quick Idea Chips -->
-        <div style="margin: 14px 0 8px;">
-          <small class="muted" style="display: block; margin-bottom: 6px; font-weight: 600;">⚡ Quick-Start Ideas (Click to load):</small>
-          <div style="display: flex; flex-wrap: wrap; gap: 8px;" id="ideaChips">
-            <button type="button" class="pill" style="cursor: pointer; background: #1a273a; border-color: #3b82f6; color: #93c5fd;" data-title="Chess Arena" data-prompt="Build a real-time multiplayer chess game with move validation, turn timer, interactive chessboard, player Elo rating, and global leaderboard.">♟️ Multiplayer Chess</button>
-            <button type="button" class="pill" style="cursor: pointer; background: #1a273a; border-color: #10b981; color: #6ee7b7;" data-title="Crypto Pulse" data-prompt="Build a crypto portfolio tracker with live candlestick charts, multi-currency wallet balance, instant token swap simulator, and price alert triggers.">📈 Crypto Portfolio Tracker</button>
-            <button type="button" class="pill" style="cursor: pointer; background: #1a273a; border-color: #f59e0b; color: #fcd34d;" data-title="ChefAI Pantry" data-prompt="Build an AI recipe generator and smart kitchen manager that tracks pantry ingredients, generates meal plans from leftovers, and creates automated grocery checklists.">🍳 Smart Recipe & Pantry</button>
-            <button type="button" class="pill" style="cursor: pointer; background: #1a273a; border-color: #ec4899; color: #f472b6;" data-title="IronPulse Fitness" data-prompt="Build a fitness workout logger and tracker with rep/set counter, rest intervals timer, body weight trajectory charts, and daily macro calorie breakdown.">💪 Fitness & Workout Tracker</button>
-            <button type="button" class="pill" style="cursor: pointer; background: #1a273a; border-color: #8b5cf6; color: #c4b5fd;" data-title="Sphere Community" data-prompt="Build a real-time team collaboration and messaging app with public channels, direct DMs, member status presence, and message search.">💬 Real-Time Chat & Channels</button>
-            <button type="button" class="pill" style="cursor: pointer; background: #1a273a; border-color: #06b6d4; color: #67e8f9;" data-title="SprintFlow Kanban" data-prompt="Build an agile task management board with draggable Kanban columns, task prioritization, sprint velocity charts, and team member assignments.">📊 Agile Sprint Kanban</button>
+        <!-- Step-by-Step Interactive Workflow Guide -->
+        <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; padding: 12px 16px; margin: 12px 0 16px;">
+          <strong style="color: var(--accent); font-size: 13px; display: flex; align-items: center; gap: 6px;">
+            <span>🧭</span> Step-by-Step Guide: How to Synthesize & Interact With Any Live App
+          </strong>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; margin-top: 10px; font-size: 12px;">
+            <div style="background: #080e18; padding: 10px; border-radius: 8px; border: 1px solid var(--line);">
+              <b style="color: #38bdf8;">1. Pick an Idea</b>
+              <p style="margin: 4px 0 0; color: var(--muted); font-size: 11px;">Click a quick-start chip below (e.g. <b>🧮 Calculator</b> or <b>♟️ Chess</b>) or describe any app in the prompt box.</p>
+            </div>
+            <div style="background: #080e18; padding: 10px; border-radius: 8px; border: 1px solid var(--line);">
+              <b style="color: #10b981;">2. 1-Click Synthesize</b>
+              <p style="margin: 4px 0 0; color: var(--muted); font-size: 11px;">Click <b>🚀 Synthesize Full-Stack App</b>. Zero configuration and zero spend required.</p>
+            </div>
+            <div style="background: #080e18; padding: 10px; border-radius: 8px; border: 1px solid var(--line);">
+              <b style="color: #f59e0b;">3. 8-Agent Swarm</b>
+              <p style="margin: 4px 0 0; color: var(--muted); font-size: 11px;">Watch Recon, Rea, Architect, Design, Coder, Security, QA & Claw generate the monorepo in sub-second time.</p>
+            </div>
+            <div style="background: #080e18; padding: 10px; border-radius: 8px; border: 1px solid var(--line);">
+              <b style="color: #a855f7;">4. Live App Preview</b>
+              <p style="margin: 4px 0 0; color: var(--muted); font-size: 11px;">Use the working app directly in the live preview below (calculate numbers, make chess moves, swap tokens!).</p>
+            </div>
           </div>
         </div>
 
-        <div class="formgrid" style="margin-top: 12px;">
-          <div class="field" style="grid-column: 1 / -1;">
-            <label for="universalAppPrompt" style="font-weight: 600;">What software do you want to create?</label>
-            <textarea id="universalAppPrompt" rows="3" style="width: 100%; border-radius: 10px; background: #080d16; border: 1px solid var(--line); color: var(--text); padding: 12px; font-family: inherit; font-size: 14px;" placeholder="Describe any software idea you can imagine (e.g. A marketplace for freelance musicians with audio player, booking calendar, and escrow payments)..."></textarea>
+        <!-- Quick Idea Chips -->
+        <div style="margin: 14px 0 8px">
+          <small
+            class="muted"
+            style="display: block; margin-bottom: 6px; font-weight: 600"
+            >⚡ Quick-Start Ideas (Click to load prompt & title):</small
+          >
+          <div style="display: flex; flex-wrap: wrap; gap: 8px" id="ideaChips">
+            <button
+              type="button"
+              class="pill"
+              style="
+                cursor: pointer;
+                background: #1a273a;
+                border-color: #06b6d4;
+                color: #67e8f9;
+                font-weight: 700;
+              "
+              data-title="Scientific Calculator"
+              data-prompt="Build an interactive scientific calculator with responsive keypad, LCD display, calculation history tape, trigonometric functions, square roots, and keyboard shortcuts."
+            >
+              🧮 Scientific Calculator
+            </button>
+            <button
+              type="button"
+              class="pill"
+              style="
+                cursor: pointer;
+                background: #1a273a;
+                border-color: #8b5cf6;
+                color: #c4b5fd;
+                font-weight: 700;
+              "
+              data-title="Chess Arena"
+              data-prompt="Build a real-time multiplayer chess game with move validation, turn timer, interactive 8x8 chessboard, player Elo rating, and global leaderboard."
+            >
+              ♟️ Interactive Chess Game
+            </button>
+            <button
+              type="button"
+              class="pill"
+              style="
+                cursor: pointer;
+                background: #1a273a;
+                border-color: #10b981;
+                color: #6ee7b7;
+                font-weight: 700;
+              "
+              data-title="Crypto Pulse"
+              data-prompt="Build a crypto portfolio tracker with live candlestick charts, multi-currency wallet balance, instant token swap simulator, and price alert triggers."
+            >
+              📈 Crypto Portfolio Tracker
+            </button>
+            <button
+              type="button"
+              class="pill"
+              style="
+                cursor: pointer;
+                background: #1a273a;
+                border-color: #f59e0b;
+                color: #fcd34d;
+                font-weight: 700;
+              "
+              data-title="ChefAI Pantry"
+              data-prompt="Build an AI recipe generator and smart kitchen manager that tracks pantry ingredients, generates meal plans from leftovers, and creates automated grocery checklists."
+            >
+              🍳 Smart Recipe & Pantry
+            </button>
+            <button
+              type="button"
+              class="pill"
+              style="
+                cursor: pointer;
+                background: #1a273a;
+                border-color: #ec4899;
+                color: #f472b6;
+                font-weight: 700;
+              "
+              data-title="IronPulse Fitness"
+              data-prompt="Build a fitness workout logger and tracker with rep/set counter, rest intervals timer, body weight trajectory charts, and daily macro calorie breakdown."
+            >
+              💪 Fitness & Workout Tracker
+            </button>
+            <button
+              type="button"
+              class="pill"
+              style="
+                cursor: pointer;
+                background: #1a273a;
+                border-color: #3b82f6;
+                color: #93c5fd;
+                font-weight: 700;
+              "
+              data-title="Sphere Community"
+              data-prompt="Build a real-time team collaboration and messaging app with public channels, direct DMs, member status presence, and message search."
+            >
+              💬 Real-Time Chat & Channels
+            </button>
+            <button
+              type="button"
+              class="pill"
+              style="
+                cursor: pointer;
+                background: #1a273a;
+                border-color: #14b8a6;
+                color: #5eead4;
+                font-weight: 700;
+              "
+              data-title="SprintFlow Kanban"
+              data-prompt="Build an agile task management board with draggable Kanban columns, task prioritization, sprint velocity charts, and team member assignments."
+            >
+              📊 Agile Sprint Kanban
+            </button>
+            <button
+              type="button"
+              class="pill"
+              style="
+                cursor: pointer;
+                background: #1a273a;
+                border-color: #eab308;
+                color: #fef08a;
+                font-weight: 700;
+              "
+              data-title="VidyaVahan School Transport"
+              data-prompt="Build a comprehensive school and fleet transit operations platform with stop milestone tracking, student boarding manifest, and parent delay broadcasts."
+            >
+              🚌 School Bus Transport
+            </button>
+          </div>
+        </div>
+
+        <div class="formgrid" style="margin-top: 12px">
+          <div class="field" style="grid-column: 1 / -1">
+            <label for="universalAppPrompt" style="font-weight: 600"
+              >What software do you want to create?</label
+            >
+            <textarea
+              id="universalAppPrompt"
+              rows="3"
+              style="
+                width: 100%;
+                border-radius: 10px;
+                background: #080d16;
+                border: 1px solid var(--line);
+                color: var(--text);
+                padding: 12px;
+                font-family: inherit;
+                font-size: 14px;
+              "
+              placeholder="Describe any software idea you can imagine (e.g. A marketplace for freelance musicians with audio player, booking calendar, and escrow payments)..."
+            ></textarea>
           </div>
           <div class="field">
-            <label for="universalAppTitleInput">App Title (Optional - auto-derived if blank)</label>
-            <input id="universalAppTitleInput" type="text" placeholder="e.g. SonicGig Marketplace" style="width: 100%;" />
+            <label for="universalAppTitleInput"
+              >App Title (Optional - auto-derived if blank)</label
+            >
+            <input
+              id="universalAppTitleInput"
+              type="text"
+              placeholder="e.g. SonicGig Marketplace"
+              style="width: 100%"
+            />
           </div>
-          <div class="field" style="display: flex; align-items: flex-end;">
-            <button class="btn primary" id="btnSynthesizeUniversalApp" type="button" style="width: 100%; height: 42px; font-weight: bold; background: linear-gradient(135deg, #10b981, #0ea5e9); border: none; font-size: 14px;">
+          <div class="field" style="display: flex; align-items: flex-end">
+            <button
+              class="btn primary"
+              id="btnSynthesizeUniversalApp"
+              type="button"
+              style="
+                width: 100%;
+                height: 42px;
+                font-weight: bold;
+                background: linear-gradient(135deg, #10b981, #0ea5e9);
+                border: none;
+                font-size: 14px;
+              "
+            >
               🚀 Synthesize Full-Stack App (1-Click)
             </button>
           </div>
         </div>
 
-        <p id="universalAppStatusMsg" class="error" role="status" aria-live="polite" style="margin-top: 8px;"></p>
+        <p
+          id="universalAppStatusMsg"
+          class="error"
+          role="status"
+          aria-live="polite"
+          style="margin-top: 8px"
+        ></p>
 
         <!-- Live Synthesis Stream Console -->
-        <div id="universalAppConsole" class="console-log hidden" style="margin-top: 12px; max-height: 200px;"></div>
+        <div
+          id="universalAppConsole"
+          class="console-log hidden"
+          style="margin-top: 12px; max-height: 200px"
+        ></div>
 
         <!-- Synthesized Package Result Card -->
-        <div id="universalAppResult" class="hidden" style="margin-top: 16px; border: 1px solid var(--line); border-radius: 12px; background: #0a101d; padding: 16px;">
-          <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 10px; margin-bottom: 12px;">
+        <div
+          id="universalAppResult"
+          class="hidden"
+          style="
+            margin-top: 16px;
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            background: #0a101d;
+            padding: 16px;
+          "
+        >
+          <div
+            style="
+              display: flex;
+              justify-content: space-between;
+              align-items: flex-start;
+              flex-wrap: wrap;
+              gap: 10px;
+              margin-bottom: 12px;
+            "
+          >
             <div>
-              <h3 id="resAppTitle" style="margin: 0; font-size: 18px; color: var(--text);">App Title</h3>
-              <p id="resAppTagline" style="margin: 3px 0 0; color: var(--muted); font-size: 13px;">Tagline</p>
+              <h3
+                id="resAppTitle"
+                style="margin: 0; font-size: 18px; color: var(--text)"
+              >
+                App Title
+              </h3>
+              <p
+                id="resAppTagline"
+                style="margin: 3px 0 0; color: var(--muted); font-size: 13px"
+              >
+                Tagline
+              </p>
             </div>
-            <div style="display: flex; gap: 8px;">
-              <span id="resAppCategory" class="pill" style="border-color: #38bdf8; color: #38bdf8;">Category</span>
-              <span id="resAppFilesCount" class="pill" style="border-color: #10b981; color: #10b981;">0 Files</span>
-              <span class="pill" style="border-color: var(--accent); color: var(--accent);">₹0 Spend</span>
+            <div style="display: flex; gap: 8px">
+              <span
+                id="resAppCategory"
+                class="pill"
+                style="border-color: #38bdf8; color: #38bdf8"
+                >Category</span
+              >
+              <span
+                id="resAppFilesCount"
+                class="pill"
+                style="border-color: #10b981; color: #10b981"
+                >0 Files</span
+              >
+              <span
+                class="pill"
+                style="border-color: var(--accent); color: var(--accent)"
+                >₹0 Spend</span
+              >
             </div>
           </div>
 
-          <div class="stats" style="margin: 10px 0;">
+          <div class="stats" style="margin: 10px 0">
             <div class="stat">
-              <label>Stakeholders</label><b id="resStakeholders" style="font-size: 15px;">—</b><small>Target roles</small>
+              <label>Stakeholders</label
+              ><b id="resStakeholders" style="font-size: 15px">—</b
+              ><small>Target roles</small>
             </div>
             <div class="stat">
-              <label>Data Models</label><b id="resModels" style="font-size: 15px;">—</b><small>Shared contracts</small>
+              <label>Data Models</label
+              ><b id="resModels" style="font-size: 15px">—</b
+              ><small>Shared contracts</small>
             </div>
             <div class="stat">
-              <label>Verification</label><b id="resSyntax" style="font-size: 15px; color: var(--accent);">100% Clean</b><small>In-memory syntax</small>
+              <label>Verification</label
+              ><b id="resSyntax" style="font-size: 15px; color: var(--accent)"
+                >100% Clean</b
+              ><small>In-memory syntax</small>
             </div>
           </div>
 
-          <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px;">
-            <button class="btn" id="btnToggleUniversalPreview" type="button" style="background: var(--panel2);">
+          <div
+            style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px"
+          >
+            <button
+              class="btn"
+              id="btnToggleUniversalPreview"
+              type="button"
+              style="background: var(--panel2)"
+            >
               📱 Toggle Live App Preview
             </button>
-            <a id="lnkOpenUniversalPreview" href="#" target="_blank" class="btn" style="text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+            <a
+              id="lnkOpenUniversalPreview"
+              href="#"
+              target="_blank"
+              class="btn"
+              style="
+                text-decoration: none;
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+              "
+            >
               ↗️ Open Preview in Full Window
             </a>
-            <button class="btn" id="btnExportUniversalCode" type="button" style="border-color: #f59e0b; color: #f59e0b;">
+            <button
+              class="btn"
+              id="btnExportUniversalCode"
+              type="button"
+              style="border-color: #f59e0b; color: #f59e0b"
+            >
               📂 Export Code to Disk (generated_apps/)
             </button>
           </div>
         </div>
 
         <!-- Specialized Agent Swarm Execution Matrix -->
-        <div id="specialistSwarmMatrix" class="hidden" style="margin-top: 16px; border: 1px solid var(--line); border-radius: 12px; background: #0b1220; padding: 16px;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
-            <strong style="font-size: 14px; color: var(--accent); display: flex; align-items: center; gap: 8px;">
+        <div
+          id="specialistSwarmMatrix"
+          class="hidden"
+          style="
+            margin-top: 16px;
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            background: #0b1220;
+            padding: 16px;
+          "
+        >
+          <div
+            style="
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              margin-bottom: 12px;
+              flex-wrap: wrap;
+              gap: 8px;
+            "
+          >
+            <strong
+              style="
+                font-size: 14px;
+                color: var(--accent);
+                display: flex;
+                align-items: center;
+                gap: 8px;
+              "
+            >
               <span>🐝</span> 8 Specialized Agent Squads (Concurrent Pipeline)
             </strong>
-            <span class="pill" id="specialistSwarmBadge" style="border-color: #10b981; color: #10b981;">8/8 Specialists Verified (₹0 Spend)</span>
+            <span
+              class="pill"
+              id="specialistSwarmBadge"
+              style="border-color: #10b981; color: #10b981"
+              >8/8 Specialists Verified (₹0 Spend)</span
+            >
           </div>
 
-          <div id="specialistGrid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 10px;">
+          <div
+            id="specialistGrid"
+            style="
+              display: grid;
+              grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+              gap: 10px;
+            "
+          >
             <!-- Populated dynamically via JS -->
           </div>
         </div>
 
         <!-- Step-by-Step Helper Banner -->
-        <div style="margin: 14px 0; padding: 12px 16px; background: rgba(56, 189, 248, 0.08); border: 1px solid #0284c7; border-radius: 10px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
-          <div style="font-size: 13px;">
-            <strong style="color: #38bdf8;">📍 Quick 3-Step Guide:</strong>
-            <span style="color: #cbd5e1;"> 1. Click an idea chip above ➔ 2. Click "🚀 Synthesize Full-Stack App" ➔ 3. Your new app loads right here below!</span>
+        <div
+          style="
+            margin: 14px 0;
+            padding: 12px 16px;
+            background: rgba(56, 189, 248, 0.08);
+            border: 1px solid #0284c7;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+          "
+        >
+          <div style="font-size: 13px">
+            <strong style="color: #38bdf8">📍 Quick 3-Step Guide:</strong>
+            <span style="color: #cbd5e1">
+              1. Click an idea chip above ➔ 2. Click "🚀 Synthesize Full-Stack
+              App" ➔ 3. Your new app loads right here below!</span
+            >
           </div>
-          <a id="btnDirectPreviewLink" href="/preview/live" target="_blank" class="btn" style="padding: 4px 12px; font-size: 12px; text-decoration: none; border-color: #38bdf8; color: #38bdf8; display: inline-flex; align-items: center; gap: 4px;">
+          <a
+            id="btnDirectPreviewLink"
+            href="/preview/live"
+            target="_blank"
+            class="btn"
+            style="
+              padding: 4px 12px;
+              font-size: 12px;
+              text-decoration: none;
+              border-color: #38bdf8;
+              color: #38bdf8;
+              display: inline-flex;
+              align-items: center;
+              gap: 4px;
+            "
+          >
             ↗️ Open Standalone Tab
           </a>
         </div>
 
         <!-- Embedded Interactive Preview Container (Visible by Default) -->
-        <div id="universalPreviewContainer" style="margin-top: 16px; border: 1px solid var(--accent); border-radius: 14px; overflow: hidden; background: #000;">
-          <div style="padding: 10px 16px; background: #0f172a; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center;">
-            <strong style="font-size: 13px; color: var(--text); display: flex; align-items: center; gap: 8px;">
-              <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #10b981;"></span>
-              Live Interactive Runtime: <span id="previewAppLabel" style="color: var(--accent);">VidyaVahan School Transport (Live Preview Active)</span>
+        <div
+          id="universalPreviewContainer"
+          style="
+            margin-top: 16px;
+            border: 1px solid var(--accent);
+            border-radius: 14px;
+            overflow: hidden;
+            background: #000;
+          "
+        >
+          <div
+            style="
+              padding: 10px 16px;
+              background: #0f172a;
+              border-bottom: 1px solid var(--line);
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+            "
+          >
+            <strong
+              style="
+                font-size: 13px;
+                color: var(--text);
+                display: flex;
+                align-items: center;
+                gap: 8px;
+              "
+            >
+              <span
+                style="
+                  display: inline-block;
+                  width: 8px;
+                  height: 8px;
+                  border-radius: 50%;
+                  background: #10b981;
+                "
+              ></span>
+              Live Interactive Runtime:
+              <span id="previewAppLabel" style="color: var(--accent)"
+                >VidyaVahan School Transport (Live Preview Active)</span
+              >
             </strong>
-            <div style="display: flex; gap: 8px;">
-              <button class="btn" id="btnReloadUniversalPreview" type="button" style="width: auto; padding: 4px 10px; font-size: 11px;">🔄 Reload</button>
-              <a id="btnPopoutUniversalPreview" href="/preview/live" target="_blank" class="btn" style="width: auto; padding: 4px 10px; font-size: 11px; text-decoration: none; display: inline-flex;">↗️ Fullscreen</a>
+            <div style="display: flex; gap: 8px">
+              <button
+                class="btn"
+                id="btnReloadUniversalPreview"
+                type="button"
+                style="width: auto; padding: 4px 10px; font-size: 11px"
+              >
+                🔄 Reload
+              </button>
+              <a
+                id="btnPopoutUniversalPreview"
+                href="/preview/live"
+                target="_blank"
+                class="btn"
+                style="
+                  width: auto;
+                  padding: 4px 10px;
+                  font-size: 11px;
+                  text-decoration: none;
+                  display: inline-flex;
+                "
+                >↗️ Fullscreen</a
+              >
             </div>
           </div>
-          <iframe id="universalPreviewFrame" src="/preview/live" style="width: 100%; height: 700px; border: none; display: block;"></iframe>
+          <iframe
+            id="universalPreviewFrame"
+            src="/preview/live"
+            style="width: 100%; height: 700px; border: none; display: block"
+          ></iframe>
         </div>
       </section>
 
@@ -692,10 +1107,20 @@
           <button class="btn" id="btnInspectEvidence" type="button">
             🔍 Inspect Verification Evidence
           </button>
-          <button class="btn" id="btnSecurityAudit" type="button" style="border-color: #f59e0b; color: #f59e0b;">
+          <button
+            class="btn"
+            id="btnSecurityAudit"
+            type="button"
+            style="border-color: #f59e0b; color: #f59e0b"
+          >
             🛡️ Strix Security Audit
           </button>
-          <button class="btn" id="btnViewMemories" type="button" style="border-color: #38bdf8; color: #38bdf8;">
+          <button
+            class="btn"
+            id="btnViewMemories"
+            type="button"
+            style="border-color: #38bdf8; color: #38bdf8"
+          >
             🧠 Long-Term Memory
           </button>
           <button class="btn" id="btnPromoteRelease" type="button">
@@ -729,76 +1154,238 @@
       <section class="panel" aria-labelledby="aiStudioTitle">
         <div class="panelhead">
           <div>
-            <h2 id="aiStudioTitle">🧠 Autonomous AI Coding Studio & Live App Preview</h2>
+            <h2 id="aiStudioTitle">
+              🧠 Autonomous AI Coding Studio & Live App Preview
+            </h2>
             <small class="muted"
-              >Live generative AI coding engine with self-healing reflection loops and real-time app preview.</small
+              >Live generative AI coding engine with self-healing reflection
+              loops and real-time app preview.</small
             >
           </div>
-          <span class="pill" id="aiBrainBadge" style="background: rgba(56, 189, 248, 0.15); color: var(--accent);">AI Brain: Auto (₹0 Spend)</span>
+          <span
+            class="pill"
+            id="aiBrainBadge"
+            style="background: rgba(56, 189, 248, 0.15); color: var(--accent)"
+            >AI Brain: Auto (₹0 Spend)</span
+          >
         </div>
 
-        <div class="card" style="margin: 14px 0; padding: 12px; background: #0c121c; border-radius: 12px; border: 1px solid var(--line);">
+        <div
+          class="card"
+          style="
+            margin: 14px 0;
+            padding: 12px;
+            background: #0c121c;
+            border-radius: 12px;
+            border: 1px solid var(--line);
+          "
+        >
           <div class="formgrid">
             <div class="field">
-              <label for="aiProviderSelect">AI Engine Provider</label>
+              <label for="aiProviderSelect">AI Engine Provider (100+ Free Endpoints Supported)</label>
               <select id="aiProviderSelect">
-                <option value="auto">Auto-Detect Best Available (Zero-Spend)</option>
-                <option value="gemini">Google Gemini 1.5 Flash (Free Tier)</option>
-                <option value="groq">Groq Llama 3 Instant (Free Tier)</option>
-                <option value="ollama">Local Ollama (qwen2.5-coder / offline)</option>
-                <option value="heuristic">Intelligent Synthesizer (Offline Zero-Key)</option>
+                <optgroup label="🌟 FreeLLMAPI Aggregator (Tashfeen Ahmed - 100+ Free Endpoints)">
+                  <option value="auto">Auto-Failover Across 100+ Free Endpoints (₹0 Spend Guaranteed)</option>
+                  <option value="freellmapi">FreeLLMAPI Unified Gateway (OpenAI Compatible Proxy)</option>
+                </optgroup>
+                <optgroup label="🦙 OpenRouter Free Tier (50+ Free Models)">
+                  <option value="openrouter">DeepSeek R1 Reasoning Free (deepseek-r1:free)</option>
+                  <option value="openrouter">Llama 3.3 70B Instruct Free (llama-3.3-70b-instruct:free)</option>
+                  <option value="openrouter">Qwen 2.5 Coder 32B Free (qwen-2.5-coder-32b:free)</option>
+                  <option value="openrouter">Gemini 2.0 Flash Exp Free (gemini-2.0-flash-exp:free)</option>
+                  <option value="openrouter">Mistral Small 24B Free (mistral-small-24b:free)</option>
+                  <option value="openrouter">NVIDIA Nemotron 70B Free (nemotron-70b:free)</option>
+                </optgroup>
+                <optgroup label="⚡ Groq Cloud Instant Free Tier">
+                  <option value="groq">Groq Llama 3.3 70B Versatile (Free Tier)</option>
+                  <option value="groq">Groq Llama 3.1 8B Instant (Free Tier)</option>
+                  <option value="groq">Groq Mixtral 8x7B MoE (Free Tier)</option>
+                </optgroup>
+                <optgroup label="🧠 Google Gemini Direct Free Tier">
+                  <option value="gemini">Google Gemini 2.0 Flash (Free Direct)</option>
+                  <option value="gemini">Google Gemini 1.5 Flash (Free Direct)</option>
+                  <option value="gemini">Google Gemini 1.5 Pro (Free Direct)</option>
+                </optgroup>
+                <optgroup label="🚀 Cerebras Cloud Ultra-Fast Free Tier (>1800 tok/sec)">
+                  <option value="cerebras">Cerebras Llama 3.1 8B (Free Cloud)</option>
+                  <option value="cerebras">Cerebras Llama 3.1 70B (Free Cloud)</option>
+                </optgroup>
+                <optgroup label="💻 Local Offline Self-Hosted (Air-Gapped)">
+                  <option value="ollama">Local Ollama (qwen2.5-coder:7b)</option>
+                  <option value="ollama">Local LM Studio / vLLM Endpoint</option>
+                </optgroup>
+                <optgroup label="🛠️ Factory Autonomous Heuristic Synthesizer">
+                  <option value="heuristic">Built-in Clean-Room Synthesizer (100% Offline, Zero-Key)</option>
+                </optgroup>
               </select>
             </div>
             <div class="field">
-              <label for="aiApiKeyInput">Free API Key (Optional)</label>
-              <div style="display: flex; gap: 8px;">
-                <input id="aiApiKeyInput" type="password" placeholder="Gemini / Groq key" style="flex: 1;" />
-                <button class="btn" id="btnSaveAiKey" type="button" style="width: auto;">Save</button>
+              <label for="aiApiKeyInput">Free API Key (Optional - OpenRouter, Groq, Gemini, or Cerebras)</label>
+              <div style="display: flex; gap: 8px">
+                <input
+                  id="aiApiKeyInput"
+                  type="password"
+                  placeholder="Free API Key (or leave blank for offline heuristic synthesis)"
+                  style="flex: 1"
+                />
+                <button
+                  class="btn"
+                  id="btnSaveAiKey"
+                  type="button"
+                  style="width: auto"
+                >
+                  Save
+                </button>
               </div>
             </div>
           </div>
         </div>
 
         <div class="formgrid">
-          <div class="field" style="grid-column: 1 / -1;">
-            <label for="aiPromptInput">Natural Language Feature / App Prompt</label>
-            <textarea id="aiPromptInput" rows="3" style="width: 100%; border-radius: 10px; background: #0a0f18; border: 1px solid var(--line); color: var(--text); padding: 10px; font-family: inherit; font-size: 13px;" placeholder="e.g. Build live parent bus tracking screen with moving coordinates, student boarded badge, and emergency SOS alert button"></textarea>
+          <div class="field" style="grid-column: 1 / -1">
+            <label for="aiPromptInput"
+              >Natural Language Feature / App Prompt</label
+            >
+            <textarea
+              id="aiPromptInput"
+              rows="3"
+              style="
+                width: 100%;
+                border-radius: 10px;
+                background: #0a0f18;
+                border: 1px solid var(--line);
+                color: var(--text);
+                padding: 10px;
+                font-family: inherit;
+                font-size: 13px;
+              "
+              placeholder="e.g. Build live parent bus tracking screen with moving coordinates, student boarded badge, and emergency SOS alert button"
+            ></textarea>
           </div>
           <div class="field">
             <label for="aiTargetFileInput">Target Source File Path</label>
-            <input id="aiTargetFileInput" type="text" value="apps/parent-mobile/src/screens/TrackingScreen.tsx" style="width: 100%;" />
+            <input
+              id="aiTargetFileInput"
+              type="text"
+              value="apps/parent-mobile/src/screens/TrackingScreen.tsx"
+              style="width: 100%"
+            />
           </div>
-          <div class="field" style="display: flex; align-items: flex-end; gap: 8px;">
-            <button class="btn primary" id="btnRunAutonomousAi" type="button" style="flex: 1;">
+          <div
+            class="field"
+            style="display: flex; align-items: flex-end; gap: 8px"
+          >
+            <button
+              class="btn primary"
+              id="btnRunAutonomousAi"
+              type="button"
+              style="flex: 1"
+            >
               ⚡ Run Autonomous Self-Healing Coding Loop
             </button>
-            <button class="btn" id="btnToggleLivePreview" type="button" style="width: auto; background: var(--panel2);">
+            <button
+              class="btn"
+              id="btnToggleLivePreview"
+              type="button"
+              style="width: auto; background: var(--panel2)"
+            >
               📱 Live App Preview
             </button>
-            <button class="btn" id="btnFigCraftStudio" type="button" style="width: auto; border-color: #f59e0b; color: #f59e0b;">
+            <button
+              class="btn"
+              id="btnFigCraftStudio"
+              type="button"
+              style="width: auto; border-color: #f59e0b; color: #f59e0b"
+            >
               🎨 FigCraft UI/UX
             </button>
           </div>
         </div>
 
-        <p id="aiStudioMessage" class="error" role="status" aria-live="polite" style="margin-top: 8px;"></p>
+        <p
+          id="aiStudioMessage"
+          class="error"
+          role="status"
+          aria-live="polite"
+          style="margin-top: 8px"
+        ></p>
 
-        <div id="figcraftDrawer" class="console-log hidden" style="margin-top: 14px; max-height: 260px; border-color: #f59e0b; background: #0b0f19;"></div>
+        <div
+          id="figcraftDrawer"
+          class="console-log hidden"
+          style="
+            margin-top: 14px;
+            max-height: 260px;
+            border-color: #f59e0b;
+            background: #0b0f19;
+          "
+        ></div>
 
-        <label class="muted" style="font-size: 12px; display: block; margin-top: 14px;">Autonomous Reflection Stream & Compiler Telemetry</label>
-        <div class="console-log" id="aiStudioConsole" style="max-height: 220px;">
-          [AI Studio Engine] Standing by. Enter a prompt and launch autonomous self-healing loop.
+        <label
+          class="muted"
+          style="font-size: 12px; display: block; margin-top: 14px"
+          >Autonomous Reflection Stream & Compiler Telemetry</label
+        >
+        <div class="console-log" id="aiStudioConsole" style="max-height: 220px">
+          [AI Studio Engine] Standing by. Enter a prompt and launch autonomous
+          self-healing loop.
         </div>
 
-        <div id="livePreviewContainer" class="hidden" style="margin-top: 16px; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; background: #000;">
-          <div style="padding: 10px 16px; background: #111827; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center;">
-            <strong style="font-size: 13px;">📱 Live Interactive App Preview (Parent, Driver, Admin)</strong>
+        <div
+          id="livePreviewContainer"
+          class="hidden"
+          style="
+            margin-top: 16px;
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            overflow: hidden;
+            background: #000;
+          "
+        >
+          <div
+            style="
+              padding: 10px 16px;
+              background: #111827;
+              border-bottom: 1px solid var(--line);
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+            "
+          >
+            <strong style="font-size: 13px"
+              >📱 Live Interactive App Preview (Parent, Driver, Admin)</strong
+            >
             <div>
-              <button class="btn" onclick="document.getElementById('livePreviewFrame').src = '/preview/live'" style="width: auto; padding: 4px 10px; font-size: 11px;">🔄 Reload</button>
-              <a href="/preview/live" target="_blank" class="btn" style="width: auto; padding: 4px 10px; font-size: 11px; text-decoration: none; display: inline-flex;">↗️ Open New Tab</a>
+              <button
+                class="btn"
+                onclick="
+                  document.getElementById('livePreviewFrame').src =
+                    '/preview/live'
+                "
+                style="width: auto; padding: 4px 10px; font-size: 11px"
+              >
+                🔄 Reload
+              </button>
+              <a
+                href="/preview/live"
+                target="_blank"
+                class="btn"
+                style="
+                  width: auto;
+                  padding: 4px 10px;
+                  font-size: 11px;
+                  text-decoration: none;
+                  display: inline-flex;
+                "
+                >↗️ Open New Tab</a
+              >
             </div>
           </div>
-          <iframe id="livePreviewFrame" src="/preview/live" style="width: 100%; height: 740px; border: none; display: block;"></iframe>
+          <iframe
+            id="livePreviewFrame"
+            src="/preview/live"
+            style="width: 100%; height: 740px; border: none; display: block"
+          ></iframe>
         </div>
       </section>
 
@@ -1247,7 +1834,9 @@
               });
             }
             drawer.textContent = out;
-            log(`Strix security audit complete: Risk Level is ${rep.risk_level}.`);
+            log(
+              `Strix security audit complete: Risk Level is ${rep.risk_level}.`,
+            );
           } catch (err) {
             drawer.textContent = `[Security Audit Error] ${err.message}`;
           }
@@ -1404,9 +1993,10 @@
         async function loadAiConfig() {
           try {
             const cfg = await api("/ai/config");
-            $("aiBrainBadge").textContent = `AI Brain: ${cfg.preferred_provider.toUpperCase()} (₹0 Spend)`;
+            $("aiBrainBadge").textContent =
+              `AI Brain: ${cfg.preferred_provider.toUpperCase()} (100+ Free Models / ₹0 Spend)`;
             $("aiProviderSelect").value = cfg.preferred_provider;
-            if (cfg.gemini_available || cfg.groq_available) {
+            if (cfg.gemini_available || cfg.groq_available || cfg.openrouter_available || cfg.cerebras_available) {
               $("aiApiKeyInput").placeholder = "Key Configured (Saved)";
             }
           } catch (e) {
@@ -1423,7 +2013,8 @@
               body: JSON.stringify({ provider, api_key: key || undefined }),
             });
             $("aiStudioMessage").className = "good";
-            $("aiStudioMessage").textContent = "AI engine configuration updated.";
+            $("aiStudioMessage").textContent =
+              "AI engine configuration updated.";
             loadAiConfig();
           } catch (err) {
             $("aiStudioMessage").className = "error";
@@ -1435,14 +2026,16 @@
           const container = $("livePreviewContainer");
           container.classList.toggle("hidden");
           if (!container.classList.contains("hidden")) {
-            $("livePreviewFrame").src = `/jobs/${currentJobId || "default"}/preview`;
+            $("livePreviewFrame").src =
+              `/jobs/${currentJobId || "default"}/preview`;
           }
         });
 
         $("btnFigCraftStudio").addEventListener("click", async () => {
           if (!currentJobId) {
             $("aiStudioMessage").className = "error";
-            $("aiStudioMessage").textContent = "Please select or start a project first.";
+            $("aiStudioMessage").textContent =
+              "Please select or start a project first.";
             return;
           }
           const drawer = $("figcraftDrawer");
@@ -1472,27 +2065,34 @@
         $("btnRunAutonomousAi").addEventListener("click", async () => {
           if (!currentJobId) {
             $("aiStudioMessage").className = "error";
-            $("aiStudioMessage").textContent = "Please select or start a project first.";
+            $("aiStudioMessage").textContent =
+              "Please select or start a project first.";
             return;
           }
           const prompt = $("aiPromptInput").value.trim();
           if (!prompt) {
             $("aiStudioMessage").className = "error";
-            $("aiStudioMessage").textContent = "Please enter a feature instruction or prompt.";
+            $("aiStudioMessage").textContent =
+              "Please enter a feature instruction or prompt.";
             return;
           }
-          const target_file = $("aiTargetFileInput").value.trim() || "src/App.tsx";
+          const target_file =
+            $("aiTargetFileInput").value.trim() || "src/App.tsx";
           $("aiStudioMessage").className = "good";
-          $("aiStudioMessage").textContent = "Launching autonomous coding loop with self-healing reflection…";
+          $("aiStudioMessage").textContent =
+            "Launching autonomous coding loop with self-healing reflection…";
 
           const consoleEl = $("aiStudioConsole");
           consoleEl.textContent = `[AI Studio] Starting autonomous cycle for ${target_file}…\nPrompt: "${prompt}"\n`;
 
           try {
-            const receipt = await api(`/jobs/${currentJobId}/autonomous-generate`, {
-              method: "POST",
-              body: JSON.stringify({ prompt, target_file }),
-            });
+            const receipt = await api(
+              `/jobs/${currentJobId}/autonomous-generate`,
+              {
+                method: "POST",
+                body: JSON.stringify({ prompt, target_file }),
+              },
+            );
 
             let logText = `[AI Studio] Execution Complete!\nStatus: ${receipt.status}\nIterations Used: ${receipt.iterations_used}\nTokens Consumed: ${receipt.budget_tokens}\nZero-Spend Compliant: ${receipt.zero_spend_compliant}\n\n--- REPAIR ATTEMPTS ---\n`;
             receipt.attempts.forEach((a) => {
@@ -1502,7 +2102,8 @@
             consoleEl.textContent = logText;
 
             $("aiStudioMessage").className = "good";
-            $("aiStudioMessage").textContent = `Code generated and verified in ${receipt.iterations_used} iteration(s)!`;
+            $("aiStudioMessage").textContent =
+              `Code generated and verified in ${receipt.iterations_used} iteration(s)!`;
             await fetchEvidence(currentJobId);
           } catch (err) {
             $("aiStudioMessage").className = "error";
@@ -1528,13 +2129,15 @@
           const title = $("universalAppTitleInput").value.trim() || undefined;
           if (!prompt) {
             $("universalAppStatusMsg").className = "error";
-            $("universalAppStatusMsg").textContent = "Please enter an application idea or select a quick-start chip.";
+            $("universalAppStatusMsg").textContent =
+              "Please enter an application idea or select a quick-start chip.";
             return;
           }
 
           $("universalAppStatusMsg").className = "good";
-          $("universalAppStatusMsg").textContent = "Autonomous synthesis in progress. Deconstructing architecture and generating live runtime…";
-          
+          $("universalAppStatusMsg").textContent =
+            "Autonomous synthesis in progress. Deconstructing architecture and generating live runtime…";
+
           const consoleEl = $("universalAppConsole");
           consoleEl.classList.remove("hidden");
           consoleEl.textContent = `[Synthesizer] Prompt received: "${prompt}"\n`;
@@ -1556,7 +2159,9 @@
             consoleEl.textContent += `[Synthesizer] Stage 4: In-memory syntax verification: ${appPkg.syntax_verified ? "100% CLEAN" : "FLAGGED"}.\n`;
             consoleEl.textContent += `[Synthesizer] Stage 5: Live HTML5 interactive preview bundle assembled.\n`;
             consoleEl.textContent += `[Synthesizer] ✓ Synthesis complete! App ID: ${appPkg.app_id}\n\n`;
-            consoleEl.textContent += `Generated manifest:\n` + appPkg.files.map(f => `  • ${f}`).join("\n");
+            consoleEl.textContent +=
+              `Generated manifest:\n` +
+              appPkg.files.map((f) => `  • ${f}`).join("\n");
 
             // Populate Result Card
             $("resAppTitle").textContent = appPkg.title;
@@ -1564,8 +2169,12 @@
             $("resAppCategory").textContent = appPkg.category;
             $("resAppFilesCount").textContent = `${appPkg.total_files} Files`;
             $("resStakeholders").textContent = appPkg.stakeholders.join(", ");
-            $("resModels").textContent = appPkg.entities.map(e => e.name).join(", ");
-            $("resSyntax").textContent = appPkg.syntax_verified ? "100% Clean" : "Verified";
+            $("resModels").textContent = appPkg.entities
+              .map((e) => e.name)
+              .join(", ");
+            $("resSyntax").textContent = appPkg.syntax_verified
+              ? "100% Clean"
+              : "Verified";
 
             $("lnkOpenUniversalPreview").href = appPkg.preview_url;
             $("btnPopoutUniversalPreview").href = appPkg.preview_url;
@@ -1579,7 +2188,8 @@
               grid.innerHTML = "";
               appPkg.specialists.forEach((sp) => {
                 const card = document.createElement("div");
-                card.style.cssText = "background: #080e18; border: 1px solid var(--line); border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 6px;";
+                card.style.cssText =
+                  "background: #080e18; border: 1px solid var(--line); border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 6px;";
                 card.innerHTML = `
                   <div style="display: flex; justify-content: space-between; align-items: center;">
                     <strong style="font-size: 13px; display: flex; align-items: center; gap: 6px;">
@@ -1603,7 +2213,8 @@
             $("universalPreviewFrame").src = appPkg.preview_url;
 
             $("universalAppStatusMsg").className = "good";
-            $("universalAppStatusMsg").textContent = `🎉 Successfully synthesized "${appPkg.title}"! Live runtime is interactive below.`;
+            $("universalAppStatusMsg").textContent =
+              `🎉 Successfully synthesized "${appPkg.title}"! Live runtime is interactive below.`;
           } catch (err) {
             $("universalAppStatusMsg").className = "error";
             $("universalAppStatusMsg").textContent = err.message;
@@ -1620,7 +2231,8 @@
 
         $("btnReloadUniversalPreview").addEventListener("click", () => {
           if (currentSynthesizedApp) {
-            $("universalPreviewFrame").src = currentSynthesizedApp.preview_url + "?t=" + Date.now();
+            $("universalPreviewFrame").src =
+              currentSynthesizedApp.preview_url + "?t=" + Date.now();
           }
         });
 
@@ -1630,11 +2242,16 @@
           btn.disabled = true;
           btn.textContent = "Saving to disk…";
           try {
-            const exp = await api(`/apps/${currentSynthesizedApp.app_id}/export`, {
-              method: "POST",
-              body: JSON.stringify({}),
-            });
-            alert(`✓ Full-Stack Monorepo exported successfully!\n\nLocation: ${exp.export_path}\nFiles written: ${exp.files_written}`);
+            const exp = await api(
+              `/apps/${currentSynthesizedApp.app_id}/export`,
+              {
+                method: "POST",
+                body: JSON.stringify({}),
+              },
+            );
+            alert(
+              `✓ Full-Stack Monorepo exported successfully!\n\nLocation: ${exp.export_path}\nFiles written: ${exp.files_written}`,
+            );
           } catch (err) {
             alert(`Export failed: ${err.message}`);
           } finally {
