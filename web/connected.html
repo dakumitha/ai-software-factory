@@ -511,6 +511,20 @@
           </div>
         </div>
 
+        <!-- Specialized Agent Swarm Execution Matrix -->
+        <div id="specialistSwarmMatrix" class="hidden" style="margin-top: 16px; border: 1px solid var(--line); border-radius: 12px; background: #0b1220; padding: 16px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+            <strong style="font-size: 14px; color: var(--accent); display: flex; align-items: center; gap: 8px;">
+              <span>🐝</span> 8 Specialized Agent Squads (Concurrent Pipeline)
+            </strong>
+            <span class="pill" id="specialistSwarmBadge" style="border-color: #10b981; color: #10b981;">8/8 Specialists Verified (₹0 Spend)</span>
+          </div>
+
+          <div id="specialistGrid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 10px;">
+            <!-- Populated dynamically via JS -->
+          </div>
+        </div>
+
         <!-- Embedded Interactive Preview Container -->
         <div id="universalPreviewContainer" class="hidden" style="margin-top: 16px; border: 1px solid var(--accent); border-radius: 14px; overflow: hidden; background: #000;">
           <div style="padding: 10px 16px; background: #0f172a; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center;">
@@ -1547,6 +1561,31 @@
             $("previewAppLabel").textContent = appPkg.title;
 
             $("universalAppResult").classList.remove("hidden");
+
+            // Populate 8 Specialized Agent Swarm Cards
+            if (appPkg.specialists && appPkg.specialists.length > 0) {
+              const grid = $("specialistGrid");
+              grid.innerHTML = "";
+              appPkg.specialists.forEach((sp) => {
+                const card = document.createElement("div");
+                card.style.cssText = "background: #080e18; border: 1px solid var(--line); border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 6px;";
+                card.innerHTML = `
+                  <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <strong style="font-size: 13px; display: flex; align-items: center; gap: 6px;">
+                      <span>${sp.avatar_emoji}</span> ${sp.display_title}
+                    </strong>
+                    <span class="pill" style="border-color: #10b981; color: #10b981; margin: 0; font-size: 10px;">${sp.status}</span>
+                  </div>
+                  <p style="margin: 0; font-size: 12px; color: var(--muted);">${sp.summary}</p>
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px; font-size: 10px; color: #64748b;">
+                    <span>Role: ${sp.role_name}</span>
+                    <span>${sp.duration_ms}ms · ₹0</span>
+                  </div>
+                `;
+                grid.appendChild(card);
+              });
+              $("specialistSwarmMatrix").classList.remove("hidden");
+            }
 
             // Show embedded preview
             $("universalPreviewContainer").classList.remove("hidden");

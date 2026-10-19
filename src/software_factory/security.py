@@ -55,6 +55,47 @@ class SecurityAuditEngine:
         (re.compile(r"""(exec|spawn|popen)\s*\([^)]*(shell:\s*true)""", re.IGNORECASE), "HIGH", "Insecure Shell Execution", "Subprocess execution with shell=true enables command injection. Use argument lists with shell=false."),
     ]
 
+    def scan_code_text(self, content: str, file_path: str = "inline") -> list[SecurityFinding]:
+        """Scan a single source code text buffer for vulnerabilities."""
+        findings: list[SecurityFinding] = []
+        lines = content.splitlines()
+
+        # 1. Scan for hardcoded credentials
+        for pattern, title in self.SECRET_PATTERNS:
+            for line_idx, line in enumerate(lines, start=1):
+                # Exclude mock keys and templates
+                if any(dummy in line.lower() for dummy in ("mock", "placeholder", "demo", "sample", "test", "your-", "xxx")):
+                    continue
+                if pattern.search(line):
+                    findings.append(
+                        SecurityFinding(
+                            check_id="SEC-SECRET-LEAK",
+                            severity="HIGH",
+                            title=title,
+                            file_path=file_path,
+                            line_number=line_idx,
+                            description=f"Potential credential exposure on line {line_idx}.",
+                            remediation="Extract secrets to environment variables (.env) or runtime secret managers.",
+                        )
+                    )
+
+        # 2. Scan for insecure code patterns
+        for pattern, severity, title, rem in self.INSECURE_PATTERNS:
+            for line_idx, line in enumerate(lines, start=1):
+                if pattern.search(line):
+                    findings.append(
+                        SecurityFinding(
+                            check_id="SEC-INSECURE-PATTERN",
+                            severity=severity,
+                            title=title,
+                            file_path=file_path,
+                            line_number=line_idx,
+                            description=f"Insecure code pattern identified on line {line_idx}.",
+                            remediation=rem,
+                        )
+                    )
+        return findings
+
     def audit_workspace(self, workspace_path: str | Path, job_id: str = "audit") -> SecurityReport:
         """Scan all source code files within a workspace directory for vulnerabilities."""
         p = Path(workspace_path)
@@ -78,42 +119,7 @@ class SecurityAuditEngine:
                 continue
 
             rel_path = str(file_path.relative_to(p))
-            lines = content.splitlines()
-
-            # 1. Scan for hardcoded credentials
-            for pattern, title in self.SECRET_PATTERNS:
-                for line_idx, line in enumerate(lines, start=1):
-                    # Exclude mock keys and templates
-                    if any(dummy in line.lower() for dummy in ("mock", "placeholder", "demo", "sample", "test", "your-", "xxx")):
-                        continue
-                    if pattern.search(line):
-                        findings.append(
-                            SecurityFinding(
-                                check_id="SEC-SECRET-LEAK",
-                                severity="HIGH",
-                                title=title,
-                                file_path=rel_path,
-                                line_number=line_idx,
-                                description=f"Potential credential exposure on line {line_idx}.",
-                                remediation="Extract secrets to environment variables (.env) or runtime secret managers.",
-                            )
-                        )
-
-            # 2. Scan for insecure code patterns
-            for pattern, severity, title, rem in self.INSECURE_PATTERNS:
-                for line_idx, line in enumerate(lines, start=1):
-                    if pattern.search(line):
-                        findings.append(
-                            SecurityFinding(
-                                check_id="SEC-INSECURE-PATTERN",
-                                severity=severity,
-                                title=title,
-                                file_path=rel_path,
-                                line_number=line_idx,
-                                description=f"Insecure code pattern identified on line {line_idx}.",
-                                remediation=rem,
-                            )
-                        )
+            findings.extend(self.scan_code_text(content, file_path=rel_path))
 
         # Evaluate risk level
         has_critical = any(f.severity == "CRITICAL" for f in findings)

@@ -936,6 +936,10 @@ class ApiHandler(BaseHTTPRequestHandler):
             if preview_file.exists():
                 return self._send_html(200, preview_file.read_text(encoding="utf-8"))
             return self._send(404, {"error": "Preview not found for synthesized app"})
+        if path == "/swarm/specialists":
+            from .specialized_agents import SpecializedAgentSwarm
+            swarm = SpecializedAgentSwarm()
+            return self._send(200, {"specialists": swarm.get_specialist_roster()})
         return self._send(404, {"error": "Not found"})
 
     def do_POST(self) -> None:
@@ -1164,15 +1168,37 @@ class ApiHandler(BaseHTTPRequestHandler):
                 if title is not None:
                     title = str(title).strip()
                 from .universal_synthesizer import UniversalAppSynthesizer
+                from .specialized_agents import SpecializedAgentSwarm
                 from .agent_adapter import AutoSelectAgentAdapter
                 adapter = AutoSelectAgentAdapter(preferred_provider=ApiHandler.ai_provider, api_key=ApiHandler.ai_key)
                 synthesizer = UniversalAppSynthesizer(adapter=adapter)
-                pkg = synthesizer.synthesize_application(prompt=prompt, user_title=title)
+                swarm = SpecializedAgentSwarm(synthesizer=synthesizer)
+                swarm_report = swarm.execute_swarm(prompt=prompt, user_title=title)
+                pkg = swarm_report.package
                 SYNTHESIZED_APPS[pkg.blueprint.app_id] = pkg
                 export_dir = Path("generated_apps") / pkg.blueprint.app_id
                 pkg.export(export_dir)
-                (export_dir / "blueprint.json").write_text(json.dumps(pkg.to_dict(), indent=2), encoding="utf-8")
-                return self._send(201, pkg.to_dict())
+                resp_payload = pkg.to_dict()
+                resp_payload["specialists"] = [s.to_dict() for s in swarm_report.specialists]
+                resp_payload["swarm_report"] = {
+                    "status": swarm_report.status,
+                    "total_duration_ms": swarm_report.total_duration_ms,
+                    "total_spend_usd": swarm_report.total_spend_usd,
+                }
+                (export_dir / "blueprint.json").write_text(json.dumps(resp_payload, indent=2), encoding="utf-8")
+                return self._send(201, resp_payload)
+            if path == "/swarm/specialists/run":
+                prompt = str(body.get("prompt", "Multi-stakeholder application platform")).strip()
+                title = body.get("title")
+                from .universal_synthesizer import UniversalAppSynthesizer
+                from .specialized_agents import SpecializedAgentSwarm
+                from .agent_adapter import AutoSelectAgentAdapter
+                adapter = AutoSelectAgentAdapter(preferred_provider=ApiHandler.ai_provider, api_key=ApiHandler.ai_key)
+                synthesizer = UniversalAppSynthesizer(adapter=adapter)
+                swarm = SpecializedAgentSwarm(synthesizer=synthesizer)
+                report = swarm.execute_swarm(prompt=prompt, user_title=title)
+                SYNTHESIZED_APPS[report.package.blueprint.app_id] = report.package
+                return self._send(200, report.to_dict())
             if len(parts) == 3 and parts[0] == "apps" and parts[2] == "export":
                 app_id = parts[1]
                 pkg = SYNTHESIZED_APPS.get(app_id)
