@@ -41,27 +41,23 @@ class AgentMemoryStore:
         return conn
 
     def _init_db(self) -> None:
-        conn = self._get_connection()
-        try:
-            with conn:
-                conn.execute(
-                    """
-                    CREATE TABLE IF NOT EXISTS agent_memories (
-                        id INTEGER PRIMARY KEY AUTOINCREMENT,
-                        job_id TEXT NOT NULL,
-                        task_id TEXT NOT NULL,
-                        category TEXT NOT NULL,
-                        summary TEXT NOT NULL,
-                        details TEXT NOT NULL,
-                        tags_json TEXT NOT NULL,
-                        created_at REAL NOT NULL
-                    )
-                    """
+        with self._get_connection() as conn:
+            conn.execute(
+                """
+                CREATE TABLE IF NOT EXISTS agent_memories (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    job_id TEXT NOT NULL,
+                    task_id TEXT NOT NULL,
+                    category TEXT NOT NULL,
+                    summary TEXT NOT NULL,
+                    details TEXT NOT NULL,
+                    tags_json TEXT NOT NULL,
+                    created_at REAL NOT NULL
                 )
-                conn.execute("CREATE INDEX IF NOT EXISTS idx_mem_job ON agent_memories(job_id)")
-                conn.execute("CREATE INDEX IF NOT EXISTS idx_mem_category ON agent_memories(category)")
-        finally:
-            conn.close()
+                """
+            )
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_mem_job ON agent_memories(job_id)")
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_mem_category ON agent_memories(category)")
 
     def record_memory(
         self,
@@ -75,19 +71,15 @@ class AgentMemoryStore:
         """Record an architectural decision, component contract, or bug fix into persistent memory."""
         tags_json = json.dumps(tags or [])
         now = time.time()
-        conn = self._get_connection()
-        try:
-            with conn:
-                cursor = conn.execute(
-                    """
-                    INSERT INTO agent_memories (job_id, task_id, category, summary, details, tags_json, created_at)
-                    VALUES (?, ?, ?, ?, ?, ?, ?)
-                    """,
-                    (job_id, task_id, category, summary, details, tags_json, now),
-                )
-                return int(cursor.lastrowid)
-        finally:
-            conn.close()
+        with self._get_connection() as conn:
+            cursor = conn.execute(
+                """
+                INSERT INTO agent_memories (job_id, task_id, category, summary, details, tags_json, created_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+                """,
+                (job_id, task_id, category, summary, details, tags_json, now),
+            )
+            return int(cursor.lastrowid)
 
     def query_memories(
         self,
@@ -113,8 +105,7 @@ class AgentMemoryStore:
         sql += " ORDER BY created_at DESC LIMIT ?"
         params.append(limit)
 
-        conn = self._get_connection()
-        try:
+        with self._get_connection() as conn:
             rows = conn.execute(sql, params).fetchall()
             return [
                 {
@@ -129,8 +120,6 @@ class AgentMemoryStore:
                 }
                 for r in rows
             ]
-        finally:
-            conn.close()
 
     def get_progressive_context(self, job_id: str, prompt: str, max_items: int = 5) -> str:
         """Generate a concise memory context header using progressive disclosure.
@@ -160,4 +149,3 @@ class AgentMemoryStore:
                 lines.append(f"  Details: {m['details'][:160]}...")
         lines.append("--- [END MEMORY CONTEXT] ---\n")
         return "\n".join(lines)
-

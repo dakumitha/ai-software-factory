@@ -896,6 +896,16 @@ class ApiHandler(BaseHTTPRequestHandler):
             q = query_params.get("q", [""])[0]
             cat = query_params.get("category", [None])[0]
             return self._send(200, {"items": mem_store.query_memories(job_id=parts[1], query=q, category=cat)})
+        if path == "/design/tokens":
+            from .figcraft import FigCraftDocument
+            tokens = [t.__dict__ for t in FigCraftDocument._default_school_tokens()]
+            return self._send(200, {"tokens": tokens})
+        if len(parts) == 4 and parts[0] == "jobs" and parts[2] == "design" and parts[3] == "figcraft":
+            job = self.store.get_job(parts[1])
+            title = str(job.get("spec", {}).get("title", "VidyaVahan School Transport")) if job else "VidyaVahan School Transport"
+            from .figcraft import FigCraftTemplateBuilder
+            doc = FigCraftTemplateBuilder.build_school_transport_document(title=title)
+            return self._send(200, json.loads(doc.to_json()))
         if len(parts) == 3 and parts[0] == "jobs" and parts[2] == "preview":
             job = self.store.get_job(parts[1])
             title = str(job.get("spec", {}).get("title", "School Transport System")) if job else "School Transport System"

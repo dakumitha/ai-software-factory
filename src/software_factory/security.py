@@ -144,4 +144,3 @@ class SecurityAuditEngine:
             findings=findings,
             scanned_files_count=scanned_count,
         )
-

@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Any
 
 from .agent_standards import AgentEnvironmentBootstrapper
+from .figcraft import FigCraftTemplateBuilder
 
 ARCHETYPE_SCHOOL_TRANSPORT = "school_transport"
 ARCHETYPE_COMMERCE_MARKETPLACE = "commerce_marketplace"
@@ -43,10 +44,12 @@ def _school_transport_template(title: str) -> dict[str, str]:
     """Multi-stakeholder School Transport System monorepo template."""
     standards_text = AgentEnvironmentBootstrapper.generate_claude_md(title)
     agent_cfg = json.dumps(AgentEnvironmentBootstrapper.generate_agent_config(title), indent=2) + "\n"
+    figcraft_doc = FigCraftTemplateBuilder.build_school_transport_document(title).to_json()
     return {
         "CLAUDE.md": standards_text,
         "AGENT.md": standards_text,
         ".agent/config.json": agent_cfg,
+        "design/school_transport.figcraft.json": figcraft_doc,
         "pnpm-workspace.yaml": "packages:\n  - 'apps/*'\n  - 'packages/*'\n",
         "turbo.json": json.dumps({
             "$schema": "https://turbo.build/schema.json",

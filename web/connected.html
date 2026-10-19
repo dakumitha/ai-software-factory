@@ -646,10 +646,15 @@
             <button class="btn" id="btnToggleLivePreview" type="button" style="width: auto; background: var(--panel2);">
               📱 Live App Preview
             </button>
+            <button class="btn" id="btnFigCraftStudio" type="button" style="width: auto; border-color: #f59e0b; color: #f59e0b;">
+              🎨 FigCraft UI/UX
+            </button>
           </div>
         </div>
 
         <p id="aiStudioMessage" class="error" role="status" aria-live="polite" style="margin-top: 8px;"></p>
+
+        <div id="figcraftDrawer" class="console-log hidden" style="margin-top: 14px; max-height: 260px; border-color: #f59e0b; background: #0b0f19;"></div>
 
         <label class="muted" style="font-size: 12px; display: block; margin-top: 14px;">Autonomous Reflection Stream & Compiler Telemetry</label>
         <div class="console-log" id="aiStudioConsole" style="max-height: 220px;">
@@ -1302,6 +1307,36 @@
           container.classList.toggle("hidden");
           if (!container.classList.contains("hidden")) {
             $("livePreviewFrame").src = `/jobs/${currentJobId || "default"}/preview`;
+          }
+        });
+
+        $("btnFigCraftStudio").addEventListener("click", async () => {
+          if (!currentJobId) {
+            $("aiStudioMessage").className = "error";
+            $("aiStudioMessage").textContent = "Please select or start a project first.";
+            return;
+          }
+          const drawer = $("figcraftDrawer");
+          drawer.classList.remove("hidden");
+          drawer.textContent = `[FigCraft Engine] Loading design document and tokens for job ${currentJobId}…`;
+          try {
+            const doc = await api(`/jobs/${currentJobId}/design/figcraft`);
+            let out = `=== FIGCRAFT UI/UX DESIGN SYSTEM (https://getartcraft.com/apps/figcraft) ===\n`;
+            out += `Document: ${doc.title} (v${doc.version})\nGenerator: ${doc.generator}\n`;
+            out += `Total Artboard Frames: ${doc.canvas.frames.length}\n\n`;
+            out += `--- DESIGN TOKENS (Variables) ---\n`;
+            doc.tokens.forEach((t) => {
+              out += `• ${t.name}: ${t.value} (${t.category})\n`;
+            });
+            out += `\n--- ARTBOARD FRAMES & AUTO LAYOUTS ---\n`;
+            doc.canvas.frames.forEach((f, idx) => {
+              out += `[FRAME #${idx + 1}] ${f.name} (${f.bounds.width}x${f.bounds.height})\n`;
+              out += `  Layout: ${f.layout.mode} | Padding: ${f.layout.padding.join(", ")} | Children: ${f.children.length}\n`;
+            });
+            out += `\nTip: You can import this JSON directly into FigCraft at getartcraft.com/apps/figcraft for visual editing.\n`;
+            drawer.textContent = out;
+          } catch (err) {
+            drawer.textContent = `[FigCraft Error] ${err.message}`;
           }
         });
 
