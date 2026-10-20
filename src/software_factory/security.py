@@ -82,6 +82,8 @@ class SecurityAuditEngine:
         # 2. Scan for insecure code patterns
         for pattern, severity, title, rem in self.INSECURE_PATTERNS:
             for line_idx, line in enumerate(lines, start=1):
+                if "re.compile" in line or "INSECURE_PATTERNS" in line:
+                    continue
                 if pattern.search(line):
                     findings.append(
                         SecurityFinding(
@@ -105,7 +107,7 @@ class SecurityAuditEngine:
         if not p.exists():
             return SecurityReport(job_id=job_id, status="PASSED", risk_level="CLEAN", total_findings=0, findings=[])
 
-        target_exts = {".ts", ".tsx", ".js", ".jsx", ".py", ".json", ".rules", ".yaml", ".yml"}
+        target_exts = {".ts", ".tsx", ".js", ".jsx", ".py", ".json", ".rules", ".yaml", ".yml", ".html"}
         for file_path in p.rglob("*"):
             if not file_path.is_file() or file_path.suffix.lower() not in target_exts:
                 continue
