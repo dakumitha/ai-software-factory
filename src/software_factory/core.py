@@ -855,6 +855,16 @@ class ApiHandler(BaseHTTPRequestHandler):
             if not self.store.get_project(parts[1]):
                 return self._send(404, {"error": "Project not found"})
             return self._send(200, {"items": self.specs.list(parts[1])})
+        if path == "/v1/models":
+            from .free_router import get_openai_models_list
+            return self._send(200, get_openai_models_list())
+        if path == "/v1/providers":
+            from .free_router import FREE_PROVIDERS_CATALOG
+            return self._send(200, {"providers": FREE_PROVIDERS_CATALOG, "total_providers": len(FREE_PROVIDERS_CATALOG)})
+        if path == "/octopus/state":
+            from .octopus import get_global_octopus_swarm
+            swarm = get_global_octopus_swarm()
+            return self._send(200, swarm.get_swarm_state())
         if path == "/ai/config":
             gemini_key = self.ai_key or os.getenv("GEMINI_API_KEY")
             groq_key = self.ai_key or os.getenv("GROQ_API_KEY")
@@ -1113,6 +1123,27 @@ class ApiHandler(BaseHTTPRequestHandler):
                     "files_count": len(files),
                     "files": list(files.keys()),
                 })
+            if path == "/v1/chat/completions":
+                from .free_router import generate_chat_completion
+                messages = body.get("messages", [])
+                model = str(body.get("model", "meta-llama/llama-3.3-70b-instruct:free"))
+                resp = generate_chat_completion(messages, model=model)
+                return self._send(200, resp)
+            if path == "/octopus/chat":
+                from .octopus import get_global_octopus_swarm
+                prompt = str(body.get("prompt", body.get("message", ""))).strip()
+                history = body.get("history", [])
+                swarm = get_global_octopus_swarm()
+                resp = swarm.understand_prompt(prompt, history=history)
+                return self._send(200, resp)
+            if path == "/octopus/relay":
+                from .octopus import get_global_octopus_swarm
+                from_head = str(body.get("from_head", "head_architect"))
+                to_head = str(body.get("to_head", "head_coder"))
+                content = str(body.get("content", ""))
+                swarm = get_global_octopus_swarm()
+                msg = swarm.relay_inter_head(from_head, to_head, content)
+                return self._send(200, {"status": "relayed", "message": msg.__dict__})
             if path == "/ai/config":
                 provider = str(body.get("provider", ApiHandler.ai_provider))
                 api_key = body.get("api_key")
