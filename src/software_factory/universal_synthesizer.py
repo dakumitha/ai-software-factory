@@ -222,6 +222,31 @@ class UniversalAppSynthesizer:
             ]
             features = ["Real-time chat dispatch", "Channel topic switcher", "Presence heartbeat simulator"]
 
+        elif any(w in lower for w in ("book", "books", "bookstore", "book selling", "bookseller", "author", "publishing", "novel", "reader", "literature", "library")):
+            category = "E-Commerce & Digital Book Marketplace"
+            tagline = "Online book selling platform with book catalog, genre browsing, shopping cart, sample reader, and instant checkout."
+            stakeholders = ["Book Reader / Buyer", "Author / Publisher", "Store Admin"]
+            palette = {"primary": "#F59E0B", "accent": "#10B981", "bg": "#0B0F19", "card": "#131C2E"}
+            entities = [
+                {"name": "BookItem", "description": "Title, author, ISBN, genre, price, rating, stock, sampleChapter"},
+                {"name": "CartItem", "description": "BookId, title, unitPrice, quantity, total"},
+                {"name": "OrderRecord", "description": "OrderId, customerEmail, shippingAddress, items, totalAmount, paymentStatus"},
+                {"name": "Review", "description": "BookId, readerName, rating, reviewText, verifiedPurchase"},
+            ]
+            screens = [
+                {"id": "catalog", "name": "Book Catalog & Genres"},
+                {"id": "cart", "name": "Shopping Cart & Checkout"},
+                {"id": "reader", "name": "Book Sample Excerpts"},
+                {"id": "inventory", "name": "Admin Inventory Console"},
+            ]
+            features = [
+                "Interactive book catalog with genre filtering (Tech, Fiction, Science, Business)",
+                "Slide-out shopping cart with live quantity and price calculations",
+                "Instant Razorpay order payment checkout with receipt generation",
+                "Built-in book sample reader modal with excerpt preview",
+                "Admin inventory management console to add books and track stock",
+            ]
+
         else:
             # Universal Enterprise & Productivity Application
             category = "Autonomous Productivity Platform"
@@ -433,6 +458,8 @@ __BUTTONS__
             domain_kind = "chat"
         elif any(w in lower_title or w in lower_cat for w in ("school", "bus", "transit", "transport", "fleet", "van")):
             domain_kind = "transit"
+        elif any(w in lower_title or w in lower_cat for w in ("book", "books", "bookstore", "book selling", "bookseller", "author", "publishing", "novel", "reader", "literature", "library")):
+            domain_kind = "bookstore"
         else:
             domain_kind = "kanban"
 
@@ -725,6 +752,108 @@ __BUTTONS__
     /* Transit Styles */
     .stop-track {{ display: flex; flex-direction: column; gap: 10px; margin: 10px 0; }}
     .stop-item {{ display: flex; align-items: center; gap: 12px; background: #080d18; border: 1px solid var(--line); border-radius: 8px; padding: 10px; }}
+
+    /* Bookstore & Marketplace Styles */
+    .bookstore-wrap {{ display: flex; flex-direction: column; gap: 16px; }}
+    .bookstore-top {{ display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }}
+    .genre-chips {{ display: flex; gap: 6px; flex-wrap: wrap; }}
+    .genre-chip {{
+      background: #090e18;
+      border: 1px solid var(--line);
+      color: var(--muted);
+      padding: 5px 12px;
+      border-radius: 99px;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.15s;
+    }}
+    .genre-chip.active, .genre-chip:hover {{
+      background: var(--primary);
+      color: #041220;
+      border-color: var(--primary);
+    }}
+    .bookstore-layout {{
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 16px;
+    }}
+    @media (max-width: 900px) {{ .bookstore-layout {{ grid-template-columns: 1fr; }} }}
+    .book-grid {{
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 12px;
+    }}
+    .book-card {{
+      background: #090e18;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 8px;
+      transition: all 0.2s;
+    }}
+    .book-card:hover {{
+      border-color: var(--primary);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+    }}
+    .book-cover {{
+      height: 100px;
+      background: linear-gradient(135deg, #131f33 0%, #080e18 100%);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 34px;
+      border: 1px solid rgba(255,255,255,0.05);
+    }}
+    .book-title {{ font-size: 13px; font-weight: 800; color: #fff; line-height: 1.3; }}
+    .book-author {{ font-size: 11px; color: var(--muted); }}
+    .book-price {{ font-size: 15px; font-weight: 900; color: var(--accent); }}
+    .cart-box {{
+      background: #080d17;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      height: fit-content;
+    }}
+    .cart-item-row {{
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #0f172a;
+      border-radius: 8px;
+      padding: 8px 10px;
+      font-size: 12px;
+    }}
+    .modal-overlay {{
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.85);
+      backdrop-filter: blur(6px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }}
+    .modal-card {{
+      background: #0c1422;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      max-width: 580px;
+      width: 90%;
+      padding: 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+    }}
   </style>
 </head>
 <body>
@@ -1204,6 +1333,315 @@ __BUTTONS__
     }}
 
     // ==========================================
+    // DOMAIN 5: BOOKSTORE MARKETPLACE RUNTIME
+    // ==========================================
+    const bookstoreInventory = [
+      {{ id: 1, title: 'Designing Data-Intensive Applications', author: 'Martin Kleppmann', genre: 'Tech', price: 649, rating: '★ 4.9', stock: 18, emoji: '💾', excerpt: 'Chapter 1: Reliable, Scalable, and Maintainable Applications. Data systems today must be fault-tolerant, horizontally scalable, and handle massive concurrency without silent state corruption. In this book, we explore how distributed data stores manage replication and consensus.' }},
+      {{ id: 2, title: 'Clean Architecture & Clean Code', author: 'Robert C. Martin', genre: 'Tech', price: 540, rating: '★ 4.8', stock: 24, emoji: '⚡', excerpt: 'Chapter 1: What is Clean Architecture? The center of your application is not the database. Nor is it one or more of the frameworks you may be using. The center of your application is the use cases of your application.' }},
+      {{ id: 3, title: 'Structure & Interpretation of Computer Programs', author: 'Abelson & Sussman', genre: 'Tech', price: 799, rating: '★ 4.9', stock: 12, emoji: '🧙', excerpt: 'Chapter 1: Building Abstractions with Procedures. Computational processes are abstract beings that inhabit computers. As they evolve, processes manipulate other abstract things called data.' }},
+      {{ id: 4, title: 'Atomic Habits: Proven Framework', author: 'James Clear', genre: 'Self-Help', price: 399, rating: '★ 4.9', stock: 45, emoji: '⚛️', excerpt: 'Chapter 1: The Surprising Power of Atomic Habits. A slight change in your daily habits can guide your life to a very different destination. Making a choice that is 1 percent better or 1 percent worse seems insignificant in the moment, but compounds immensely over time.' }},
+      {{ id: 5, title: 'Zero to One: Notes on Startups', author: 'Peter Thiel & Blake Masters', genre: 'Business', price: 450, rating: '★ 4.7', stock: 30, emoji: '🚀', excerpt: 'Chapter 1: The Challenge of the Future. Whenever I interview someone for a job, I like to ask: What important truth do very few people agree with you on? Creating new technology takes us from 0 to 1.' }},
+      {{ id: 6, title: 'Astrophysics for People in a Hurry', author: 'Neil deGrasse Tyson', genre: 'Science', price: 380, rating: '★ 4.8', stock: 20, emoji: '🌌', excerpt: 'Chapter 1: The Greatest Story Ever Told. In the beginning, nearly fourteen billion years ago, all the space and all the matter and all the energy of the known universe was contained in a volume less than one-trillionth the size of a pinhead.' }}
+    ];
+    let bookstoreCart = [
+      {{ id: 1, title: 'Designing Data-Intensive Applications', price: 649, qty: 1 }}
+    ];
+    let activeGenre = 'All';
+
+    function buildBookstoreUI() {{
+      return `
+        <div class="bookstore-wrap">
+          <div class="bookstore-top">
+            <div class="genre-chips">
+              <button class="genre-chip active" onclick="filterGenre('All', this)">All Titles</button>
+              <button class="genre-chip" onclick="filterGenre('Tech', this)">Technology</button>
+              <button class="genre-chip" onclick="filterGenre('Business', this)">Business</button>
+              <button class="genre-chip" onclick="filterGenre('Science', this)">Science</button>
+              <button class="genre-chip" onclick="filterGenre('Self-Help', this)">Self-Help</button>
+            </div>
+            <div style="font-size: 12px; color: var(--muted); display:flex; gap: 10px; align-items:center;">
+              <span>Verified Catalog: <b>${{bookstoreInventory.length}}</b> books</span>
+              <button class="btn btn-secondary" onclick="toggleAdminInventory()">🛠️ Admin Inventory</button>
+            </div>
+          </div>
+
+          <div class="bookstore-layout">
+            <div>
+              <div class="book-grid" id="bookCatalogGrid"></div>
+            </div>
+
+            <div>
+              <div class="cart-box">
+                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--line); padding-bottom:8px;">
+                  <strong style="font-size: 13px;">🛒 Shopping Cart (<span id="cartCount">0</span>)</strong>
+                  <span style="font-size: 11px; color: var(--accent);">₹0 Delivery Fee</span>
+                </div>
+                <div id="cartItemsList" style="display:flex; flex-direction:column; gap:6px; max-height:220px; overflow-y:auto;"></div>
+                <div style="border-top:1px solid var(--line); padding-top:10px; display:flex; justify-content:space-between; font-size:14px; font-weight:800;">
+                  <span>Subtotal:</span>
+                  <span id="cartTotal" style="color:var(--accent);">₹0</span>
+                </div>
+                <button class="btn" style="width:100%;" onclick="openRazorpayCheckout()">⚡ Proceed to Razorpay Checkout</button>
+                <div id="cartToast" style="font-size:11px; color:var(--accent); min-height:16px; text-align:center;"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Sample Reader Modal -->
+          <div id="sampleModal" class="modal-overlay" style="display:none;">
+            <div class="modal-card">
+              <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--line); padding-bottom:10px;">
+                <div>
+                  <h3 id="modalBookTitle" style="font-size:15px; font-weight:800;"></h3>
+                  <small id="modalBookAuthor" style="color:var(--muted);"></small>
+                </div>
+                <button class="btn btn-secondary" onclick="closeSampleModal()">✕ Close</button>
+              </div>
+              <div id="modalBookExcerpt" style="font-size:13px; line-height:1.7; color:#cbd5e1; max-height:260px; overflow-y:auto; background:#080e18; padding:14px; border-radius:10px; border:1px solid var(--line);"></div>
+              <div style="display:flex; justify-content:flex-end; gap:8px;">
+                <button class="btn" id="modalAddToCartBtn">Add to Cart</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Razorpay Simulated Modal -->
+          <div id="razorpayModal" class="modal-overlay" style="display:none;">
+            <div class="modal-card" style="max-width:440px;">
+              <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--line); padding-bottom:10px;">
+                <div style="display:flex; align-items:center; gap:8px;">
+                  <span style="font-size:20px;">💳</span>
+                  <strong>Razorpay Payment Gateway</strong>
+                </div>
+                <button class="btn btn-secondary" onclick="closeRazorpayModal()">✕</button>
+              </div>
+              <div style="background:#080d18; border:1px solid var(--line); border-radius:10px; padding:12px; font-size:12px;">
+                <p style="color:var(--muted);">Order Amount:</p>
+                <p id="rzpOrderTotal" style="font-size:22px; font-weight:900; color:var(--accent); margin:4px 0;"></p>
+                <small style="color:var(--muted);">Zero-commission test gateway mode</small>
+              </div>
+              <div style="display:flex; flex-direction:column; gap:8px;">
+                <button class="btn btn-secondary" style="text-align:left; padding:10px;" onclick="simulatePaymentSuccess('UPI / QR (GooglePay/PhonePe)')">📱 Pay via UPI / QR Code</button>
+                <button class="btn btn-secondary" style="text-align:left; padding:10px;" onclick="simulatePaymentSuccess('Credit / Debit Card')">💳 Pay via Card (Visa/Mastercard)</button>
+                <button class="btn btn-secondary" style="text-align:left; padding:10px;" onclick="simulatePaymentSuccess('Netbanking (HDFC/ICICI)')">🏦 Netbanking Instant Transfer</button>
+              </div>
+              <div id="rzpResultBox" style="display:none; font-size:11px; color:#10b981; background:rgba(16,185,129,0.1); border:1px solid rgba(16,185,129,0.3); padding:10px; border-radius:8px;"></div>
+            </div>
+          </div>
+
+          <!-- Admin Inventory Modal -->
+          <div id="adminInventoryModal" class="modal-overlay" style="display:none;">
+            <div class="modal-card">
+              <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--line); padding-bottom:10px;">
+                <strong>🛠️ Bookstore Inventory Manager (SQLite Sync)</strong>
+                <button class="btn btn-secondary" onclick="toggleAdminInventory()">✕</button>
+              </div>
+              <div style="display:flex; gap:8px;">
+                <input type="text" id="newBookTitle" placeholder="Book Title" style="flex:2; background:#080d18; border:1px solid var(--line); padding:6px 10px; border-radius:6px; color:#fff;" />
+                <input type="text" id="newBookAuthor" placeholder="Author" style="flex:1; background:#080d18; border:1px solid var(--line); padding:6px 10px; border-radius:6px; color:#fff;" />
+                <input type="number" id="newBookPrice" placeholder="Price (₹)" style="width:90px; background:#080d18; border:1px solid var(--line); padding:6px 10px; border-radius:6px; color:#fff;" />
+                <button class="btn" onclick="addNewBook()">+ Add</button>
+              </div>
+              <div id="adminBooksList" style="max-height:220px; overflow-y:auto; display:flex; flex-direction:column; gap:6px;"></div>
+            </div>
+          </div>
+        </div>
+      `;
+    }}
+
+    function renderBookCatalog() {{
+      const grid = document.getElementById('bookCatalogGrid');
+      if (!grid) return;
+      const list = activeGenre === 'All' ? bookstoreInventory : bookstoreInventory.filter(b => b.genre === activeGenre);
+      grid.innerHTML = list.map(b => `
+        <div class="book-card">
+          <div class="book-cover">${{b.emoji}}</div>
+          <div>
+            <span style="font-size:9px; font-weight:800; color:var(--primary); text-transform:uppercase;">${{b.genre}}</span>
+            <div class="book-title">${{b.title}}</div>
+            <div class="book-author">${{b.author}}</div>
+          </div>
+          <div class="book-meta">
+            <span class="book-price">₹${{b.price}}</span>
+            <span style="font-size:11px; color:#f59e0b; font-weight:700;">${{b.rating}}</span>
+          </div>
+          <div class="book-actions">
+            <button class="btn btn-secondary" style="flex:1; font-size:10px; padding:6px;" onclick="openSampleModal(${{b.id}})">📖 Sample</button>
+            <button class="btn" style="flex:1; font-size:10px; padding:6px;" onclick="addToBookCart(${{b.id}})">+ Cart</button>
+          </div>
+        </div>
+      `).join('');
+    }}
+
+    function filterGenre(genre, btn) {{
+      activeGenre = genre;
+      document.querySelectorAll('.genre-chip').forEach(b => b.classList.remove('active'));
+      if (btn) btn.classList.add('active');
+      renderBookCatalog();
+    }}
+
+    function renderBookCart() {{
+      const list = document.getElementById('cartItemsList');
+      const count = document.getElementById('cartCount');
+      const total = document.getElementById('cartTotal');
+      if (!list || !count || !total) return;
+
+      const totalItems = bookstoreCart.reduce((sum, item) => sum + item.qty, 0);
+      const subtotal = bookstoreCart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+
+      count.innerText = totalItems;
+      total.innerText = '₹' + subtotal.toLocaleString('en-IN');
+
+      if (bookstoreCart.length === 0) {{
+        list.innerHTML = '<div style="color:var(--muted); font-size:11px; text-align:center; padding:16px;">Your cart is empty. Add a book above!</div>';
+        return;
+      }}
+
+      list.innerHTML = bookstoreCart.map((item, idx) => `
+        <div class="cart-item-row">
+          <div style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; margin-right:8px;">
+            <strong style="font-size:11px; display:block; overflow:hidden; text-overflow:ellipsis;">${{item.title}}</strong>
+            <small style="color:var(--muted);">₹${{item.price}} × ${{item.qty}}</small>
+          </div>
+          <div style="display:flex; align-items:center; gap:4px;">
+            <button class="btn btn-secondary" style="padding:1px 6px; font-size:10px;" onclick="changeCartQty(${{idx}}, -1)">-</button>
+            <span style="font-weight:700; font-size:11px;">${{item.qty}}</span>
+            <button class="btn btn-secondary" style="padding:1px 6px; font-size:10px;" onclick="changeCartQty(${{idx}}, 1)">+</button>
+          </div>
+        </div>
+      `).join('');
+    }}
+
+    function addToBookCart(bookId) {{
+      const book = bookstoreInventory.find(b => b.id === bookId);
+      if (!book) return;
+      const existing = bookstoreCart.find(c => c.id === bookId);
+      if (existing) {{
+        existing.qty++;
+      }} else {{
+        bookstoreCart.push({{ id: book.id, title: book.title, price: book.price, qty: 1 }});
+      }}
+      renderBookCart();
+      const toast = document.getElementById('cartToast');
+      if (toast) {{
+        toast.innerText = `✓ Added "${{book.title.slice(0, 22)}}..." to cart`;
+        setTimeout(() => {{ toast.innerText = ''; }}, 2000);
+      }}
+    }}
+
+    function changeCartQty(idx, delta) {{
+      bookstoreCart[idx].qty += delta;
+      if (bookstoreCart[idx].qty <= 0) {{
+        bookstoreCart.splice(idx, 1);
+      }}
+      renderBookCart();
+    }}
+
+    function openSampleModal(bookId) {{
+      const book = bookstoreInventory.find(b => b.id === bookId);
+      if (!book) return;
+      document.getElementById('modalBookTitle').innerText = book.title;
+      document.getElementById('modalBookAuthor').innerText = 'By ' + book.author + ' · ' + book.genre;
+      document.getElementById('modalBookExcerpt').innerText = book.excerpt;
+      document.getElementById('modalAddToCartBtn').onclick = () => {{
+        addToBookCart(book.id);
+        closeSampleModal();
+      }};
+      document.getElementById('sampleModal').style.display = 'flex';
+    }}
+
+    function closeSampleModal() {{
+      document.getElementById('sampleModal').style.display = 'none';
+    }}
+
+    function openRazorpayCheckout() {{
+      if (bookstoreCart.length === 0) {{
+        alert('Cart is empty. Please add a book first.');
+        return;
+      }}
+      const subtotal = bookstoreCart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+      document.getElementById('rzpOrderTotal').innerText = '₹' + subtotal.toLocaleString('en-IN');
+      document.getElementById('rzpResultBox').style.display = 'none';
+      document.getElementById('razorpayModal').style.display = 'flex';
+    }}
+
+    function closeRazorpayModal() {{
+      document.getElementById('razorpayModal').style.display = 'none';
+    }}
+
+    function simulatePaymentSuccess(method) {{
+      const orderId = 'order_rzp_' + Math.floor(100000 + Math.random() * 900000);
+      const res = document.getElementById('rzpResultBox');
+      res.style.display = 'block';
+      res.innerHTML = `
+        <strong>✓ Payment Verified & Captured!</strong><br/>
+        Method: <b>${{method}}</b><br/>
+        Razorpay Order ID: <code>${{orderId}}</code><br/>
+        Signature Verification: <b>Passed (HMAC-SHA256)</b><br/>
+        Receipt sent to customer email.
+      `;
+      bookstoreCart = [];
+      renderBookCart();
+      setTimeout(() => {{
+        closeRazorpayModal();
+      }}, 3000);
+    }}
+
+    function toggleAdminInventory() {{
+      const modal = document.getElementById('adminInventoryModal');
+      if (modal.style.display === 'flex') {{
+        modal.style.display = 'none';
+      }} else {{
+        modal.style.display = 'flex';
+        renderAdminInventoryList();
+      }}
+    }}
+
+    function renderAdminInventoryList() {{
+      const list = document.getElementById('adminBooksList');
+      if (!list) return;
+      list.innerHTML = bookstoreInventory.map(b => `
+        <div style="display:flex; justify-content:space-between; align-items:center; background:#080e18; padding:8px 10px; border-radius:6px; font-size:12px; border:1px solid var(--line);">
+          <div>
+            <strong>${{b.title}}</strong> - ₹${{b.price}}
+            <small style="display:block; color:var(--muted);">${{b.author}} · In Stock: <b>${{b.stock}}</b></small>
+          </div>
+          <button class="btn btn-secondary" style="font-size:10px; padding:3px 8px;" onclick="restockBook(${{b.id}})">+ Restock (+10)</button>
+        </div>
+      `).join('');
+    }}
+
+    function restockBook(id) {{
+      const b = bookstoreInventory.find(x => x.id === id);
+      if (b) {{
+        b.stock += 10;
+        renderAdminInventoryList();
+      }}
+    }}
+
+    function addNewBook() {{
+      const title = document.getElementById('newBookTitle')?.value.trim();
+      const author = document.getElementById('newBookAuthor')?.value.trim();
+      const price = parseFloat(document.getElementById('newBookPrice')?.value) || 499;
+      if (!title || !author) return;
+      bookstoreInventory.unshift({{
+        id: Date.now(),
+        title,
+        author,
+        genre: 'Tech',
+        price,
+        rating: '★ 5.0',
+        stock: 25,
+        emoji: '📚',
+        excerpt: 'Chapter 1: Overview. Newly published volume synchronized with autonomous SQLite database catalog.'
+      }});
+      document.getElementById('newBookTitle').value = '';
+      document.getElementById('newBookAuthor').value = '';
+      document.getElementById('newBookPrice').value = '';
+      renderAdminInventoryList();
+      renderBookCatalog();
+    }}
+
+    // ==========================================
     // INITIALIZATION ROUTER
     // ==========================================
     const root = document.getElementById('domainWidgetRoot');
@@ -1235,6 +1673,10 @@ __BUTTONS__
         if (e) e.innerText = '$' + ethPrice.toLocaleString('en-US', {{ minimumFractionDigits: 2, maximumFractionDigits: 2 }});
         if (s) s.innerText = '$' + solPrice.toLocaleString('en-US', {{ minimumFractionDigits: 2, maximumFractionDigits: 2 }});
       }}, 3000);
+    }} else if (domainKind === 'bookstore') {{
+      root.innerHTML = buildBookstoreUI();
+      renderBookCatalog();
+      renderBookCart();
     }} else {{
       root.innerHTML = buildKanbanUI();
       renderKanban();

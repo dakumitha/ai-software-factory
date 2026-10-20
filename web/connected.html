@@ -1,851 +1,1701 @@
 <!doctype html>
 <html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="theme-color" content="#090d14" />
-  <title>Octopus Swarm Engine — Tashfeen FreeLLM API (34 Providers · 635 Models · OpenAI /v1)</title>
-  <style>
-    :root {
-      color-scheme: dark;
-      --bg: #090d16;
-      --panel: #111827;
-      --card: #172234;
-      --card-hover: #1e2c42;
-      --line: #223249;
-      --text: #f1f5f9;
-      --muted: #94a3b8;
-      --cyan: #38bdf8;
-      --cyan-glow: rgba(56, 189, 248, 0.2);
-      --emerald: #10b981;
-      --purple: #a855f7;
-      --amber: #f59e0b;
-      --rose: #f43f5e;
-      --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-    }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: var(--font);
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-    }
-    header {
-      background: rgba(17, 24, 39, 0.95);
-      border-bottom: 1px solid var(--line);
-      padding: 10px 20px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      backdrop-filter: blur(10px);
-    }
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-    .brand-icon {
-      font-size: 24px;
-      background: rgba(56, 189, 248, 0.15);
-      border: 1px solid var(--cyan);
-      width: 40px;
-      height: 40px;
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 0 12px var(--cyan-glow);
-    }
-    .brand-text h1 {
-      font-size: 15px;
-      font-weight: 800;
-      letter-spacing: -0.3px;
-    }
-    .brand-text p {
-      font-size: 11px;
-      color: var(--muted);
-    }
-    .pills {
-      display: flex;
-      gap: 6px;
-      align-items: center;
-    }
-    .pill {
-      font-size: 11px;
-      font-weight: 700;
-      padding: 3px 9px;
-      border-radius: 99px;
-      border: 1px solid var(--line);
-      background: rgba(255, 255, 255, 0.03);
-      color: var(--muted);
-      display: flex;
-      align-items: center;
-      gap: 5px;
-    }
-    .pill.cyan { border-color: rgba(56, 189, 248, 0.4); color: var(--cyan); background: rgba(56, 189, 248, 0.1); }
-    .pill.emerald { border-color: rgba(16, 185, 129, 0.4); color: var(--emerald); background: rgba(16, 185, 129, 0.1); }
-    .pill.purple { border-color: rgba(168, 85, 247, 0.4); color: var(--purple); background: rgba(168, 85, 247, 0.1); }
-    .dot-pulse {
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      background: var(--emerald);
-      box-shadow: 0 0 6px var(--emerald);
-      animation: pulse 1.6s infinite;
-    }
-    @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(1.3); } }
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#090d14" />
+    <title>
+      Octopus Swarm Engine — Tashfeen FreeLLM API (34 Providers · 635 Models ·
+      OpenAI /v1)
+    </title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #090d16;
+        --panel: #111827;
+        --card: #172234;
+        --card-hover: #1e2c42;
+        --line: #223249;
+        --text: #f1f5f9;
+        --muted: #94a3b8;
+        --cyan: #38bdf8;
+        --cyan-glow: rgba(56, 189, 248, 0.2);
+        --emerald: #10b981;
+        --purple: #a855f7;
+        --amber: #f59e0b;
+        --rose: #f43f5e;
+        --font:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        --mono:
+          ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        background: var(--bg);
+        color: var(--text);
+        font-family: var(--font);
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+      header {
+        background: rgba(17, 24, 39, 0.95);
+        border-bottom: 1px solid var(--line);
+        padding: 10px 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        backdrop-filter: blur(10px);
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .brand-icon {
+        font-size: 24px;
+        background: rgba(56, 189, 248, 0.15);
+        border: 1px solid var(--cyan);
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 0 12px var(--cyan-glow);
+      }
+      .brand-text h1 {
+        font-size: 15px;
+        font-weight: 800;
+        letter-spacing: -0.3px;
+      }
+      .brand-text p {
+        font-size: 11px;
+        color: var(--muted);
+      }
+      .pills {
+        display: flex;
+        gap: 6px;
+        align-items: center;
+      }
+      .pill {
+        font-size: 11px;
+        font-weight: 700;
+        padding: 3px 9px;
+        border-radius: 99px;
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.03);
+        color: var(--muted);
+        display: flex;
+        align-items: center;
+        gap: 5px;
+      }
+      .pill.cyan {
+        border-color: rgba(56, 189, 248, 0.4);
+        color: var(--cyan);
+        background: rgba(56, 189, 248, 0.1);
+      }
+      .pill.emerald {
+        border-color: rgba(16, 185, 129, 0.4);
+        color: var(--emerald);
+        background: rgba(16, 185, 129, 0.1);
+      }
+      .pill.purple {
+        border-color: rgba(168, 85, 247, 0.4);
+        color: var(--purple);
+        background: rgba(168, 85, 247, 0.1);
+      }
+      .dot-pulse {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--emerald);
+        box-shadow: 0 0 6px var(--emerald);
+        animation: pulse 1.6s infinite;
+      }
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 1;
+          transform: scale(1);
+        }
+        50% {
+          opacity: 0.5;
+          transform: scale(1.3);
+        }
+      }
 
-    .nav-tabs {
-      display: flex;
-      gap: 4px;
-      background: rgba(0, 0, 0, 0.3);
-      padding: 3px;
-      border-radius: 10px;
-      border: 1px solid var(--line);
-    }
-    .tab-btn {
-      background: transparent;
-      border: none;
-      color: var(--muted);
-      padding: 6px 14px;
-      border-radius: 7px;
-      cursor: pointer;
-      font-size: 12px;
-      font-weight: 700;
-      transition: all 0.2s;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .tab-btn:hover { color: var(--text); }
-    .tab-btn.active {
-      background: var(--cyan);
-      color: #031525;
-      box-shadow: 0 0 10px var(--cyan-glow);
-    }
+      .nav-tabs {
+        display: flex;
+        gap: 4px;
+        background: rgba(0, 0, 0, 0.3);
+        padding: 3px;
+        border-radius: 10px;
+        border: 1px solid var(--line);
+      }
+      .tab-btn {
+        background: transparent;
+        border: none;
+        color: var(--muted);
+        padding: 6px 14px;
+        border-radius: 7px;
+        cursor: pointer;
+        font-size: 12px;
+        font-weight: 700;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .tab-btn:hover {
+        color: var(--text);
+      }
+      .tab-btn.active {
+        background: var(--cyan);
+        color: #031525;
+        box-shadow: 0 0 10px var(--cyan-glow);
+      }
 
-    main {
-      flex: 1;
-      padding: 16px 20px;
-      max-width: 1400px;
-      width: 100%;
-      margin: 0 auto;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-    }
+      main {
+        flex: 1;
+        padding: 16px 20px;
+        max-width: 1400px;
+        width: 100%;
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
 
-    .view-pane {
-      display: none;
-      width: 100%;
-      animation: fadeIn 0.2s ease;
-    }
-    .view-pane.active { display: block; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+      .view-pane {
+        display: none;
+        width: 100%;
+        animation: fadeIn 0.2s ease;
+      }
+      .view-pane.active {
+        display: block;
+      }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(4px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
 
-    /* Grand Octopus Chat View */
-    .chat-layout {
-      display: grid;
-      grid-template-columns: 340px 1fr;
-      gap: 16px;
-      height: calc(100vh - 120px);
-    }
-    @media (max-width: 900px) {
-      .chat-layout { grid-template-columns: 1fr; height: auto; }
-    }
-    .sidebar {
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 16px;
-      padding: 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-      overflow-y: auto;
-    }
-    .chat-container {
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 16px;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      position: relative;
-    }
-    .chat-header {
-      padding: 14px 18px;
-      border-bottom: 1px solid var(--line);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background: rgba(0, 0, 0, 0.2);
-    }
-    .chat-messages {
-      flex: 1;
-      overflow-y: auto;
-      padding: 18px;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-    .bubble {
-      max-width: 80%;
-      padding: 12px 16px;
-      border-radius: 14px;
-      font-size: 13px;
-      line-height: 1.5;
-      animation: popIn 0.2s ease;
-    }
-    @keyframes popIn { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: scale(1); } }
-    .bubble.user {
-      align-self: flex-end;
-      background: #1e3a5f;
-      color: #e0f2fe;
-      border: 1px solid rgba(56, 189, 248, 0.3);
-      border-bottom-right-radius: 4px;
-    }
-    .bubble.agent {
-      align-self: flex-start;
-      background: #132030;
-      color: #f1f5f9;
-      border: 1px solid var(--line);
-      border-bottom-left-radius: 4px;
-    }
-    .bubble.clarification {
-      align-self: flex-start;
-      background: #231d10;
-      color: #fef3c7;
-      border: 1px solid rgba(245, 158, 11, 0.4);
-    }
-    .bubble.completion {
-      align-self: flex-start;
-      background: #0d281e;
-      color: #d1fae5;
-      border: 1px solid rgba(16, 185, 129, 0.4);
-    }
-    .author-tag {
-      font-size: 11px;
-      font-weight: 800;
-      color: var(--cyan);
-      margin-bottom: 4px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .q-box {
-      margin-top: 10px;
-      background: rgba(0, 0, 0, 0.3);
-      border: 1px solid rgba(245, 158, 11, 0.3);
-      border-radius: 10px;
-      padding: 10px;
-    }
-    .q-title {
-      font-size: 12px;
-      font-weight: 700;
-      color: var(--amber);
-      margin-bottom: 6px;
-    }
-    .q-btn {
-      display: block;
-      width: 100%;
-      text-align: left;
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid var(--line);
-      color: #f8fafc;
-      padding: 6px 10px;
-      border-radius: 6px;
-      font-size: 11px;
-      margin-bottom: 4px;
-      cursor: pointer;
-      transition: all 0.15s;
-    }
-    .q-btn:hover {
-      background: var(--amber);
-      color: #1a1202;
-      border-color: var(--amber);
-      font-weight: 700;
-    }
+      /* Grand Octopus Chat View */
+      .chat-layout {
+        display: grid;
+        grid-template-columns: 340px 1fr;
+        gap: 16px;
+        height: calc(100vh - 120px);
+      }
+      @media (max-width: 900px) {
+        .chat-layout {
+          grid-template-columns: 1fr;
+          height: auto;
+        }
+      }
+      .sidebar {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        overflow-y: auto;
+      }
+      .chat-container {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        position: relative;
+      }
+      .chat-header {
+        padding: 14px 18px;
+        border-bottom: 1px solid var(--line);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: rgba(0, 0, 0, 0.2);
+      }
+      .chat-messages {
+        flex: 1;
+        overflow-y: auto;
+        padding: 18px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+      .bubble {
+        max-width: 80%;
+        padding: 12px 16px;
+        border-radius: 14px;
+        font-size: 13px;
+        line-height: 1.5;
+        animation: popIn 0.2s ease;
+      }
+      @keyframes popIn {
+        from {
+          opacity: 0;
+          transform: scale(0.96);
+        }
+        to {
+          opacity: 1;
+          transform: scale(1);
+        }
+      }
+      .bubble.user {
+        align-self: flex-end;
+        background: #1e3a5f;
+        color: #e0f2fe;
+        border: 1px solid rgba(56, 189, 248, 0.3);
+        border-bottom-right-radius: 4px;
+      }
+      .bubble.agent {
+        align-self: flex-start;
+        background: #132030;
+        color: #f1f5f9;
+        border: 1px solid var(--line);
+        border-bottom-left-radius: 4px;
+      }
+      .bubble.clarification {
+        align-self: flex-start;
+        background: #231d10;
+        color: #fef3c7;
+        border: 1px solid rgba(245, 158, 11, 0.4);
+      }
+      .bubble.completion {
+        align-self: flex-start;
+        background: #0d281e;
+        color: #d1fae5;
+        border: 1px solid rgba(16, 185, 129, 0.4);
+      }
+      .author-tag {
+        font-size: 11px;
+        font-weight: 800;
+        color: var(--cyan);
+        margin-bottom: 4px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .q-box {
+        margin-top: 10px;
+        background: rgba(0, 0, 0, 0.3);
+        border: 1px solid rgba(245, 158, 11, 0.3);
+        border-radius: 10px;
+        padding: 10px;
+      }
+      .q-title {
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--amber);
+        margin-bottom: 6px;
+      }
+      .q-btn {
+        display: block;
+        width: 100%;
+        text-align: left;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid var(--line);
+        color: #f8fafc;
+        padding: 6px 10px;
+        border-radius: 6px;
+        font-size: 11px;
+        margin-bottom: 4px;
+        cursor: pointer;
+        transition: all 0.15s;
+      }
+      .q-btn:hover {
+        background: var(--amber);
+        color: #1a1202;
+        border-color: var(--amber);
+        font-weight: 700;
+      }
 
-    .chat-input-area {
-      padding: 12px 16px;
-      border-top: 1px solid var(--line);
-      background: rgba(0, 0, 0, 0.25);
-      display: flex;
-      gap: 10px;
-    }
-    .chat-input {
-      flex: 1;
-      background: #0c1420;
-      border: 1px solid var(--line);
-      border-radius: 10px;
-      padding: 10px 14px;
-      color: white;
-      font-size: 13px;
-      outline: none;
-      transition: border-color 0.2s;
-    }
-    .chat-input:focus { border-color: var(--cyan); }
-    .send-btn {
-      background: var(--cyan);
-      color: #031525;
-      border: none;
-      padding: 0 18px;
-      border-radius: 10px;
-      font-size: 13px;
-      font-weight: 800;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    .send-btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
+      .chat-input-area {
+        padding: 12px 16px;
+        border-top: 1px solid var(--line);
+        background: rgba(0, 0, 0, 0.25);
+        display: flex;
+        gap: 10px;
+      }
+      .chat-input {
+        flex: 1;
+        background: #0c1420;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 10px 14px;
+        color: white;
+        font-size: 13px;
+        outline: none;
+        transition: border-color 0.2s;
+      }
+      .chat-input:focus {
+        border-color: var(--cyan);
+      }
+      .send-btn {
+        background: var(--cyan);
+        color: #031525;
+        border: none;
+        padding: 0 18px;
+        border-radius: 10px;
+        font-size: 13px;
+        font-weight: 800;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+      .send-btn:hover {
+        filter: brightness(1.1);
+        transform: translateY(-1px);
+      }
 
-    .quick-chips {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-      margin-top: 6px;
-    }
-    .chip {
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      padding: 5px 9px;
-      font-size: 11px;
-      color: var(--muted);
-      cursor: pointer;
-      transition: all 0.15s;
-    }
-    .chip:hover { border-color: var(--cyan); color: var(--cyan); }
+      .quick-chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 6px;
+      }
+      .chip {
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 5px 9px;
+        font-size: 11px;
+        color: var(--muted);
+        cursor: pointer;
+        transition: all 0.15s;
+      }
+      .chip:hover {
+        border-color: var(--cyan);
+        color: var(--cyan);
+      }
 
-    /* Nested Octopus Swarm View */
-    .grand-head-card {
-      background: linear-gradient(135deg, #132238 0%, #0d1624 100%);
-      border: 1px solid var(--cyan);
-      border-radius: 18px;
-      padding: 20px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 16px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-    }
-    .head-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
-      gap: 16px;
-    }
-    .head-card {
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 16px;
-      padding: 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      transition: all 0.2s;
-    }
-    .head-card:hover { border-color: rgba(56, 189, 248, 0.4); }
-    .head-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-bottom: 1px solid var(--line);
-      padding-bottom: 10px;
-    }
-    .head-title {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 14px;
-      font-weight: 800;
-    }
-    .legs-container {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-    .leg-tile {
-      background: #0c1420;
-      border: 1px solid var(--line);
-      border-radius: 10px;
-      padding: 10px 12px;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      cursor: pointer;
-      transition: all 0.15s;
-    }
-    .leg-tile:hover {
-      background: #101c2c;
-      border-color: rgba(56, 189, 248, 0.4);
-    }
-    .leg-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 12px;
-      font-weight: 700;
-    }
-    .leg-desc {
-      font-size: 11px;
-      color: var(--muted);
-    }
-    .progress-bar-bg {
-      background: rgba(255, 255, 255, 0.08);
-      height: 4px;
-      border-radius: 2px;
-      overflow: hidden;
-      margin-top: 4px;
-    }
-    .progress-bar-fill {
-      height: 100%;
-      background: var(--cyan);
-      transition: width 0.3s;
-    }
+      /* Nested Octopus Swarm View */
+      .grand-head-card {
+        background: linear-gradient(135deg, #132238 0%, #0d1624 100%);
+        border: 1px solid var(--cyan);
+        border-radius: 18px;
+        padding: 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      }
+      .head-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+        gap: 16px;
+      }
+      .head-card {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        transition: all 0.2s;
+      }
+      .head-card:hover {
+        border-color: rgba(56, 189, 248, 0.4);
+      }
+      .head-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid var(--line);
+        padding-bottom: 10px;
+      }
+      .head-title {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+        font-weight: 800;
+      }
+      .legs-container {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .leg-tile {
+        background: #0c1420;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 10px 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        cursor: pointer;
+        transition: all 0.15s;
+      }
+      .leg-tile:hover {
+        background: #101c2c;
+        border-color: rgba(56, 189, 248, 0.4);
+      }
+      .leg-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 12px;
+        font-weight: 700;
+      }
+      .leg-desc {
+        font-size: 11px;
+        color: var(--muted);
+      }
+      .progress-bar-bg {
+        background: rgba(255, 255, 255, 0.08);
+        height: 4px;
+        border-radius: 2px;
+        overflow: hidden;
+        margin-top: 4px;
+      }
+      .progress-bar-fill {
+        height: 100%;
+        background: var(--cyan);
+        transition: width 0.3s;
+      }
 
-    /* Message Wire */
-    .wire-box {
-      background: #090e17;
-      border: 1px solid var(--line);
-      border-radius: 14px;
-      padding: 14px;
-      margin-top: 16px;
-    }
-    .wire-ticker {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      max-height: 180px;
-      overflow-y: auto;
-      font-family: var(--mono);
-      font-size: 11px;
-    }
-    .wire-row {
-      padding: 4px 8px;
-      background: #111a26;
-      border-radius: 6px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
+      /* Message Wire */
+      .wire-box {
+        background: #090e17;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 14px;
+        margin-top: 16px;
+      }
+      .wire-ticker {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        max-height: 180px;
+        overflow-y: auto;
+        font-family: var(--mono);
+        font-size: 11px;
+      }
+      .wire-row {
+        padding: 4px 8px;
+        background: #111a26;
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
 
-    /* Live Preview Pane */
-    .preview-frame-container {
-      width: 100%;
-      height: calc(100vh - 130px);
-      background: #000;
-      border-radius: 16px;
-      border: 1px solid var(--line);
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-    }
-    .preview-bar {
-      background: var(--panel);
-      padding: 8px 16px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-bottom: 1px solid var(--line);
-    }
-    .preview-iframe {
-      flex: 1;
-      width: 100%;
-      border: none;
-      background: #090d14;
-    }
+      /* Live Preview Pane */
+      .preview-frame-container {
+        width: 100%;
+        height: calc(100vh - 130px);
+        background: #000;
+        border-radius: 16px;
+        border: 1px solid var(--line);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+      }
+      .preview-bar {
+        background: var(--panel);
+        padding: 8px 16px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid var(--line);
+      }
+      .preview-iframe {
+        flex: 1;
+        width: 100%;
+        border: none;
+        background: #090d14;
+      }
 
-    /* Endpoints & Providers Pane */
-    .endpoints-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 16px;
-    }
-    @media (max-width: 800px) {
-      .endpoints-grid { grid-template-columns: 1fr; }
-    }
-    .code-box {
-      background: #080d14;
-      border: 1px solid var(--line);
-      border-radius: 12px;
-      padding: 14px;
-      font-family: var(--mono);
-      font-size: 12px;
-      color: #93c5fd;
-      overflow-x: auto;
-      line-height: 1.5;
-    }
-    .providers-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 12px;
-    }
-    .providers-table th, .providers-table td {
-      padding: 8px 10px;
-      border-bottom: 1px solid var(--line);
-      text-align: left;
-    }
-    .providers-table th {
-      color: var(--muted);
-      font-size: 11px;
-      text-transform: uppercase;
-      background: rgba(0, 0, 0, 0.2);
-    }
-  </style>
-</head>
-<body>
+      /* Endpoints & Providers Pane */
+      .endpoints-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+      }
+      @media (max-width: 800px) {
+        .endpoints-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+      .code-box {
+        background: #080d14;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 14px;
+        font-family: var(--mono);
+        font-size: 12px;
+        color: #93c5fd;
+        overflow-x: auto;
+        line-height: 1.5;
+      }
+      .providers-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 12px;
+      }
+      .providers-table th,
+      .providers-table td {
+        padding: 8px 10px;
+        border-bottom: 1px solid var(--line);
+        text-align: left;
+      }
+      .providers-table th {
+        color: var(--muted);
+        font-size: 11px;
+        text-transform: uppercase;
+        background: rgba(0, 0, 0, 0.2);
+      }
 
-  <header>
-    <div class="brand">
-      <div class="brand-icon">🐙</div>
-      <div class="brand-text">
-        <h1>Nested Octopus Swarm Engine</h1>
-        <p>Grand Head · 6 Department Heads · 12 Tentacles</p>
+      /* Swarm Sub-tabs & Streams */
+      .swarm-subtab-btn {
+        background: transparent;
+        border: 1px solid transparent;
+        color: var(--muted);
+        padding: 6px 12px;
+        border-radius: 8px;
+        font-size: 11px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.15s;
+      }
+      .swarm-subtab-btn:hover {
+        color: var(--text);
+      }
+      .swarm-subtab-btn.active {
+        background: rgba(56, 189, 248, 0.15);
+        border-color: var(--cyan);
+        color: var(--cyan);
+      }
+      .subview-pane {
+        display: none;
+        animation: fadeIn 0.15s ease;
+      }
+      .subview-pane.active {
+        display: block;
+      }
+
+      /* Modal Backdrop & Keys Config */
+      .modal-backdrop {
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0, 0, 0, 0.85);
+        backdrop-filter: blur(8px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 200;
+      }
+      .keys-modal {
+        background: var(--panel);
+        border: 1px solid var(--cyan);
+        border-radius: 18px;
+        max-width: 620px;
+        width: 92%;
+        padding: 24px;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.9);
+      }
+      .key-input-group {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+      .key-input-row {
+        display: flex;
+        gap: 8px;
+      }
+      .key-input {
+        flex: 1;
+        background: #090e18;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 8px 12px;
+        font-size: 12px;
+        color: #fff;
+        font-family: var(--mono);
+        outline: none;
+      }
+      .key-input:focus {
+        border-color: var(--cyan);
+      }
+      .test-key-btn {
+        background: #1e293b;
+        border: 1px solid var(--line);
+        color: var(--text);
+        padding: 0 12px;
+        border-radius: 8px;
+        font-size: 11px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.15s;
+      }
+      .test-key-btn:hover {
+        background: #334155;
+        border-color: var(--cyan);
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="brand">
+        <div class="brand-icon">🐙</div>
+        <div class="brand-text">
+          <h1>Nested Octopus Swarm Engine</h1>
+          <p>Grand Head · 6 Department Heads · 12 Tentacles</p>
+        </div>
       </div>
-    </div>
 
-    <div class="pills">
-      <div class="pill cyan"><span>34 Free Providers</span></div>
-      <div class="pill purple"><span>635 Models</span></div>
-      <div class="pill emerald"><span class="dot-pulse"></span><span>OpenAI /v1 Active</span></div>
-      <div class="pill"><span>₹0.00 Spend</span></div>
-    </div>
+      <div class="pills">
+        <button class="pill cyan" onclick="openKeysModal()" style="cursor: pointer; background: rgba(56, 189, 248, 0.15); border: 1px solid var(--cyan); color: #fff; font-weight: 800; padding: 4px 10px;">
+          🔑 Link LLM API Keys
+        </button>
+        <div class="pill cyan"><span>34 Free Providers</span></div>
+        <div class="pill purple"><span>635 Models</span></div>
+        <div class="pill emerald">
+          <span class="dot-pulse"></span><span>OpenAI /v1 Active</span>
+        </div>
+        <div class="pill"><span>₹0.00 Spend</span></div>
+      </div>
 
-    <nav class="nav-tabs">
-      <button class="tab-btn active" onclick="switchPane('chat')">💬 Main Head Chat</button>
-      <button class="tab-btn" onclick="switchPane('swarm')">🐙 Live Swarm Activity</button>
-      <button class="tab-btn" onclick="switchPane('preview')">📱 Interactive App Preview</button>
-      <button class="tab-btn" onclick="switchPane('api')">⚡ OpenAI API & Providers</button>
-    </nav>
-  </header>
+      <nav class="nav-tabs">
+        <button class="tab-btn active" onclick="switchPane('chat')">
+          💬 Main Head Chat
+        </button>
+        <button class="tab-btn" onclick="switchPane('swarm')">
+          🐙 Live Swarm Activity
+        </button>
+        <button class="tab-btn" onclick="switchPane('preview')">
+          📱 Interactive App Preview
+        </button>
+        <button class="tab-btn" onclick="switchPane('api')">
+          ⚡ OpenAI API & Providers
+        </button>
+      </nav>
+    </header>
 
-  <main>
-    <!-- 1. GRAND OCTOPUS CHAT & CONVERSATIONAL INTAKE -->
-    <section id="pane-chat" class="view-pane active">
-      <div class="chat-layout">
-        <!-- Sidebar -->
-        <aside class="sidebar">
-          <div>
-            <h3 style="font-size: 13px; font-weight: 800; margin-bottom: 4px;">Grand Head Intake</h3>
-            <p style="font-size: 11px; color: var(--muted);">The Grand Octopus understands your vision, asks targeted questions when needed, and commands the swarm.</p>
-          </div>
-
-          <div style="background: rgba(0,0,0,0.25); border: 1px solid var(--line); border-radius: 12px; padding: 12px;">
-            <p style="font-size: 11px; color: var(--muted); margin-bottom: 6px;">Swarm Status:</p>
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-              <span id="sideSwarmState" style="font-size: 13px; font-weight: 800; color: var(--emerald);">READY</span>
-              <span id="sideSwarmProgress" style="font-size: 12px; font-weight: 800; color: var(--cyan);">0%</span>
+    <main>
+      <!-- 1. GRAND OCTOPUS CHAT & CONVERSATIONAL INTAKE -->
+      <section id="pane-chat" class="view-pane active">
+        <div class="chat-layout">
+          <!-- Sidebar -->
+          <aside class="sidebar">
+            <div>
+              <h3 style="font-size: 13px; font-weight: 800; margin-bottom: 4px">
+                Grand Head Intake
+              </h3>
+              <p style="font-size: 11px; color: var(--muted)">
+                The Grand Octopus understands your vision, asks targeted
+                questions when needed, and commands the swarm.
+              </p>
             </div>
-            <div class="progress-bar-bg" style="margin-top: 8px;">
-              <div id="sideProgressBar" class="progress-bar-fill" style="width: 0%;"></div>
-            </div>
-          </div>
 
-          <div>
-            <p style="font-size: 11px; font-weight: 700; color: var(--muted); margin-bottom: 6px;">Quick Starters (1-Click Run):</p>
-            <div class="quick-chips">
-              <span class="chip" onclick="quickSend('VidyaVahan School Transport System with parent tracking, driver QR scanner and Razorpay fee settlements')">🚌 VidyaVahan School Transport</span>
-              <span class="chip" onclick="quickSend('Scientific Calculator with history tape, scientific ops and physical keypad support')">🧮 Scientific Calculator</span>
-              <span class="chip" onclick="quickSend('Grandmaster 8x8 Playable Chess Arena with move dots, PGN log and game clock')">♟️ 8x8 Playable Chess</span>
-              <span class="chip" onclick="quickSend('CryptoPulse Portfolio with live fluctuating tickers, SVG chart and token swap')">📈 Crypto Token Swap</span>
-              <span class="chip" onclick="quickSend('Agile Kanban Board with 4 workflow columns and card shifting')">📊 Kanban Board</span>
-            </div>
-          </div>
-
-          <div style="margin-top: auto; padding: 10px; background: rgba(56, 189, 248, 0.05); border: 1px solid rgba(56, 189, 248, 0.2); border-radius: 10px;">
-            <p style="font-size: 11px; color: var(--cyan); font-weight: 700;">Zero-Spend Policy</p>
-            <p style="font-size: 10px; color: var(--muted); margin-top: 2px;">All 34 providers and 635 models are hard-coded to ₹0.00 / $0.00 cost.</p>
-            <div style="margin-top: 8px; display: flex; gap: 6px;">
-              <button onclick="alert('Project saved.')" style="background: transparent; border: 1px solid var(--line); color: var(--muted); font-size: 10px; padding: 3px 6px; border-radius: 4px; cursor: pointer;">Save project to factory</button>
-              <button onclick="switchPane('api')" style="background: transparent; border: 1px solid var(--line); color: var(--muted); font-size: 10px; padding: 3px 6px; border-radius: 4px; cursor: pointer;">Server projects</button>
-            </div>
-          </div>
-        </aside>
-
-        <!-- Chat Area -->
-        <div class="chat-container">
-          <div class="chat-header">
-            <div style="display: flex; align-items: center; gap: 8px;">
-              <span style="font-size: 18px;">👑</span>
-              <div>
-                <strong style="font-size: 13px; display: block;">Grand Octopus (Main Agent)</strong>
-                <span id="grandThought" style="font-size: 11px; color: var(--muted);">Listening for user requirements...</span>
+            <div
+              style="
+                background: rgba(0, 0, 0, 0.25);
+                border: 1px solid var(--line);
+                border-radius: 12px;
+                padding: 12px;
+              "
+            >
+              <p
+                style="font-size: 11px; color: var(--muted); margin-bottom: 6px"
+              >
+                Swarm Status:
+              </p>
+              <div
+                style="
+                  display: flex;
+                  justify-content: space-between;
+                  align-items: center;
+                "
+              >
+                <span
+                  id="sideSwarmState"
+                  style="
+                    font-size: 13px;
+                    font-weight: 800;
+                    color: var(--emerald);
+                  "
+                  >READY</span
+                >
+                <span
+                  id="sideSwarmProgress"
+                  style="font-size: 12px; font-weight: 800; color: var(--cyan)"
+                  >0%</span
+                >
+              </div>
+              <div class="progress-bar-bg" style="margin-top: 8px">
+                <div
+                  id="sideProgressBar"
+                  class="progress-bar-fill"
+                  style="width: 0%"
+                ></div>
               </div>
             </div>
-            <button onclick="refreshSwarmState()" style="background: transparent; border: 1px solid var(--line); color: var(--muted); padding: 4px 10px; border-radius: 6px; font-size: 11px; cursor: pointer;">
-              🔄 Sync
-            </button>
-          </div>
 
-          <div class="chat-messages" id="chatMessages">
-            <!-- Messages rendered dynamically -->
-          </div>
-
-          <div class="chat-input-area">
-            <input type="text" id="chatInput" class="chat-input" placeholder="Describe what you want to build (e.g. School Transport, Chess, Calculator)..." onkeydown="if(event.key==='Enter') sendUserMessage()" />
-            <button class="send-btn" onclick="sendUserMessage()">Send to Main Head</button>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- 2. NESTED OCTOPUS LIVE SWARM VIEW -->
-    <section id="pane-swarm" class="view-pane">
-      <div class="grand-head-card">
-        <div style="display: flex; align-items: center; gap: 14px;">
-          <div style="font-size: 40px;">👑</div>
-          <div>
-            <div style="display: flex; align-items: center; gap: 10px;">
-              <h2 style="font-size: 18px; font-weight: 900;">Grand Octopus (Mission Control)</h2>
-              <span id="swarmStateBadge" class="pill emerald">READY</span>
+            <div>
+              <p
+                style="
+                  font-size: 11px;
+                  font-weight: 700;
+                  color: var(--muted);
+                  margin-bottom: 6px;
+                "
+              >
+                Quick Starters (1-Click Run):
+              </p>
+              <div class="quick-chips">
+                <span
+                  class="chip"
+                  onclick="
+                    quickSend(
+                      'website with frontend and backend for book selling with catalog, genres, shopping cart, Razorpay checkout, and SQLite admin inventory',
+                    )
+                  "
+                  >📚 Book Selling Marketplace</span
+                >
+                <span
+                  class="chip"
+                  onclick="
+                    quickSend(
+                      'VidyaVahan School Transport System with parent tracking, driver QR scanner and Razorpay fee settlements',
+                    )
+                  "
+                  >🚌 VidyaVahan School Transport</span
+                >
+                <span
+                  class="chip"
+                  onclick="
+                    quickSend(
+                      'Scientific Calculator with history tape, scientific ops and physical keypad support',
+                    )
+                  "
+                  >🧮 Scientific Calculator</span
+                >
+                <span
+                  class="chip"
+                  onclick="
+                    quickSend(
+                      'Grandmaster 8x8 Playable Chess Arena with move dots, PGN log and game clock',
+                    )
+                  "
+                  >♟️ 8x8 Playable Chess</span
+                >
+                <span
+                  class="chip"
+                  onclick="
+                    quickSend(
+                      'CryptoPulse Portfolio with live fluctuating tickers, SVG chart and token swap',
+                    )
+                  "
+                  >📈 Crypto Token Swap</span
+                >
+                <span
+                  class="chip"
+                  onclick="
+                    quickSend(
+                      'Agile Kanban Board with 4 workflow columns and card shifting',
+                    )
+                  "
+                  >📊 Kanban Board</span
+                >
+              </div>
             </div>
-            <p id="swarmActiveMission" style="font-size: 12px; color: var(--muted); margin-top: 4px;">Awaiting user assignment</p>
+
+            <div
+              style="
+                margin-top: auto;
+                padding: 10px;
+                background: rgba(56, 189, 248, 0.05);
+                border: 1px solid rgba(56, 189, 248, 0.2);
+                border-radius: 10px;
+              "
+            >
+              <p style="font-size: 11px; color: var(--cyan); font-weight: 700">
+                Zero-Spend Policy
+              </p>
+              <p style="font-size: 10px; color: var(--muted); margin-top: 2px">
+                All 34 providers and 635 models are hard-coded to ₹0.00 / $0.00
+                cost.
+              </p>
+              <div style="margin-top: 8px; display: flex; gap: 6px">
+                <button
+                  onclick="alert('Project saved.')"
+                  style="
+                    background: transparent;
+                    border: 1px solid var(--line);
+                    color: var(--muted);
+                    font-size: 10px;
+                    padding: 3px 6px;
+                    border-radius: 4px;
+                    cursor: pointer;
+                  "
+                >
+                  Save project to factory
+                </button>
+                <button
+                  onclick="switchPane('api')"
+                  style="
+                    background: transparent;
+                    border: 1px solid var(--line);
+                    color: var(--muted);
+                    font-size: 10px;
+                    padding: 3px 6px;
+                    border-radius: 4px;
+                    cursor: pointer;
+                  "
+                >
+                  Server projects
+                </button>
+              </div>
+            </div>
+          </aside>
+
+          <!-- Chat Area -->
+          <div class="chat-container">
+            <div class="chat-header">
+              <div style="display: flex; align-items: center; gap: 8px">
+                <span style="font-size: 18px">👑</span>
+                <div>
+                  <strong style="font-size: 13px; display: block"
+                    >Grand Octopus (Main Agent)</strong
+                  >
+                  <span
+                    id="grandThought"
+                    style="font-size: 11px; color: var(--muted)"
+                    >Listening for user requirements...</span
+                  >
+                </div>
+              </div>
+              <button
+                onclick="refreshSwarmState()"
+                style="
+                  background: transparent;
+                  border: 1px solid var(--line);
+                  color: var(--muted);
+                  padding: 4px 10px;
+                  border-radius: 6px;
+                  font-size: 11px;
+                  cursor: pointer;
+                "
+              >
+                🔄 Sync
+              </button>
+            </div>
+
+            <div class="chat-messages" id="chatMessages">
+              <!-- Messages rendered dynamically -->
+            </div>
+
+            <div class="chat-input-area">
+              <input
+                type="text"
+                id="chatInput"
+                class="chat-input"
+                placeholder="Describe what you want to build (e.g. School Transport, Chess, Calculator)..."
+                onkeydown="if (event.key === 'Enter') sendUserMessage();"
+              />
+              <button class="send-btn" onclick="sendUserMessage()">
+                Send to Main Head
+              </button>
+            </div>
           </div>
         </div>
-        <div style="text-align: right;">
-          <p style="font-size: 11px; color: var(--muted)">Overall Progress</p>
-          <p id="swarmProgressPercent" style="font-size: 32px; font-weight: 900; color: var(--cyan);">0%</p>
-        </div>
-      </div>
+      </section>
 
-      <!-- 6 Nested Department Heads -->
-      <div class="head-grid" id="headGrid">
-        <!-- Rendered via JS -->
-      </div>
-
-      <!-- Live Inter-Agent Communication Wire -->
-      <div class="wire-box">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-          <h3 style="font-size: 12px; font-weight: 800; color: var(--cyan); text-transform: uppercase; letter-spacing: 0.5px;">⚡ Live Inter-Head & Tentacle Communication Wire</h3>
-          <span style="font-size: 10px; color: var(--muted);">Realtime peer & leg transmissions</span>
+      <!-- 2. NESTED OCTOPUS LIVE SWARM VIEW -->
+      <section id="pane-swarm" class="view-pane">
+        <div class="grand-head-card">
+          <div style="display: flex; align-items: center; gap: 14px">
+            <div style="font-size: 40px">👑</div>
+            <div>
+              <div style="display: flex; align-items: center; gap: 10px">
+                <h2 style="font-size: 18px; font-weight: 900">
+                  Grand Octopus (Mission Control)
+                </h2>
+                <span id="swarmStateBadge" class="pill emerald">READY</span>
+              </div>
+              <p
+                id="swarmActiveMission"
+                style="font-size: 12px; color: var(--muted); margin-top: 4px"
+              >
+                Awaiting user assignment
+              </p>
+            </div>
+          </div>
+          <div style="text-align: right">
+            <p style="font-size: 11px; color: var(--muted)">Overall Progress</p>
+            <p
+              id="swarmProgressPercent"
+              style="font-size: 32px; font-weight: 900; color: var(--cyan)"
+            >
+              0%
+            </p>
+          </div>
         </div>
-        <div class="wire-ticker" id="wireTicker">
-          <!-- Rendered via JS -->
-        </div>
-      </div>
-    </section>
 
-    <!-- 3. INTERACTIVE APP LIVE PREVIEW -->
-    <section id="pane-preview" class="view-pane">
-      <div class="preview-frame-container">
-        <div class="preview-bar">
+        <!-- Live Swarm Navigation Subtabs -->
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; background:rgba(0,0,0,0.3); padding:5px; border-radius:12px; border:1px solid var(--line); flex-wrap:wrap; gap:8px;">
+          <div style="display:flex; gap:6px; flex-wrap:wrap;">
+            <button class="swarm-subtab-btn active" id="btnSubtabHeads" onclick="switchSwarmSubtab('heads')">🐙 Swarm Hierarchy & Tentacles</button>
+            <button class="swarm-subtab-btn" id="btnSubtabCode" onclick="switchSwarmSubtab('code')">💻 Live Code Building Stream (<span id="codeFilesCount">0</span>)</button>
+            <button class="swarm-subtab-btn" id="btnSubtabSec" onclick="switchSwarmSubtab('sec')">🛡️ Strix Security Pen-Testing (<span id="secCheckCount">0</span>)</button>
+            <button class="swarm-subtab-btn" id="btnSubtabQA" onclick="switchSwarmSubtab('qa')">🧪 QA Contract Verification (<span id="qaTestCount">0</span>)</button>
+            <button class="swarm-subtab-btn" id="btnSubtabTools" onclick="switchSwarmSubtab('tools')">🛠️ MCP Agent Tools</button>
+          </div>
+          <span style="font-size:11px; color:var(--emerald); font-weight:700; margin-right:8px; display:flex; align-items:center; gap:6px;">
+            <span class="dot-pulse"></span> Live Swarm Telemetry
+          </span>
+        </div>
+
+        <!-- SUBVIEW 1: HEADS & TENTACLES -->
+        <div id="subview-heads" class="subview-pane active">
+          <!-- 6 Nested Department Heads -->
+          <div class="head-grid" id="headGrid">
+            <!-- Rendered via JS -->
+          </div>
+
+          <!-- Live Inter-Agent Communication Wire -->
+          <div class="wire-box">
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 10px;
+              "
+            >
+              <h3
+                style="
+                  font-size: 12px;
+                  font-weight: 800;
+                  color: var(--cyan);
+                  text-transform: uppercase;
+                  letter-spacing: 0.5px;
+                "
+              >
+                ⚡ Live Inter-Head & Tentacle Communication Wire
+              </h3>
+              <span style="font-size: 10px; color: var(--muted)"
+                >Realtime peer & leg transmissions</span
+              >
+            </div>
+            <div class="wire-ticker" id="wireTicker">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
+        </div>
+
+        <!-- SUBVIEW 2: LIVE CODE BUILDING STREAM -->
+        <div id="subview-code" class="subview-pane">
+          <div class="head-card">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; border-bottom:1px solid var(--line); padding-bottom:10px;">
+              <div>
+                <h3 style="font-size:14px; font-weight:800; color:var(--cyan);">💻 Live Source Code Synthesis Stream</h3>
+                <p style="font-size:11px; color:var(--muted);">Transparent code generation from Tentacles (Frontend UI, Cloud & State, Scaffolding)</p>
+              </div>
+              <div style="display:flex; gap:8px;">
+                <span class="pill cyan" id="activeFileBadge">No file selected</span>
+                <button class="btn btn-secondary" onclick="copyActiveCode()" style="font-size:11px; padding:4px 10px; background:#1e293b; color:#fff; border:1px solid var(--line); border-radius:6px; cursor:pointer;">📋 Copy Code</button>
+              </div>
+            </div>
+            <div id="codeFileTabs" style="display:flex; gap:6px; overflow-x:auto; padding-bottom:8px; margin-bottom:8px;"></div>
+            <div style="position:relative;">
+              <pre class="code-box" id="codeViewerBox" style="max-height:450px; overflow:auto; font-size:12px; line-height:1.5;">// Code synthesized by the Nested Octopus Swarm will stream here live...</pre>
+            </div>
+          </div>
+        </div>
+
+        <!-- SUBVIEW 3: STRIX SECURITY PEN-TESTING -->
+        <div id="subview-sec" class="subview-pane">
+          <div class="head-card">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; border-bottom:1px solid var(--line); padding-bottom:10px;">
+              <div>
+                <h3 style="font-size:14px; font-weight:800; color:#10b981;">🛡️ Strix Automated AST Pen-Testing Audit</h3>
+                <p style="font-size:11px; color:var(--muted);">Real-time AST injection detection, secret leak scanning, and zero-GPL verification</p>
+              </div>
+              <span class="pill emerald">0 Vulnerabilities · CLEAN</span>
+            </div>
+            <div style="max-height:420px; overflow-y:auto;">
+              <table class="providers-table" id="secAuditTable">
+                <thead>
+                  <tr>
+                    <th>Target Resource</th>
+                    <th>Rule Evaluated</th>
+                    <th>Status</th>
+                    <th>Severity</th>
+                    <th>Verification Details</th>
+                  </tr>
+                </thead>
+                <tbody id="secAuditBody">
+                  <!-- Rendered via JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- SUBVIEW 4: QA CONTRACT VERIFICATION -->
+        <div id="subview-qa" class="subview-pane">
+          <div class="head-card">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; border-bottom:1px solid var(--line); padding-bottom:10px;">
+              <div>
+                <h3 style="font-size:14px; font-weight:800; color:#a855f7;">🧪 QA Contract Assertion & Syntax Suite</h3>
+                <p style="font-size:11px; color:var(--muted);">Grammar checks, TypeScript schema assertions, and zero-spend quota gates</p>
+              </div>
+              <span class="pill purple">100% Passing · 0 Regressions</span>
+            </div>
+            <div style="max-height:420px; overflow-y:auto;">
+              <table class="providers-table" id="qaTestTable">
+                <thead>
+                  <tr>
+                    <th>Test Suite</th>
+                    <th>Test Case</th>
+                    <th>Status</th>
+                    <th>Duration</th>
+                    <th>Assertion Log</th>
+                  </tr>
+                </thead>
+                <tbody id="qaTestBody">
+                  <!-- Rendered via JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- SUBVIEW 5: MCP AGENT TOOLS -->
+        <div id="subview-tools" class="subview-pane">
+          <div class="head-card">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; border-bottom:1px solid var(--line); padding-bottom:10px;">
+              <div>
+                <h3 style="font-size:14px; font-weight:800; color:var(--cyan);">🛠️ Model Context Protocol (MCP) Tools Registry</h3>
+                <p style="font-size:11px; color:var(--muted);">Tool-calling capabilities wired to the 12 Octopus tentacles (Kimi/Claude-grade tooling)</p>
+              </div>
+              <span class="pill cyan">5 Tools Active</span>
+            </div>
+            <div style="max-height:420px; overflow-y:auto;">
+              <table class="providers-table">
+                <thead>
+                  <tr>
+                    <th>Tool Name</th>
+                    <th>Specialization</th>
+                    <th>Description</th>
+                    <th>Assigned Legs</th>
+                  </tr>
+                </thead>
+                <tbody id="mcpToolsBody">
+                  <!-- Rendered via JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 3. INTERACTIVE APP LIVE PREVIEW -->
+      <section id="pane-preview" class="view-pane">
+        <div class="preview-frame-container">
+          <div class="preview-bar">
+            <div style="display: flex; align-items: center; gap: 10px">
+              <strong style="font-size: 12px"
+                >Live Browser Execution Runtime</strong
+              >
+              <span class="pill cyan" id="previewUrlLabel">/preview/live</span>
+            </div>
+            <div style="display: flex; gap: 8px">
+              <button
+                onclick="reloadPreview()"
+                style="
+                  background: transparent;
+                  border: 1px solid var(--line);
+                  color: var(--text);
+                  padding: 4px 10px;
+                  border-radius: 6px;
+                  font-size: 11px;
+                  cursor: pointer;
+                "
+              >
+                🔄 Refresh Preview
+              </button>
+              <button
+                onclick="openPreviewNewTab()"
+                style="
+                  background: var(--cyan);
+                  color: #021220;
+                  border: none;
+                  padding: 4px 10px;
+                  border-radius: 6px;
+                  font-size: 11px;
+                  font-weight: 700;
+                  cursor: pointer;
+                "
+              >
+                ↗ Open in New Tab
+              </button>
+            </div>
+          </div>
+          <iframe
+            id="appPreviewFrame"
+            class="preview-iframe"
+            src="/preview/live"
+          ></iframe>
+        </div>
+      </section>
+
+      <!-- 4. OPENAI API & PROVIDERS HUB -->
+      <section id="pane-api" class="view-pane">
+        <div class="endpoints-grid">
+          <div style="display: flex; flex-direction: column; gap: 14px">
+            <div class="head-card">
+              <h3 style="font-size: 14px; font-weight: 800">
+                One Universal OpenAI-Compatible Endpoint
+              </h3>
+              <p style="font-size: 12px; color: var(--muted)">
+                Any tool, agent, Cursor, VS Code, or Python script can talk to
+                our factory using standard OpenAI SDKs for $0.00 spend.
+              </p>
+              <div class="code-box">
+                <span style="color: var(--muted)"
+                  ># Connect standard OpenAI Python SDK</span
+                >
+                from openai import OpenAI client = OpenAI(
+                base_url="http://127.0.0.1:8080/v1", api_key="zero-spend" )
+                response = client.chat.completions.create(
+                model="meta-llama/llama-3.3-70b-instruct:free",
+                messages=[{"role": "user", "content": "Synthesize full
+                monorepo"}] ) print(response.choices[0].message.content)
+              </div>
+            </div>
+
+            <div class="head-card">
+              <h3 style="font-size: 14px; font-weight: 800">
+                Tashfeen FreeLLM API Architecture
+              </h3>
+              <ul
+                style="
+                  font-size: 12px;
+                  color: var(--muted);
+                  list-style: inside disc;
+                  line-height: 1.8;
+                "
+              >
+                <li>
+                  <strong>34 Verified Free Providers:</strong> OpenRouter, Groq,
+                  Google, Cerebras, Hugging Face, Cloudflare, Mistral, Together
+                  AI, Ollama, etc.
+                </li>
+                <li>
+                  <strong>635 Free Endpoints:</strong> DeepSeek R1, Llama 3.3
+                  70B, Qwen 2.5 Coder 32B, Gemini 2.0 Flash, Mistral Small.
+                </li>
+                <li>
+                  <strong>Automated Failover:</strong> Rate limit (HTTP 429)
+                  triggers cooldown backoff and fails over instantly to next
+                  free provider.
+                </li>
+                <li>
+                  <strong>Strict Budget Gate:</strong> Any non-zero cost request
+                  is rejected at the adapter boundary.
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="head-card">
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 8px;
+              "
+            >
+              <h3 style="font-size: 14px; font-weight: 800">
+                34 Free LLM Providers Directory
+              </h3>
+              <span class="pill purple">635 Models Pool</span>
+            </div>
+            <div style="max-height: 500px; overflow-y: auto">
+              <table class="providers-table" id="providersTable">
+                <thead>
+                  <tr>
+                    <th>Provider</th>
+                    <th>Tier</th>
+                    <th>Models</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="providersBody">
+                  <!-- Rendered via JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- 🔑 LINK LLM API KEYS MODAL -->
+    <div id="keysModal" class="modal-backdrop" style="display: none;">
+      <div class="keys-modal">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--line); padding-bottom: 12px;">
           <div style="display: flex; align-items: center; gap: 10px;">
-            <strong style="font-size: 12px;">Live Browser Execution Runtime</strong>
-            <span class="pill cyan" id="previewUrlLabel">/preview/live</span>
+            <span style="font-size: 24px;">🔑</span>
+            <div>
+              <h2 style="font-size: 16px; font-weight: 800;">Link LLM Provider API Keys</h2>
+              <p style="font-size: 11px; color: var(--muted);">Direct integration with Gemini, Groq, OpenRouter, Cerebras & Ollama</p>
+            </div>
           </div>
-          <div style="display: flex; gap: 8px;">
-            <button onclick="reloadPreview()" style="background: transparent; border: 1px solid var(--line); color: var(--text); padding: 4px 10px; border-radius: 6px; font-size: 11px; cursor: pointer;">
-              🔄 Refresh Preview
-            </button>
-            <button onclick="openPreviewNewTab()" style="background: var(--cyan); color: #021220; border: none; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer;">
-              ↗ Open in New Tab
-            </button>
-          </div>
+          <button onclick="closeKeysModal()" style="background: transparent; border: none; color: var(--muted); font-size: 20px; cursor: pointer;">✕</button>
         </div>
-        <iframe id="appPreviewFrame" class="preview-iframe" src="/preview/live"></iframe>
-      </div>
-    </section>
 
-    <!-- 4. OPENAI API & PROVIDERS HUB -->
-    <section id="pane-api" class="view-pane">
-      <div class="endpoints-grid">
-        <div style="display: flex; flex-direction: column; gap: 14px;">
-          <div class="head-card">
-            <h3 style="font-size: 14px; font-weight: 800;">One Universal OpenAI-Compatible Endpoint</h3>
-            <p style="font-size: 12px; color: var(--muted);">Any tool, agent, Cursor, VS Code, or Python script can talk to our factory using standard OpenAI SDKs for $0.00 spend.</p>
-            <div class="code-box">
-<span style="color: var(--muted);"># Connect standard OpenAI Python SDK</span>
-from openai import OpenAI
-
-client = OpenAI(
-    base_url="http://127.0.0.1:8080/v1",
-    api_key="zero-spend"
-)
-
-response = client.chat.completions.create(
-    model="meta-llama/llama-3.3-70b-instruct:free",
-    messages=[{"role": "user", "content": "Synthesize full monorepo"}]
-)
-print(response.choices[0].message.content)
+        <div style="display: flex; flex-direction: column; gap: 12px; max-height: 480px; overflow-y: auto;">
+          <!-- Google Gemini -->
+          <div class="key-input-group">
+            <div style="display: flex; justify-content: space-between; font-size: 12px;">
+              <strong>Google Gemini API Key</strong>
+              <span id="badgeGemini" style="font-size: 10px; color: var(--muted);">Free Tier Available</span>
+            </div>
+            <div class="key-input-row">
+              <input type="password" id="keyGemini" class="key-input" placeholder="AIzaSy... (Gemini 2.0 Flash / Pro)" />
+              <button class="test-key-btn" onclick="testApiKey('gemini')">Test</button>
             </div>
           </div>
 
-          <div class="head-card">
-            <h3 style="font-size: 14px; font-weight: 800;">Tashfeen FreeLLM API Architecture</h3>
-            <ul style="font-size: 12px; color: var(--muted); list-style: inside disc; line-height: 1.8;">
-              <li><strong>34 Verified Free Providers:</strong> OpenRouter, Groq, Google, Cerebras, Hugging Face, Cloudflare, Mistral, Together AI, Ollama, etc.</li>
-              <li><strong>635 Free Endpoints:</strong> DeepSeek R1, Llama 3.3 70B, Qwen 2.5 Coder 32B, Gemini 2.0 Flash, Mistral Small.</li>
-              <li><strong>Automated Failover:</strong> Rate limit (HTTP 429) triggers cooldown backoff and fails over instantly to next free provider.</li>
-              <li><strong>Strict Budget Gate:</strong> Any non-zero cost request is rejected at the adapter boundary.</li>
-            </ul>
+          <!-- Groq -->
+          <div class="key-input-group">
+            <div style="display: flex; justify-content: space-between; font-size: 12px;">
+              <strong>Groq API Key (Ultra-Fast LPU)</strong>
+              <span id="badgeGroq" style="font-size: 10px; color: var(--muted);">Free Tier (Llama 3.3 70B)</span>
+            </div>
+            <div class="key-input-row">
+              <input type="password" id="keyGroq" class="key-input" placeholder="gsk_... (500+ tokens/sec)" />
+              <button class="test-key-btn" onclick="testApiKey('groq')">Test</button>
+            </div>
           </div>
+
+          <!-- OpenRouter / FreeLLMAPI -->
+          <div class="key-input-group">
+            <div style="display: flex; justify-content: space-between; font-size: 12px;">
+              <strong>OpenRouter / Tashfeen FreeLLMAPI</strong>
+              <span id="badgeOpenRouter" style="font-size: 10px; color: var(--muted);">635 Free Model Endpoints</span>
+            </div>
+            <div class="key-input-row">
+              <input type="password" id="keyOpenRouter" class="key-input" placeholder="sk-or-... (DeepSeek R1, Qwen 2.5)" />
+              <button class="test-key-btn" onclick="testApiKey('openrouter')">Test</button>
+            </div>
+          </div>
+
+          <!-- Cerebras -->
+          <div class="key-input-group">
+            <div style="display: flex; justify-content: space-between; font-size: 12px;">
+              <strong>Cerebras Fast Inference</strong>
+              <span id="badgeCerebras" style="font-size: 10px; color: var(--muted);">Free Wafer-Scale Engine</span>
+            </div>
+            <div class="key-input-row">
+              <input type="password" id="keyCerebras" class="key-input" placeholder="csk-... (Llama 3.1 8B/70B)" />
+              <button class="test-key-btn" onclick="testApiKey('cerebras')">Test</button>
+            </div>
+          </div>
+
+          <!-- Local Ollama -->
+          <div class="key-input-group">
+            <div style="display: flex; justify-content: space-between; font-size: 12px;">
+              <strong>Local Ollama Server URL</strong>
+              <span id="badgeOllama" style="font-size: 10px; color: var(--muted);">100% Offline & Private</span>
+            </div>
+            <div class="key-input-row">
+              <input type="text" id="keyOllama" class="key-input" value="http://localhost:11434" />
+              <button class="test-key-btn" onclick="testApiKey('ollama')">Test</button>
+            </div>
+          </div>
+
+          <!-- Preferred Provider Selector -->
+          <div class="key-input-group">
+            <label style="font-size: 12px; font-weight: 700;">Default Preferred Provider for Autonomous Engine:</label>
+            <select id="prefProviderSelect" style="background:#090e18; border:1px solid var(--line); border-radius:8px; padding:8px 12px; color:#fff; font-size:12px;">
+              <option value="auto">Auto-Select (Zero-Spend Best Free Endpoint)</option>
+              <option value="gemini">Google Gemini (Gemini 2.0 Flash)</option>
+              <option value="groq">Groq (Llama 3.3 70B Versatile)</option>
+              <option value="openrouter">OpenRouter / FreeLLMAPI (DeepSeek R1 / Qwen 2.5)</option>
+              <option value="cerebras">Cerebras (Llama 3.1 70B Ultra-Speed)</option>
+              <option value="ollama">Local Ollama (Local Machine Private)</option>
+            </select>
+          </div>
+
+          <div id="keyTestResult" style="display: none; padding: 10px; border-radius: 8px; font-size: 12px;"></div>
         </div>
 
-        <div class="head-card">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-            <h3 style="font-size: 14px; font-weight: 800;">34 Free LLM Providers Directory</h3>
-            <span class="pill purple">635 Models Pool</span>
-          </div>
-          <div style="max-height: 500px; overflow-y: auto;">
-            <table class="providers-table" id="providersTable">
-              <thead>
-                <tr>
-                  <th>Provider</th>
-                  <th>Tier</th>
-                  <th>Models</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody id="providersBody">
-                <!-- Rendered via JS -->
-              </tbody>
-            </table>
+        <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--line); padding-top: 12px;">
+          <span style="font-size: 11px; color: var(--emerald);">✓ Zero-Spend Quota Verified ($0.00 Cost Guarantee)</span>
+          <div style="display: flex; gap: 8px;">
+            <button class="btn btn-secondary" onclick="closeKeysModal()" style="padding: 6px 14px; background:#1e293b; color:#fff; border:1px solid var(--line); border-radius:6px; cursor:pointer;">Cancel</button>
+            <button class="btn" onclick="saveApiKeys()" style="padding: 6px 18px; font-weight: 800; background: var(--cyan); color: #021220; border:none; border-radius:6px; cursor:pointer;">Save & Activate Keys</button>
           </div>
         </div>
       </div>
-    </section>
-  </main>
+    </div>
 
-  <script>
-    let currentPreviewUrl = '/preview/live';
+    <script>
+      let currentPreviewUrl = "/preview/live";
+      let swarmLiveCode = [];
+      let swarmLiveSec = [];
+      let swarmLiveQA = [];
+      let swarmMcpTools = [];
+      let activeCodeIdx = 0;
+      let activeSwarmSubtab = "heads";
 
-    function switchPane(pane) {
-      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-      document.querySelectorAll('.view-pane').forEach(p => p.classList.remove('active'));
-      document.querySelector(`button[onclick*="${pane}"]`).classList.add('active');
-      document.getElementById(`pane-${pane}`).classList.add('active');
-      if (pane === 'swarm') refreshSwarmState();
-      if (pane === 'api') loadProviders();
-    }
+      function switchPane(pane) {
+        document
+          .querySelectorAll(".tab-btn")
+          .forEach((b) => b.classList.remove("active"));
+        document
+          .querySelectorAll(".view-pane")
+          .forEach((p) => p.classList.remove("active"));
+        document
+          .querySelector(`button[onclick*="${pane}"]`)
+          .classList.add("active");
+        document.getElementById(`pane-${pane}`).classList.add("active");
+        if (pane === "swarm") refreshSwarmState();
+        if (pane === "api") loadProviders();
+      }
 
-    async function sendUserMessage() {
-      const input = document.getElementById('chatInput');
-      const text = input.value.trim();
-      if (!text) return;
-      input.value = '';
+      function switchSwarmSubtab(subtab) {
+        activeSwarmSubtab = subtab;
+        document.querySelectorAll(".swarm-subtab-btn").forEach((b) => b.classList.remove("active"));
+        document.querySelectorAll(".subview-pane").forEach((p) => p.classList.remove("active"));
+        const btn = document.getElementById("btnSubtab" + subtab.charAt(0).toUpperCase() + subtab.slice(1));
+        if (btn) btn.classList.add("active");
+        const pane = document.getElementById("subview-" + subtab);
+        if (pane) pane.classList.add("active");
+      }
 
-      // Append user bubble
-      appendMessage('user', 'You', text);
-
-      // Call Grand Octopus conversational intake
-      try {
-        const res = await fetch('/octopus/chat', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ prompt: text })
+      function selectCodeFile(idx) {
+        activeCodeIdx = idx;
+        const file = swarmLiveCode[idx];
+        if (!file) return;
+        document.querySelectorAll(".code-file-tab").forEach((t, i) => {
+          t.style.background = i === idx ? "var(--cyan)" : "#090e18";
+          t.style.color = i === idx ? "#021220" : "var(--muted)";
         });
-        const data = await res.json();
+        document.getElementById("activeFileBadge").innerText = `${file.filename} (${file.total_lines} lines · ${file.leg})`;
+        document.getElementById("codeViewerBox").innerText = file.code;
+      }
 
-        if (data.needs_clarification) {
-          appendClarificationBubble(data.response, data.questions);
-        } else {
-          appendMessage('completion', 'Grand Octopus', data.response);
-          if (data.preview_url) {
-            currentPreviewUrl = data.preview_url;
-            document.getElementById('appPreviewFrame').src = data.preview_url;
-            document.getElementById('previewUrlLabel').innerText = data.preview_url;
+      function copyActiveCode() {
+        const file = swarmLiveCode[activeCodeIdx];
+        if (!file) return;
+        navigator.clipboard.writeText(file.code).then(() => {
+          alert(`Copied ${file.filename} to clipboard!`);
+        });
+      }
+
+      async function openKeysModal() {
+        document.getElementById("keysModal").style.display = "flex";
+        try {
+          const res = await fetch("/ai/keys");
+          const data = await res.json();
+          if (data.gemini?.configured) {
+            document.getElementById("badgeGemini").innerText = `Linked ✓ (${data.gemini.masked || "active"})`;
+            document.getElementById("badgeGemini").style.color = "var(--emerald)";
           }
+          if (data.groq?.configured) {
+            document.getElementById("badgeGroq").innerText = `Linked ✓ (${data.groq.masked || "active"})`;
+            document.getElementById("badgeGroq").style.color = "var(--emerald)";
+          }
+          if (data.openrouter?.configured) {
+            document.getElementById("badgeOpenRouter").innerText = `Linked ✓ (${data.openrouter.masked || "active"})`;
+            document.getElementById("badgeOpenRouter").style.color = "var(--emerald)";
+          }
+          if (data.cerebras?.configured) {
+            document.getElementById("badgeCerebras").innerText = `Linked ✓ (${data.cerebras.masked || "active"})`;
+            document.getElementById("badgeCerebras").style.color = "var(--emerald)";
+          }
+          if (data.ollama?.configured) {
+            document.getElementById("badgeOllama").innerText = `Active ✓ (${data.ollama.url})`;
+            document.getElementById("badgeOllama").style.color = "var(--emerald)";
+          }
+          if (data.active_provider) {
+            document.getElementById("prefProviderSelect").value = data.active_provider;
+          }
+        } catch (err) {
+          console.error("Failed to load keys config:", err);
         }
-        refreshSwarmState();
-      } catch (err) {
-        appendMessage('agent', 'System Error', 'Failed to communicate with Grand Octopus: ' + err.message);
       }
-    }
 
-    function quickSend(promptText) {
-      document.getElementById('chatInput').value = promptText;
-      sendUserMessage();
-    }
+      function closeKeysModal() {
+        document.getElementById("keysModal").style.display = "none";
+        document.getElementById("keyTestResult").style.display = "none";
+      }
 
-    function appendMessage(kind, author, text) {
-      const box = document.getElementById('chatMessages');
-      const div = document.createElement('div');
-      div.className = `bubble ${kind}`;
-
-      // Support basic markdown bold
-      const formatted = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-      div.innerHTML = `<div class="author-tag">${author}</div><div>${formatted}</div>`;
-      box.appendChild(div);
-      box.scrollTop = box.scrollHeight;
-    }
-
-    function appendClarificationBubble(title, questions) {
-      const box = document.getElementById('chatMessages');
-      const div = document.createElement('div');
-      div.className = 'bubble clarification';
-
-      let qHtml = '';
-      if (questions && questions.length) {
-        questions.forEach(q => {
-          qHtml += `<div class="q-box"><div class="q-title">❓ ${q.question}</div>`;
-          q.options.forEach(opt => {
-            qHtml += `<button class="q-btn" onclick="quickSend('${opt.replace(/'/g, "\\'")}')">👉 ${opt}</button>`;
+      async function saveApiKeys() {
+        const payload = {
+          gemini: document.getElementById("keyGemini").value.trim(),
+          groq: document.getElementById("keyGroq").value.trim(),
+          openrouter: document.getElementById("keyOpenRouter").value.trim(),
+          cerebras: document.getElementById("keyCerebras").value.trim(),
+          ollama: document.getElementById("keyOllama").value.trim(),
+          active_provider: document.getElementById("prefProviderSelect").value,
+        };
+        try {
+          const res = await fetch("/ai/keys", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
           });
-          qHtml += `</div>`;
-        });
+          const data = await res.json();
+          alert("✓ API Keys and Preferred Provider saved! Zero-spend quota active.");
+          closeKeysModal();
+          refreshSwarmState();
+        } catch (err) {
+          alert("Failed to save API keys: " + err.message);
+        }
       }
 
-      div.innerHTML = `
+      async function testApiKey(provider) {
+        const box = document.getElementById("keyTestResult");
+        box.style.display = "block";
+        box.style.background = "rgba(56, 189, 248, 0.1)";
+        box.style.color = "var(--cyan)";
+        box.innerText = `Pinging ${provider.toUpperCase()} provider...`;
+        try {
+          const res = await fetch("/ai/keys/test", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ provider }),
+          });
+          const data = await res.json();
+          box.style.background = "rgba(16, 185, 129, 0.1)";
+          box.style.color = "var(--emerald)";
+          box.innerHTML = `<strong>✓ Connection Verified!</strong> ${data.message} (Latency: ${data.latency_ms}ms)`;
+        } catch (err) {
+          box.style.background = "rgba(239, 68, 68, 0.1)";
+          box.style.color = "var(--rose)";
+          box.innerText = "Connection test failed: " + err.message;
+        }
+      }
+
+      async function sendUserMessage() {
+        const input = document.getElementById("chatInput");
+        const text = input.value.trim();
+        if (!text) return;
+        input.value = "";
+
+        // Append user bubble
+        appendMessage("user", "You", text);
+
+        // Call Grand Octopus conversational intake
+        try {
+          const res = await fetch("/octopus/chat", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ prompt: text }),
+          });
+          const data = await res.json();
+
+          if (data.needs_clarification) {
+            appendClarificationBubble(data.response, data.questions);
+          } else {
+            appendMessage("completion", "Grand Octopus", data.response);
+            if (data.preview_url) {
+              currentPreviewUrl = data.preview_url;
+              document.getElementById("appPreviewFrame").src = data.preview_url;
+              document.getElementById("previewUrlLabel").innerText =
+                data.preview_url;
+            }
+          }
+          refreshSwarmState();
+        } catch (err) {
+          appendMessage(
+            "agent",
+            "System Error",
+            "Failed to communicate with Grand Octopus: " + err.message,
+          );
+        }
+      }
+
+      function quickSend(promptText) {
+        document.getElementById("chatInput").value = promptText;
+        sendUserMessage();
+      }
+
+      function appendMessage(kind, author, text) {
+        const box = document.getElementById("chatMessages");
+        const div = document.createElement("div");
+        div.className = `bubble ${kind}`;
+
+        // Support basic markdown bold
+        const formatted = text.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
+        div.innerHTML = `<div class="author-tag">${author}</div><div>${formatted}</div>`;
+        box.appendChild(div);
+        box.scrollTop = box.scrollHeight;
+      }
+
+      function appendClarificationBubble(title, questions) {
+        const box = document.getElementById("chatMessages");
+        const div = document.createElement("div");
+        div.className = "bubble clarification";
+
+        let qHtml = "";
+        if (questions && questions.length) {
+          questions.forEach((q) => {
+            qHtml += `<div class="q-box"><div class="q-title">❓ ${q.question}</div>`;
+            q.options.forEach((opt) => {
+              qHtml += `<button class="q-btn" onclick="quickSend('${opt.replace(/'/g, "\\'")}')">👉 ${opt}</button>`;
+            });
+            qHtml += `</div>`;
+          });
+        }
+
+        div.innerHTML = `
         <div class="author-tag" style="color: var(--amber);">👑 Grand Octopus (Needs Clarification)</div>
         <div>${title}</div>
         ${qHtml}
       `;
-      box.appendChild(div);
-      box.scrollTop = box.scrollHeight;
-    }
-
-    async function refreshSwarmState() {
-      try {
-        const res = await fetch('/octopus/state');
-        const data = await res.json();
-
-        // Update Grand Head Header
-        const gh = data.grand_head;
-        document.getElementById('sideSwarmState').innerText = gh.state;
-        document.getElementById('sideSwarmProgress').innerText = gh.overall_progress + '%';
-        document.getElementById('sideProgressBar').style.width = gh.overall_progress + '%';
-        document.getElementById('grandThought').innerText = gh.current_thought;
-
-        document.getElementById('swarmStateBadge').innerText = gh.state;
-        document.getElementById('swarmProgressPercent').innerText = gh.overall_progress + '%';
-        document.getElementById('swarmActiveMission').innerText = gh.active_mission || 'Awaiting user assignment';
-
-        if (gh.preview_url && gh.preview_url !== currentPreviewUrl) {
-          currentPreviewUrl = gh.preview_url;
-          document.getElementById('appPreviewFrame').src = gh.preview_url;
-          document.getElementById('previewUrlLabel').innerText = gh.preview_url;
-        }
-
-        // Render 6 Heads
-        renderHeads(data.heads);
-
-        // Render Wire Ticker
-        renderWire(data.messages);
-      } catch (err) {
-        console.error('Failed to sync swarm state:', err);
+        box.appendChild(div);
+        box.scrollTop = box.scrollHeight;
       }
-    }
 
-    function renderHeads(heads) {
-      const grid = document.getElementById('headGrid');
-      grid.innerHTML = '';
+      async function refreshSwarmState() {
+        try {
+          const res = await fetch("/octopus/state");
+          const data = await res.json();
 
-      heads.forEach(h => {
-        const card = document.createElement('div');
-        card.className = 'head-card';
+          // Update Grand Head Header
+          const gh = data.grand_head;
+          document.getElementById("sideSwarmState").innerText = gh.state;
+          document.getElementById("sideSwarmProgress").innerText =
+            gh.overall_progress + "%";
+          document.getElementById("sideProgressBar").style.width =
+            gh.overall_progress + "%";
+          document.getElementById("grandThought").innerText =
+            gh.current_thought;
 
-        let legsHtml = '';
-        h.legs.forEach(leg => {
-          legsHtml += `
-            <div class="leg-tile" onclick="alert('🦾 ${leg.name} Live Snippet:\\n${leg.output_snippet || 'Standing by for next assignment.'}')">
+          document.getElementById("swarmStateBadge").innerText = gh.state;
+          document.getElementById("swarmProgressPercent").innerText =
+            gh.overall_progress + "%";
+          document.getElementById("swarmActiveMission").innerText =
+            gh.active_mission || "Awaiting user assignment";
+
+          if (gh.preview_url && gh.preview_url !== currentPreviewUrl) {
+            currentPreviewUrl = gh.preview_url;
+            document.getElementById("appPreviewFrame").src = gh.preview_url;
+            document.getElementById("previewUrlLabel").innerText =
+              gh.preview_url;
+          }
+
+          // Render 6 Heads
+          renderHeads(data.heads);
+
+          // Render Wire Ticker
+          renderWire(data.messages);
+
+          // Render Live Code Building Stream
+          if (data.live_code_feed && data.live_code_feed.length) {
+            swarmLiveCode = data.live_code_feed;
+            document.getElementById("codeFilesCount").innerText = swarmLiveCode.length;
+            const tabs = document.getElementById("codeFileTabs");
+            tabs.innerHTML = swarmLiveCode.map((f, i) => `
+              <button class="code-file-tab" onclick="selectCodeFile(${i})" style="background:${i === activeCodeIdx ? 'var(--cyan)' : '#090e18'}; color:${i === activeCodeIdx ? '#021220' : 'var(--muted)'}; border:1px solid var(--line); border-radius:6px; padding:4px 10px; font-size:11px; font-weight:700; cursor:pointer; white-space:nowrap;">
+                📄 ${f.filename.split('/').pop()}
+              </button>
+            `).join('');
+            selectCodeFile(activeCodeIdx < swarmLiveCode.length ? activeCodeIdx : 0);
+          }
+
+          // Render Security Pen-Testing Feed
+          if (data.live_security_feed && data.live_security_feed.length) {
+            swarmLiveSec = data.live_security_feed;
+            document.getElementById("secCheckCount").innerText = swarmLiveSec.length;
+            const secBody = document.getElementById("secAuditBody");
+            secBody.innerHTML = swarmLiveSec.map(s => `
+              <tr>
+                <td><code>${s.target}</code></td>
+                <td><strong>${s.rule}</strong></td>
+                <td><span style="color:var(--emerald); font-weight:800;">✓ ${s.status}</span></td>
+                <td><span class="pill emerald" style="padding:2px 6px;">${s.severity}</span></td>
+                <td style="font-size:11px; color:var(--muted);">${s.details}</td>
+              </tr>
+            `).join('');
+          }
+
+          // Render QA Contract Test Verification Feed
+          if (data.live_test_feed && data.live_test_feed.length) {
+            swarmLiveQA = data.live_test_feed;
+            document.getElementById("qaTestCount").innerText = swarmLiveQA.length;
+            const qaBody = document.getElementById("qaTestBody");
+            qaBody.innerHTML = swarmLiveQA.map(t => `
+              <tr>
+                <td><span class="pill purple" style="padding:2px 6px;">${t.suite}</span></td>
+                <td><code>${t.test_name}</code></td>
+                <td><span style="color:var(--emerald); font-weight:800;">✓ ${t.status}</span></td>
+                <td style="font-family:var(--mono); font-size:11px;">${t.duration_ms}ms</td>
+                <td style="font-size:11px; color:var(--muted);">${t.details}</td>
+              </tr>
+            `).join('');
+          }
+
+          // Render MCP Tools
+          if (data.mcp_tools && data.mcp_tools.length) {
+            swarmMcpTools = data.mcp_tools;
+            const toolsBody = document.getElementById("mcpToolsBody");
+            if (toolsBody) {
+              toolsBody.innerHTML = swarmMcpTools.map(tool => `
+                <tr>
+                  <td><strong>🛠️ ${tool.name}</strong></td>
+                  <td><span class="pill cyan" style="padding:2px 6px;">${tool.category}</span></td>
+                  <td style="font-size:11px; color:var(--muted);">${tool.description}</td>
+                  <td><span style="color:var(--cyan); font-weight:700;">12 Tentacles</span></td>
+                </tr>
+              `).join('');
+            }
+          }
+        } catch (err) {
+          console.error("Failed to sync swarm state:", err);
+        }
+      }
+
+      function renderHeads(heads) {
+        const grid = document.getElementById("headGrid");
+        grid.innerHTML = "";
+
+        heads.forEach((h) => {
+          const card = document.createElement("div");
+          card.className = "head-card";
+
+          let legsHtml = "";
+          h.legs.forEach((leg) => {
+            legsHtml += `
+            <div class="leg-tile" onclick="alert('🦾 ${leg.name} Live Snippet:\\n${leg.output_snippet || "Standing by for next assignment."}')">
               <div class="leg-header">
                 <span>🦾 ${leg.name}</span>
-                <span style="font-size: 10px; color: ${leg.state === 'COMPLETED' ? 'var(--emerald)' : (leg.state === 'WORKING' ? 'var(--cyan)' : 'var(--muted)')}; font-weight: 800;">
+                <span style="font-size: 10px; color: ${leg.state === "COMPLETED" ? "var(--emerald)" : leg.state === "WORKING" ? "var(--cyan)" : "var(--muted)"}; font-weight: 800;">
                   ${leg.state} (${leg.progress}%)
                 </span>
               </div>
@@ -855,9 +1705,9 @@ print(response.choices[0].message.content)
               </div>
             </div>
           `;
-        });
+          });
 
-        card.innerHTML = `
+          card.innerHTML = `
           <div class="head-header">
             <div class="head-title">
               <span>${h.icon}</span>
@@ -866,70 +1716,75 @@ print(response.choices[0].message.content)
                 <small style="color: var(--muted); font-size: 10px;">${h.domain}</small>
               </div>
             </div>
-            <span class="pill ${h.state === 'COMPLETED' ? 'emerald' : (h.state === 'COORDINATING' ? 'cyan' : '')}">${h.state} (${h.progress}%)</span>
+            <span class="pill ${h.state === "COMPLETED" ? "emerald" : h.state === "COORDINATING" ? "cyan" : ""}">${h.state} (${h.progress}%)</span>
           </div>
           <p style="font-size: 11px; color: var(--muted);">${h.active_focus}</p>
           <div class="legs-container">
             ${legsHtml}
           </div>
         `;
-        grid.appendChild(card);
-      });
-    }
-
-    function renderWire(messages) {
-      const ticker = document.getElementById('wireTicker');
-      ticker.innerHTML = '';
-      if (!messages || !messages.length) {
-        ticker.innerHTML = '<div style="color: var(--muted);">No messages on the inter-agent wire yet.</div>';
-        return;
+          grid.appendChild(card);
+        });
       }
-      messages.forEach(m => {
-        const row = document.createElement('div');
-        row.className = 'wire-row';
-        row.innerHTML = `
+
+      function renderWire(messages) {
+        const ticker = document.getElementById("wireTicker");
+        ticker.innerHTML = "";
+        if (!messages || !messages.length) {
+          ticker.innerHTML =
+            '<div style="color: var(--muted);">No messages on the inter-agent wire yet.</div>';
+          return;
+        }
+        messages.forEach((m) => {
+          const row = document.createElement("div");
+          row.className = "wire-row";
+          row.innerHTML = `
           <span style="color: var(--cyan); font-weight: 700;">[${m.timestamp}]</span>
           <span style="color: var(--muted); font-weight: 700;">[${m.sender_name} ➔ ${m.receiver_name}]:</span>
           <span>${m.content}</span>
         `;
-        ticker.appendChild(row);
-      });
-      ticker.scrollTop = ticker.scrollHeight;
-    }
+          ticker.appendChild(row);
+        });
+        ticker.scrollTop = ticker.scrollHeight;
+      }
 
-    async function loadProviders() {
-      try {
-        const res = await fetch('/v1/providers');
-        const data = await res.json();
-        const tbody = document.getElementById('providersBody');
-        tbody.innerHTML = '';
-        data.providers.forEach(p => {
-          const tr = document.createElement('tr');
-          tr.innerHTML = `
+      async function loadProviders() {
+        try {
+          const res = await fetch("/v1/providers");
+          const data = await res.json();
+          const tbody = document.getElementById("providersBody");
+          tbody.innerHTML = "";
+          data.providers.forEach((p) => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
             <td><strong>${p.name}</strong></td>
             <td><span class="pill cyan" style="display:inline-block; padding: 2px 6px;">${p.tier}</span></td>
             <td><strong>${p.models_count}</strong> free models</td>
             <td><span style="color: var(--emerald); font-weight: 700;">✓ Active ($0.00)</span></td>
           `;
-          tbody.appendChild(tr);
-        });
-      } catch (err) {
-        console.error('Failed to load providers:', err);
+            tbody.appendChild(tr);
+          });
+        } catch (err) {
+          console.error("Failed to load providers:", err);
+        }
       }
-    }
 
-    function reloadPreview() {
-      document.getElementById('appPreviewFrame').src = currentPreviewUrl;
-    }
+      function reloadPreview() {
+        document.getElementById("appPreviewFrame").src = currentPreviewUrl;
+      }
 
-    function openPreviewNewTab() {
-      window.open(currentPreviewUrl, '_blank');
-    }
+      function openPreviewNewTab() {
+        window.open(currentPreviewUrl, "_blank");
+      }
 
-    // Init
-    refreshSwarmState();
-    appendMessage('agent', 'Grand Octopus', 'Hello! I am your Grand Octopus Main Agent. I manage 6 Department Heads and 12 specialized Tentacles across 34 free LLM providers (635 zero-cost model endpoints via our OpenAI-compatible endpoint). What application would you like to build today?');
-    setInterval(refreshSwarmState, 5000);
-  </script>
-</body>
+      // Init
+      refreshSwarmState();
+      appendMessage(
+        "agent",
+        "Grand Octopus",
+        "Hello! I am your Grand Octopus Main Agent. I manage 6 Department Heads and 12 specialized Tentacles across 34 free LLM providers (635 zero-cost model endpoints via our OpenAI-compatible endpoint). What application would you like to build today?",
+      );
+      setInterval(refreshSwarmState, 5000);
+    </script>
+  </body>
 </html>

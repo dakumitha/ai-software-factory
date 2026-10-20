@@ -66,6 +66,25 @@ class OctopusSwarmUnitTests(unittest.TestCase):
         found = any("0 CVE findings" in m["content"] for m in state["messages"])
         self.assertTrue(found)
 
+    def test_bookstore_synthesis_and_preview(self):
+        result = self.swarm.understand_prompt("website with frontend and backend for book selling")
+        self.assertTrue(result["understood"])
+        self.assertFalse(result["needs_clarification"])
+        self.assertIn("preview_url", result)
+        pkg = self.swarm.synthesizer.synthesize_application("website with frontend and backend for book selling")
+        self.assertIn("Designing Data-Intensive Applications", pkg.preview_html)
+        self.assertIn("Razorpay Payment Gateway", pkg.preview_html)
+        self.assertIn("Bookstore Inventory Manager", pkg.preview_html)
+
+    def test_live_feeds_populated_in_swarm_state(self):
+        self.swarm.understand_prompt("Bookstore application with online cart and checkout")
+        state = self.swarm.get_swarm_state()
+        self.assertGreaterEqual(len(state["live_code_feed"]), 3)
+        self.assertGreaterEqual(len(state["live_security_feed"]), 3)
+        self.assertGreaterEqual(len(state["live_test_feed"]), 3)
+        self.assertIn("mcp_tools", state)
+        self.assertEqual(len(state["mcp_tools"]), 5)
+
 
 class OctopusSwarmApiTests(unittest.TestCase):
     def setUp(self):
@@ -140,6 +159,32 @@ class OctopusSwarmApiTests(unittest.TestCase):
         self.assertIn("heads", data)
         self.assertEqual(len(data["heads"]), 6)
 
+    def test_ai_keys_management_and_test_endpoints(self):
+        # 1. Post keys
+        payload = {
+            "gemini": "AIzaSyTestKey12345678",
+            "groq": "gsk_testGroqKey12345678",
+            "active_provider": "gemini",
+        }
+        status, data = self.request("/ai/keys", method="POST", payload=payload)
+        self.assertEqual(status, 200)
+        self.assertEqual(data["status"], "success")
+        self.assertEqual(data["active_provider"], "gemini")
+
+        # 2. Get keys status
+        status, data = self.request("/ai/keys", method="GET")
+        self.assertEqual(status, 200)
+        self.assertTrue(data["gemini"]["configured"])
+        self.assertTrue(data["groq"]["configured"])
+        self.assertEqual(data["active_provider"], "gemini")
+
+        # 3. Test ping provider
+        status, data = self.request("/ai/keys/test", method="POST", payload={"provider": "gemini"})
+        self.assertEqual(status, 200)
+        self.assertTrue(data["connected"])
+        self.assertGreater(data["latency_ms"], 0)
+
 
 if __name__ == "__main__":
     unittest.main()
+
