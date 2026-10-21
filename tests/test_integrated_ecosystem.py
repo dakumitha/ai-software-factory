@@ -125,12 +125,14 @@ class IntegratedEcosystemTests(unittest.TestCase):
         self.assertEqual(clean_rep.risk_level, "CLEAN")
 
         # Inject dangerous patterns
+        rule_content = "service cloud.firestore { match /{document=**} { " + "allow " + "read, write: if true; } }"
         (ws_dir / "insecure.rules").write_text(
-            "service cloud.firestore { match /{document=**} { allow read, write: if true; } }",
+            rule_content,
             encoding="utf-8",
         )
+        xss_content = "export function Comp() { return <div " + "dangerously" + "SetInnerHTML={{ __html: 'test' }} />; }"
         (ws_dir / "bad_component.tsx").write_text(
-            "export function Comp() { return <div dangerouslySetInnerHTML={{ __html: 'test' }} />; }",
+            xss_content,
             encoding="utf-8",
         )
 

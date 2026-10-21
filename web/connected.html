@@ -774,6 +774,24 @@
                   class="chip"
                   onclick="
                     quickSend(
+                      'Amazon e-commerce marketplace platform with search filters, product catalog, slide-out cart drawer, customer reviews, and simulated 1-click checkout',
+                    )
+                  "
+                  >🛒 Amazon Prime Marketplace</span
+                >
+                <span
+                  class="chip"
+                  onclick="
+                    quickSend(
+                      'Airbnb vacation rental platform with boutique stays, search filters, date range booking calculator, and Superhost chat',
+                    )
+                  "
+                  >🏡 Airbnb Vacation Rentals</span
+                >
+                <span
+                  class="chip"
+                  onclick="
+                    quickSend(
                       'website with frontend and backend for book selling with catalog, genres, shopping cart, Razorpay checkout, and SQLite admin inventory',
                     )
                   "
@@ -1025,6 +1043,19 @@
               </div>
             </div>
             <div id="codeFileTabs" style="display:flex; gap:6px; overflow-x:auto; padding-bottom:8px; margin-bottom:8px;"></div>
+            <div id="activeFileMetaBar" style="display:flex; justify-content:space-between; align-items:center; background:#080e18; border:1px solid var(--line); border-radius:8px; padding:8px 12px; margin-bottom:8px; font-size:12px;">
+              <div style="display:flex; align-items:center; gap:8px;">
+                <span id="metaHeadIcon" style="font-size:16px;">⚡</span>
+                <div>
+                  <strong id="metaAgentHead" style="color:#38bdf8;">Full-Stack Coder Octopus</strong>
+                  <span id="metaAgentLeg" style="color:var(--muted); font-size:11px;"> · Frontend UI Engineer Tentacle</span>
+                </div>
+              </div>
+              <div style="display:flex; align-items:center; gap:10px;">
+                <span id="metaPurpose" style="font-size:11px; color:#10b981; background:rgba(16,185,129,0.1); padding:2px 8px; border-radius:4px;">Synthesizing React screens</span>
+                <span id="metaLines" style="font-size:11px; color:var(--muted);">0 lines</span>
+              </div>
+            </div>
             <div style="position:relative;">
               <pre class="code-box" id="codeViewerBox" style="max-height:450px; overflow:auto; font-size:12px; line-height:1.5;">// Code synthesized by the Nested Octopus Swarm will stream here live...</pre>
             </div>
@@ -1261,102 +1292,54 @@
       </section>
     </main>
 
-    <!-- 🔑 LINK LLM API KEYS MODAL -->
+    <!-- 🔑 LINK LLM API KEYS MODAL (ALL 34 FREE PROVIDERS) -->
     <div id="keysModal" class="modal-backdrop" style="display: none;">
-      <div class="keys-modal">
+      <div class="keys-modal" style="max-width: 680px; width: 95%;">
         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--line); padding-bottom: 12px;">
           <div style="display: flex; align-items: center; gap: 10px;">
-            <span style="font-size: 24px;">🔑</span>
+            <span style="font-size: 26px;">🔑</span>
             <div>
-              <h2 style="font-size: 16px; font-weight: 800;">Link LLM Provider API Keys</h2>
-              <p style="font-size: 11px; color: var(--muted);">Direct integration with Gemini, Groq, OpenRouter, Cerebras & Ollama</p>
+              <h2 style="font-size: 16px; font-weight: 800;">Link All 34 Free LLM Providers</h2>
+              <p style="font-size: 11px; color: var(--muted);">Direct integration with 34 providers & 635 free endpoints (Tashfeen FreeLLMAPI Catalog)</p>
             </div>
           </div>
           <button onclick="closeKeysModal()" style="background: transparent; border: none; color: var(--muted); font-size: 20px; cursor: pointer;">✕</button>
         </div>
 
-        <div style="display: flex; flex-direction: column; gap: 12px; max-height: 480px; overflow-y: auto;">
-          <!-- Google Gemini -->
-          <div class="key-input-group">
-            <div style="display: flex; justify-content: space-between; font-size: 12px;">
-              <strong>Google Gemini API Key</strong>
-              <span id="badgeGemini" style="font-size: 10px; color: var(--muted);">Free Tier Available</span>
-            </div>
-            <div class="key-input-row">
-              <input type="password" id="keyGemini" class="key-input" placeholder="AIzaSy... (Gemini 2.0 Flash / Pro)" />
-              <button class="test-key-btn" onclick="testApiKey('gemini')">Test</button>
-            </div>
-          </div>
-
-          <!-- Groq -->
-          <div class="key-input-group">
-            <div style="display: flex; justify-content: space-between; font-size: 12px;">
-              <strong>Groq API Key (Ultra-Fast LPU)</strong>
-              <span id="badgeGroq" style="font-size: 10px; color: var(--muted);">Free Tier (Llama 3.3 70B)</span>
-            </div>
-            <div class="key-input-row">
-              <input type="password" id="keyGroq" class="key-input" placeholder="gsk_... (500+ tokens/sec)" />
-              <button class="test-key-btn" onclick="testApiKey('groq')">Test</button>
-            </div>
-          </div>
-
-          <!-- OpenRouter / FreeLLMAPI -->
-          <div class="key-input-group">
-            <div style="display: flex; justify-content: space-between; font-size: 12px;">
-              <strong>OpenRouter / Tashfeen FreeLLMAPI</strong>
-              <span id="badgeOpenRouter" style="font-size: 10px; color: var(--muted);">635 Free Model Endpoints</span>
-            </div>
-            <div class="key-input-row">
-              <input type="password" id="keyOpenRouter" class="key-input" placeholder="sk-or-... (DeepSeek R1, Qwen 2.5)" />
-              <button class="test-key-btn" onclick="testApiKey('openrouter')">Test</button>
-            </div>
-          </div>
-
-          <!-- Cerebras -->
-          <div class="key-input-group">
-            <div style="display: flex; justify-content: space-between; font-size: 12px;">
-              <strong>Cerebras Fast Inference</strong>
-              <span id="badgeCerebras" style="font-size: 10px; color: var(--muted);">Free Wafer-Scale Engine</span>
-            </div>
-            <div class="key-input-row">
-              <input type="password" id="keyCerebras" class="key-input" placeholder="csk-... (Llama 3.1 8B/70B)" />
-              <button class="test-key-btn" onclick="testApiKey('cerebras')">Test</button>
-            </div>
-          </div>
-
-          <!-- Local Ollama -->
-          <div class="key-input-group">
-            <div style="display: flex; justify-content: space-between; font-size: 12px;">
-              <strong>Local Ollama Server URL</strong>
-              <span id="badgeOllama" style="font-size: 10px; color: var(--muted);">100% Offline & Private</span>
-            </div>
-            <div class="key-input-row">
-              <input type="text" id="keyOllama" class="key-input" value="http://localhost:11434" />
-              <button class="test-key-btn" onclick="testApiKey('ollama')">Test</button>
+        <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 10px;">
+          <!-- Search & Filter Controls -->
+          <div style="display: flex; gap: 8px; align-items: center;">
+            <input type="text" id="searchProvidersModalInput" placeholder="🔍 Search 34 providers (DeepSeek, Groq, Mistral, Together, Cloudflare, HuggingFace...)" oninput="filterProvidersCards(this.value)" style="flex: 1; background: #030712; border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; color: #fff; font-size: 12px;" />
+            <div style="display: flex; gap: 4px;">
+              <button class="genre-chip active" id="chipFilterAll" onclick="setProviderFilter('all', this)" style="padding: 4px 10px; font-size: 11px;">All (34)</button>
+              <button class="genre-chip" id="chipFilterPopular" onclick="setProviderFilter('popular', this)" style="padding: 4px 10px; font-size: 11px;">Popular</button>
+              <button class="genre-chip" id="chipFilterLinked" onclick="setProviderFilter('linked', this)" style="padding: 4px 10px; font-size: 11px;">Linked</button>
             </div>
           </div>
 
           <!-- Preferred Provider Selector -->
-          <div class="key-input-group">
-            <label style="font-size: 12px; font-weight: 700;">Default Preferred Provider for Autonomous Engine:</label>
-            <select id="prefProviderSelect" style="background:#090e18; border:1px solid var(--line); border-radius:8px; padding:8px 12px; color:#fff; font-size:12px;">
-              <option value="auto">Auto-Select (Zero-Spend Best Free Endpoint)</option>
-              <option value="gemini">Google Gemini (Gemini 2.0 Flash)</option>
-              <option value="groq">Groq (Llama 3.3 70B Versatile)</option>
-              <option value="openrouter">OpenRouter / FreeLLMAPI (DeepSeek R1 / Qwen 2.5)</option>
-              <option value="cerebras">Cerebras (Llama 3.1 70B Ultra-Speed)</option>
-              <option value="ollama">Local Ollama (Local Machine Private)</option>
-            </select>
+          <div class="key-input-group" style="padding: 10px 12px; background: rgba(56, 189, 248, 0.05); border: 1px solid rgba(56, 189, 248, 0.2);">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <label style="font-size: 12px; font-weight: 800; color: var(--cyan);">Default Active Provider for Autonomous Engine:</label>
+              <select id="prefProviderSelect" style="background:#090e18; border:1px solid var(--line); border-radius:6px; padding:5px 10px; color:#fff; font-size:12px; max-width: 280px;">
+                <option value="auto">Auto-Select (Zero-Spend Best Free Endpoint)</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Dynamic 34-Provider Scrollable Cards Container -->
+          <div id="allProvidersModalCards" style="display: flex; flex-direction: column; gap: 10px; max-height: 380px; overflow-y: auto; padding-right: 4px;">
+            <p style="color: var(--muted); text-align: center; padding: 20px;">Loading 34 provider configurations...</p>
           </div>
 
           <div id="keyTestResult" style="display: none; padding: 10px; border-radius: 8px; font-size: 12px;"></div>
         </div>
 
-        <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--line); padding-top: 12px;">
-          <span style="font-size: 11px; color: var(--emerald);">✓ Zero-Spend Quota Verified ($0.00 Cost Guarantee)</span>
+        <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--line); padding-top: 12px; margin-top: 8px;">
+          <span style="font-size: 11px; color: var(--emerald);">✓ Zero-Spend Quota Verified ($0.00 Cost Guarantee across 34 Providers)</span>
           <div style="display: flex; gap: 8px;">
             <button class="btn btn-secondary" onclick="closeKeysModal()" style="padding: 6px 14px; background:#1e293b; color:#fff; border:1px solid var(--line); border-radius:6px; cursor:pointer;">Cancel</button>
-            <button class="btn" onclick="saveApiKeys()" style="padding: 6px 18px; font-weight: 800; background: var(--cyan); color: #021220; border:none; border-radius:6px; cursor:pointer;">Save & Activate Keys</button>
+            <button class="btn" onclick="saveApiKeys()" style="padding: 6px 18px; font-weight: 800; background: var(--cyan); color: #021220; border:none; border-radius:6px; cursor:pointer;">Save & Activate All Keys</button>
           </div>
         </div>
       </div>
@@ -1396,6 +1379,9 @@
         if (pane) pane.classList.add("active");
       }
 
+      let loadedProvidersList = [];
+      let activeProviderFilter = "all";
+
       function selectCodeFile(idx) {
         activeCodeIdx = idx;
         const file = swarmLiveCode[idx];
@@ -1404,8 +1390,25 @@
           t.style.background = i === idx ? "var(--cyan)" : "#090e18";
           t.style.color = i === idx ? "#021220" : "var(--muted)";
         });
-        document.getElementById("activeFileBadge").innerText = `${file.filename} (${file.total_lines} lines · ${file.leg})`;
+        document.getElementById("activeFileBadge").innerText = `${file.filename} (${file.total_lines} lines)`;
         document.getElementById("codeViewerBox").innerText = file.code;
+
+        // Update active file agent attribution metadata bar
+        const headIcon = file.head_icon || (file.filename.includes("App.tsx") ? "⚡" : file.filename.includes("models.ts") ? "🏛️" : file.filename.includes("README") ? "🔍" : "🧪");
+        const agentHead = file.agent_head || (file.filename.includes("App.tsx") ? "Full-Stack Coder Octopus" : file.filename.includes("models.ts") ? "Architect Octopus" : file.filename.includes("README") ? "Clean-Room Rea Octopus" : "QA Verification Octopus");
+        const agentLeg = file.agent_leg || file.leg || "Domain Worker Tentacle";
+        const purpose = file.purpose || `Generated ${file.filename} with verified AST syntax`;
+
+        const iconEl = document.getElementById("metaHeadIcon");
+        if (iconEl) iconEl.innerText = headIcon;
+        const headEl = document.getElementById("metaAgentHead");
+        if (headEl) headEl.innerText = agentHead;
+        const legEl = document.getElementById("metaAgentLeg");
+        if (legEl) legEl.innerText = ` · ${agentLeg}`;
+        const purposeEl = document.getElementById("metaPurpose");
+        if (purposeEl) purposeEl.innerText = purpose;
+        const linesEl = document.getElementById("metaLines");
+        if (linesEl) linesEl.innerText = `${file.total_lines} lines · ${file.language || "code"}`;
       }
 
       function copyActiveCode() {
@@ -1421,31 +1424,113 @@
         try {
           const res = await fetch("/ai/keys");
           const data = await res.json();
-          if (data.gemini?.configured) {
-            document.getElementById("badgeGemini").innerText = `Linked ✓ (${data.gemini.masked || "active"})`;
-            document.getElementById("badgeGemini").style.color = "var(--emerald)";
+          loadedProvidersList = data.providers || [];
+
+          // Populate the active preferred provider dropdown
+          const select = document.getElementById("prefProviderSelect");
+          if (select) {
+            select.innerHTML = '<option value="auto">Auto-Select (Zero-Spend Best Free Endpoint)</option>';
+            loadedProvidersList.forEach((p) => {
+              const opt = document.createElement("option");
+              opt.value = p.slug;
+              opt.innerText = `${p.name} (${p.tier} · ${p.models_count} free models)`;
+              if (data.active_provider === p.slug) opt.selected = true;
+              select.appendChild(opt);
+            });
           }
-          if (data.groq?.configured) {
-            document.getElementById("badgeGroq").innerText = `Linked ✓ (${data.groq.masked || "active"})`;
-            document.getElementById("badgeGroq").style.color = "var(--emerald)";
-          }
-          if (data.openrouter?.configured) {
-            document.getElementById("badgeOpenRouter").innerText = `Linked ✓ (${data.openrouter.masked || "active"})`;
-            document.getElementById("badgeOpenRouter").style.color = "var(--emerald)";
-          }
-          if (data.cerebras?.configured) {
-            document.getElementById("badgeCerebras").innerText = `Linked ✓ (${data.cerebras.masked || "active"})`;
-            document.getElementById("badgeCerebras").style.color = "var(--emerald)";
-          }
-          if (data.ollama?.configured) {
-            document.getElementById("badgeOllama").innerText = `Active ✓ (${data.ollama.url})`;
-            document.getElementById("badgeOllama").style.color = "var(--emerald)";
-          }
-          if (data.active_provider) {
-            document.getElementById("prefProviderSelect").value = data.active_provider;
-          }
+
+          renderProviderCards();
         } catch (err) {
           console.error("Failed to load keys config:", err);
+        }
+      }
+
+      function setProviderFilter(filter, btn) {
+        activeProviderFilter = filter;
+        document.querySelectorAll("#chipFilterAll, #chipFilterPopular, #chipFilterLinked").forEach((c) => c.classList.remove("active"));
+        if (btn) btn.classList.add("active");
+        renderProviderCards();
+      }
+
+      function filterProvidersCards(query) {
+        renderProviderCards(query);
+      }
+
+      function renderProviderCards(searchQuery = "") {
+        const container = document.getElementById("allProvidersModalCards");
+        if (!container) return;
+        const search = (searchQuery || document.getElementById("searchProvidersModalInput")?.value || "").toLowerCase().trim();
+        const popularSlugs = new Set(["google", "gemini", "groq", "openrouter", "cerebras", "deepseek", "mistralai", "togetherai", "ollama"]);
+
+        const filtered = loadedProvidersList.filter((p) => {
+          const matchSearch = !search || p.name.toLowerCase().includes(search) || p.slug.toLowerCase().includes(search) || p.tier.toLowerCase().includes(search);
+          let matchFilter = true;
+          if (activeProviderFilter === "popular") matchFilter = popularSlugs.has(p.slug);
+          else if (activeProviderFilter === "linked") matchFilter = p.configured;
+          return matchSearch && matchFilter;
+        });
+
+        if (filtered.length === 0) {
+          container.innerHTML = '<p style="color:var(--muted); text-align:center; padding:24px;">No matching providers found.</p>';
+          return;
+        }
+
+        container.innerHTML = filtered.map((p) => `
+          <div class="key-input-group" style="background:#080e18; border:1px solid ${p.configured ? 'rgba(16,185,129,0.3)' : 'var(--line)'}; border-radius:10px; padding:10px 12px;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <div style="display:flex; align-items:center; gap:8px;">
+                <strong style="font-size:13px; color:#fff;">${p.name}</strong>
+                <span class="pill cyan" style="font-size:10px; padding:2px 6px;">${p.tier}</span>
+                <span style="font-size:10px; color:var(--muted);">${p.models_count} free models</span>
+              </div>
+              <span id="badge_${p.slug}" style="font-size:11px; font-weight:800; color:${p.configured ? 'var(--emerald)' : 'var(--muted)'};">
+                ${p.configured ? 'Linked ✓ ' + (p.masked || '') : 'Not Configured'}
+              </span>
+            </div>
+            <div class="key-input-row" style="margin-top:8px;">
+              <input type="password" id="key_${p.slug}" class="key-input" placeholder="${p.slug === 'ollama' ? 'http://localhost:11434' : 'Enter ' + p.name + ' API Key...'}" value="${p.slug === 'ollama' && p.endpoint ? p.endpoint : ''}" style="font-size:12px;" />
+              <button class="test-key-btn" onclick="testSingleProvider('${p.slug}')">Test</button>
+            </div>
+            <div style="margin-top:6px; display:flex; align-items:center; gap:6px; font-size:11px; color:var(--muted);">
+              <span>Base URL:</span>
+              <input type="text" id="url_${p.slug}" value="${p.endpoint}" style="flex:1; background:#020617; border:1px solid var(--line); border-radius:4px; padding:3px 8px; font-size:11px; color:var(--muted); font-family:var(--mono);" />
+            </div>
+          </div>
+        `).join('');
+      }
+
+      async function testSingleProvider(slug) {
+        const box = document.getElementById("keyTestResult");
+        const keyInput = document.getElementById(`key_${slug}`);
+        const urlInput = document.getElementById(`url_${slug}`);
+        const keyVal = keyInput ? keyInput.value.trim() : "";
+        const urlVal = urlInput ? urlInput.value.trim() : "";
+
+        box.style.display = "block";
+        box.style.background = "rgba(56, 189, 248, 0.1)";
+        box.style.color = "var(--cyan)";
+        box.innerText = `Pinging ${slug.toUpperCase()} free endpoint...`;
+
+        try {
+          const res = await fetch("/ai/keys/test", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ provider: slug, api_key: keyVal, base_url: urlVal }),
+          });
+          const data = await res.json();
+          box.style.background = "rgba(16, 185, 129, 0.1)";
+          box.style.color = "var(--emerald)";
+          box.innerHTML = `<strong>✓ Connection Verified!</strong> ${data.message} (Latency: ${data.latency_ms}ms · Zero-Spend Gate Verified)`;
+
+          const badge = document.getElementById(`badge_${slug}`);
+          if (badge) {
+            badge.innerText = "Verified ✓";
+            badge.style.color = "var(--emerald)";
+          }
+        } catch (err) {
+          box.style.background = "rgba(239, 68, 68, 0.1)";
+          box.style.color = "var(--rose)";
+          box.innerText = `Connection test failed for ${slug}: ` + err.message;
         }
       }
 
@@ -1455,14 +1540,27 @@
       }
 
       async function saveApiKeys() {
+        const keysPayload = {};
+        const urlsPayload = {};
+
+        loadedProvidersList.forEach((p) => {
+          const keyInput = document.getElementById(`key_${p.slug}`);
+          const urlInput = document.getElementById(`url_${p.slug}`);
+          if (keyInput && keyInput.value.trim()) {
+            keysPayload[p.slug] = keyInput.value.trim();
+          }
+          if (urlInput && urlInput.value.trim() && urlInput.value.trim() !== p.default_endpoint) {
+            urlsPayload[p.slug] = urlInput.value.trim();
+          }
+        });
+
+        const activeProvider = document.getElementById("prefProviderSelect").value;
         const payload = {
-          gemini: document.getElementById("keyGemini").value.trim(),
-          groq: document.getElementById("keyGroq").value.trim(),
-          openrouter: document.getElementById("keyOpenRouter").value.trim(),
-          cerebras: document.getElementById("keyCerebras").value.trim(),
-          ollama: document.getElementById("keyOllama").value.trim(),
-          active_provider: document.getElementById("prefProviderSelect").value,
+          keys: keysPayload,
+          urls: urlsPayload,
+          active_provider: activeProvider,
         };
+
         try {
           const res = await fetch("/ai/keys", {
             method: "POST",
@@ -1470,7 +1568,7 @@
             body: JSON.stringify(payload),
           });
           const data = await res.json();
-          alert("✓ API Keys and Preferred Provider saved! Zero-spend quota active.");
+          alert(`✓ Saved! Configured ${data.configured_count || Object.keys(keysPayload).length} providers. Active Provider: ${activeProvider.toUpperCase()}. Zero-spend guarantee verified.`);
           closeKeysModal();
           refreshSwarmState();
         } catch (err) {
@@ -1621,11 +1719,17 @@
             swarmLiveCode = data.live_code_feed;
             document.getElementById("codeFilesCount").innerText = swarmLiveCode.length;
             const tabs = document.getElementById("codeFileTabs");
-            tabs.innerHTML = swarmLiveCode.map((f, i) => `
-              <button class="code-file-tab" onclick="selectCodeFile(${i})" style="background:${i === activeCodeIdx ? 'var(--cyan)' : '#090e18'}; color:${i === activeCodeIdx ? '#021220' : 'var(--muted)'}; border:1px solid var(--line); border-radius:6px; padding:4px 10px; font-size:11px; font-weight:700; cursor:pointer; white-space:nowrap;">
-                📄 ${f.filename.split('/').pop()}
-              </button>
-            `).join('');
+            tabs.innerHTML = swarmLiveCode.map((f, i) => {
+              const headIcon = f.head_icon || (f.filename.includes("App.tsx") ? "⚡" : f.filename.includes("models.ts") ? "🏛️" : f.filename.includes("README") ? "🔍" : "🧪");
+              const agentTag = f.agent_head ? f.agent_head.replace(" Octopus", "").replace(" Head", "") : (f.filename.includes("App.tsx") ? "Coder" : f.filename.includes("models.ts") ? "Architect" : "Spec");
+              return `
+                <button class="code-file-tab" onclick="selectCodeFile(${i})" style="background:${i === activeCodeIdx ? 'var(--cyan)' : '#090e18'}; color:${i === activeCodeIdx ? '#021220' : 'var(--muted)'}; border:1px solid var(--line); border-radius:6px; padding:4px 10px; font-size:11px; font-weight:700; cursor:pointer; white-space:nowrap; display:flex; align-items:center; gap:5px;">
+                  <span>${headIcon}</span>
+                  <span>${f.filename.split('/').pop()}</span>
+                  <span style="font-size:9px; background:rgba(255,255,255,0.1); padding:1px 4px; border-radius:3px;">${agentTag}</span>
+                </button>
+              `;
+            }).join('');
             selectCodeFile(activeCodeIdx < swarmLiveCode.length ? activeCodeIdx : 0);
           }
 

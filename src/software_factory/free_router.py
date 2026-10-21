@@ -23,6 +23,7 @@ from .agent_adapter import (
     CerebrasFreeAgentAdapter,
     CodingAgentAdapter,
     GeminiFreeAgentAdapter,
+    GenericFreeProviderAdapter,
     GroqFreeAgentAdapter,
     HeuristicSynthesisAdapter,
     OllamaAgentAdapter,
@@ -380,6 +381,20 @@ class FreeLlmRouter(CodingAgentAdapter):
                 self.register_provider(GroqFreeAgentAdapter(api_key=groq_key))
             if cerebras_key:
                 self.register_provider(CerebrasFreeAgentAdapter(api_key=cerebras_key))
+
+            # Automatically check all other 30 catalog providers for configured keys
+            for cat_prov in FREE_PROVIDERS_CATALOG:
+                p_name = cat_prov["name"]
+                if p_name.lower() in {"openrouter", "google", "groq", "cerebras", "ollama", "factory"}:
+                    continue
+                k = os.getenv(f"{p_name.upper()}_API_KEY") or os.getenv(f"{p_name.upper().replace(' ', '_')}_API_KEY")
+                if k:
+                    self.register_provider(GenericFreeProviderAdapter(
+                        provider_name=p_name,
+                        base_url=cat_prov["endpoint"],
+                        api_key=k,
+                    ))
+
             self.register_provider(OllamaAgentAdapter())
             self.register_provider(HeuristicSynthesisAdapter())
 

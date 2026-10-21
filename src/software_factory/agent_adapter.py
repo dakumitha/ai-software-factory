@@ -915,17 +915,149 @@ class OllamaAgentAdapter:
         )
 
 
-class AutoSelectAgentAdapter:
-    """Auto-detects and uses the best available zero-cost coding provider:
-    1. Gemini 1.5 Flash (if GEMINI_API_KEY is available)
-    2. Groq Llama 3 (if GROQ_API_KEY is available)
-    3. Local Ollama (if running)
-    4. Heuristic Synthesis Engine (offline zero-dependency generator)
+class GenericFreeProviderAdapter:
+    """Zero-cost coding adapter for any of the 34 free OpenAI-compatible LLM providers.
+
+    Supports DeepSeek, Mistral, TogetherAI, Cloudflare, HuggingFace, GitHub Models,
+    SambaNova, Fireworks, Novita, Hyperbolic, Lepton, DeepInfra, SiliconFlow, LM Studio, etc.
+    Enforces strict ₹0 / $0 spend limit.
     """
 
-    def __init__(self, preferred_provider: str = "auto", api_key: str | None = None):
-        self._preferred = preferred_provider.lower()
+    def __init__(
+        self,
+        provider_name: str,
+        base_url: str,
+        api_key: str | None = None,
+        model: str = "",
+        name: str | None = None,
+        timeout: float = 30.0,
+    ):
+        self._provider = provider_name
+        self._base_url = (base_url or "https://openrouter.ai/api/v1").rstrip("/")
+        self._api_key = api_key or os.getenv(f"{provider_name.upper()}_API_KEY", "")
+        self._model = model or f"{provider_name.lower()}-default:free"
+        self._name = name or f"{provider_name.lower()}-free-agent"
+        self._timeout = timeout
+
+    @property
+    def adapter_name(self) -> str:
+        return self._name
+
+    def generate(
+        self,
+        prompt: str,
+        context: dict[str, Any],
+        budget: AgentBudget,
+    ) -> AgentResponse:
+        budget.check_call_allowed()
+
+        if not self._api_key:
+            fallback = HeuristicSynthesisAdapter(name=f"{self._name}-offline")
+            return fallback.generate(prompt, context, budget)
+
+        url = f"{self._base_url}/chat/completions"
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {self._api_key}",
+            "User-Agent": "AI-Software-Factory/2.0",
+        }
+
+        body = {
+            "model": self._model,
+            "messages": [
+                {
+                    "role": "system",
+                    "content": "You are a senior full-stack engineer in a clean-room software factory. Return ONLY clean, production-ready code.",
+                },
+                {"role": "user", "content": prompt},
+            ],
+            "temperature": 0.2,
+            "max_tokens": 4096,
+        }
+
+        data = json.dumps(body).encode("utf-8")
+        req = urllib.request.Request(url, data=data, headers=headers, method="POST")
+
+        try:
+            with urllib.request.urlopen(req, timeout=self._timeout) as resp:
+                resp_json = json.loads(resp.read().decode("utf-8"))
+        except urllib.error.HTTPError as e:
+            if e.code == 429:
+                raise QuotaExhaustedError(f"{self._provider} rate limit reached. Pausing safely.") from e
+            if e.code in (401, 403):
+                raise QuotaExhaustedError(f"{self._provider} API unauthorized (HTTP {e.code}).") from e
+            raise AgentAdapterError(f"{self._provider} API error (HTTP {e.code}): {e.reason}") from e
+        except Exception as e:
+            raise AgentAdapterError(f"Network error communicating with {self._provider}: {e}") from e
+
+        try:
+            raw_text = resp_json["choices"][0]["message"]["content"]
+        except (KeyError, IndexError) as e:
+            raise AgentAdapterError(f"Malformed {self._provider} response: {resp_json}") from e
+
+        code = _extract_code(raw_text)
+        path = context.get("input", {}).get("path", f"src/{context.get('task_id', 'code')}.ts")
+        tokens_estimate = len(prompt.split()) + len(code.split())
+
+        budget.record_usage(tokens=tokens_estimate, cost_usd=0.0)
+
+        return AgentResponse(
+            code=code,
+            files_modified={path: code},
+            tokens_used=tokens_estimate,
+            cost_usd=0.0,
+            explanation=f"Generated via {self._provider} ({self._model}) at zero cost.",
+            status="COMPLETED",
+        )
+
+
+class AutoSelectAgentAdapter:
+    """Auto-detects and uses the best available zero-cost coding provider:
+    1. Gemini 1.5/2.0 Flash (if GEMINI_API_KEY is available)
+    2. Groq Llama 3 (if GROQ_API_KEY is available)
+    3. OpenRouter / FreeLLMAPI (if OPENROUTER_API_KEY is available)
+    4. Cerebras (if CEREBRAS_API_KEY is available)
+    5. Any of the 34 free providers (DeepSeek, Mistral, Together, etc.)
+    6. Local Ollama (if running)
+    7. Heuristic Synthesis Engine (offline zero-dependency generator)
+    """
+
+    DEFAULT_ENDPOINTS: dict[str, str] = {
+        "openrouter": "https://openrouter.ai/api/v1",
+        "groq": "https://api.groq.com/openai/v1",
+        "cerebras": "https://api.cerebras.ai/v1",
+        "gemini": "https://generativelanguage.googleapis.com",
+        "deepseek": "https://api.deepseek.com/v1",
+        "mistral": "https://api.mistral.ai/v1",
+        "mistralai": "https://api.mistral.ai/v1",
+        "together": "https://api.together.xyz/v1",
+        "togetherai": "https://api.together.xyz/v1",
+        "huggingface": "https://api-inference.huggingface.co",
+        "cloudflare": "https://api.cloudflare.com/client/v4",
+        "githubmodels": "https://models.inference.ai.azure.com",
+        "sambanova": "https://api.sambanova.ai/v1",
+        "fireworksai": "https://api.fireworks.ai/inference/v1",
+        "perplexity": "https://api.perplexity.ai",
+        "hyperbolic": "https://api.hyperbolic.xyz/v1",
+        "novitaai": "https://api.novita.ai/v3/openai",
+        "leptonai": "https://api.lepton.ai/v1",
+        "deepinfra": "https://api.deepinfra.com/v1/openai",
+        "siliconflow": "https://api.siliconflow.cn/v1",
+        "lmstudio": "http://127.0.0.1:1234/v1",
+        "ollama": "http://127.0.0.1:11434/v1",
+    }
+
+    def __init__(
+        self,
+        preferred_provider: str = "auto",
+        api_key: str | None = None,
+        base_url: str | None = None,
+        model: str | None = None,
+    ):
+        self._preferred = preferred_provider.lower().strip()
         self._api_key = api_key
+        self._base_url = base_url
+        self._model = model or ""
 
     @property
     def adapter_name(self) -> str:
@@ -938,15 +1070,27 @@ class AutoSelectAgentAdapter:
         cerebras_key = self._api_key or os.getenv("CEREBRAS_API_KEY")
 
         if self._preferred in {"openrouter", "freellmapi"} or (self._preferred == "auto" and openrouter_key):
-            return OpenRouterFreeAgentAdapter(api_key=openrouter_key)
+            return OpenRouterFreeAgentAdapter(api_key=openrouter_key, base_url=self._base_url or "https://openrouter.ai/api/v1")
         if self._preferred == "cerebras" or (self._preferred == "auto" and cerebras_key):
-            return CerebrasFreeAgentAdapter(api_key=cerebras_key)
+            return CerebrasFreeAgentAdapter(api_key=cerebras_key, base_url=self._base_url or "https://api.cerebras.ai/v1")
         if self._preferred == "gemini" or (self._preferred == "auto" and gemini_key):
             return GeminiFreeAgentAdapter(api_key=gemini_key)
         if self._preferred == "groq" or (self._preferred == "auto" and groq_key):
             return GroqFreeAgentAdapter(api_key=groq_key)
         if self._preferred == "ollama":
-            return OllamaAgentAdapter()
+            return OllamaAgentAdapter(endpoint_url=self._base_url or "http://127.0.0.1:11434/api/generate")
+
+        # Check any of the other 30 providers
+        prov_key = self._api_key or os.getenv(f"{self._preferred.upper()}_API_KEY")
+        if self._preferred in self.DEFAULT_ENDPOINTS or prov_key:
+            url = self._base_url or self.DEFAULT_ENDPOINTS.get(self._preferred, "https://openrouter.ai/api/v1")
+            return GenericFreeProviderAdapter(
+                provider_name=self._preferred,
+                base_url=url,
+                api_key=prov_key,
+                model=self._model,
+            )
+
         return HeuristicSynthesisAdapter()
 
     def generate(

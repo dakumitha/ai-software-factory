@@ -315,7 +315,14 @@ class GrandOctopus:
         self.current_thought = f"Analyzing concept: '{clean}'. Decomposing mission into nested department heads."
 
         is_bookstore = any(w in lower for w in ("book", "books", "bookstore", "book selling", "bookseller", "author", "publishing"))
-        if is_bookstore:
+        is_amazon = any(w in lower for w in ("amazon", "ecommerce", "e-commerce", "marketplace", "shopping", "retail", "store")) and not is_bookstore
+        is_airbnb = any(w in lower for w in ("airbnb", "hotel", "lodging", "stay", "vacation rental", "resort", "host", "booking", "apartment", "villa"))
+
+        if is_amazon:
+            confirm_text = f"Got it! I understand your vision clearly: A full-scale Amazon-style E-Commerce Marketplace with department search, Prime 1-day delivery badges, slide-out cart drawer, 1-Click checkout, and seller inventory management. I am activating the 6 Department Heads and 12 Tentacles now."
+        elif is_airbnb:
+            confirm_text = f"Got it! I understand your vision clearly: An Airbnb-style Vacation Rentals & Hospitality platform with boutique stays, destination search, date range pricing, instant booking reservation, and Superhost chat. I am activating the 6 Department Heads and 12 Tentacles now."
+        elif is_bookstore:
             confirm_text = f"Got it! I understand your vision clearly: A full-stack Book Selling platform with interactive catalog, shopping cart, Razorpay checkout, backend REST APIs, and SQLite admin inventory. I am activating the 6 Department Heads and 12 Tentacles now."
         else:
             confirm_text = f"Got it! I understand your vision clearly: '{clean}'. I am activating the 6 Department Heads and 12 Tentacles now."
@@ -372,15 +379,56 @@ class GrandOctopus:
 
             for path_str, content_str in files.items():
                 lang = "typescript" if path_str.endswith(".ts") or path_str.endswith(".tsx") else "yaml" if path_str.endswith(".yaml") else "json" if path_str.endswith(".json") else "markdown"
+
+                if "pnpm" in path_str or "turbo" in path_str:
+                    head_name = "Architect Octopus"
+                    head_icon = "🏛️"
+                    leg_name = "Workspace Scaffolder Tentacle"
+                    purpose = "Scaffold Turbo monorepo workspace & build caching pipeline"
+                elif "models.ts" in path_str or "types" in path_str:
+                    head_name = "Architect Octopus"
+                    head_icon = "🏛️"
+                    leg_name = "Type Contract Modeler Tentacle"
+                    purpose = "Model shared TypeScript domain entities and API contracts"
+                elif "README" in path_str or "LICENSE" in path_str:
+                    head_name = "Clean-Room Rea Octopus"
+                    head_icon = "🔍"
+                    leg_name = "Clean-Room Specifier Tentacle"
+                    purpose = "Audit 0-GPL compliance & generate clean-room architectural spec"
+                elif "App.tsx" in path_str or "components" in path_str:
+                    head_name = "Full-Stack Coder Octopus"
+                    head_icon = "⚡"
+                    leg_name = "Frontend UI Engineer Tentacle"
+                    purpose = f"Synthesize interactive React screens & responsive widgets for {title}"
+                elif "backend" in path_str or "api" in path_str:
+                    head_name = "Full-Stack Coder Octopus"
+                    head_icon = "⚡"
+                    leg_name = "Cloud & State Engineer Tentacle"
+                    purpose = "Implement REST microservice routes, data stores & webhook handlers"
+                elif "test" in path_str:
+                    head_name = "QA Verification Octopus"
+                    head_icon = "🧪"
+                    leg_name = "Contract Test Runner Tentacle"
+                    purpose = "Execute automated AST and contract verification assertion suites"
+                else:
+                    head_name = "Full-Stack Coder Octopus"
+                    head_icon = "⚡"
+                    leg_name = "Multi-Domain Synthesis Tentacle"
+                    purpose = "Synthesize supporting domain assets"
+
                 self.live_code_feed.append({
                     "id": f"code_{len(self.live_code_feed)+1}",
                     "filename": path_str,
                     "language": lang,
-                    "code": content_str[:1200],
+                    "code": content_str[:2500],
                     "total_lines": len(content_str.splitlines()),
                     "status": "SYNTHESIZED",
                     "timestamp": datetime.datetime.now().strftime("%H:%M:%S"),
-                    "leg": "Frontend UI Engineer" if "App.tsx" in path_str else "Cloud & State Engineer" if "backend" in path_str else "Workspace Scaffolder",
+                    "agent_head": head_name,
+                    "agent_leg": leg_name,
+                    "head_icon": head_icon,
+                    "purpose": purpose,
+                    "leg": leg_name,
                 })
 
             # Record live security pen-testing checks (Strix AST scans)

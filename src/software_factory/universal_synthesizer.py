@@ -205,7 +205,7 @@ class UniversalAppSynthesizer:
             ]
             features = ["Live route stop milestone tracker", "Student boarding status toggles", "Emergency delay broadcast"]
 
-        elif any(w in lower for w in ("chat", "social", "community", "forum", "messaging", "feed")):
+        elif any(w in lower for w in ("chat", "social", "community", "forum", "messaging", "feed")) and not any(w in lower for w in ("airbnb", "hotel", "booking", "rental", "vacation", "amazon", "marketplace")):
             category = "Social Collaboration & Real-Time Messaging"
             tagline = "Instant messaging, community channels, and media sharing."
             stakeholders = ["Member", "Moderator", "Channel Admin"]
@@ -222,7 +222,7 @@ class UniversalAppSynthesizer:
             ]
             features = ["Real-time chat dispatch", "Channel topic switcher", "Presence heartbeat simulator"]
 
-        elif any(w in lower for w in ("book", "books", "bookstore", "book selling", "bookseller", "author", "publishing", "novel", "reader", "literature", "library")):
+        elif (re.search(r"\b(book|books|bookstore|bookseller|publishing|novel|literature|library)\b", lower) or "book selling" in lower) and not any(w in lower for w in ("airbnb", "hotel", "lodging", "stay", "resort", "vacation")):
             category = "E-Commerce & Digital Book Marketplace"
             tagline = "Online book selling platform with book catalog, genre browsing, shopping cart, sample reader, and instant checkout."
             stakeholders = ["Book Reader / Buyer", "Author / Publisher", "Store Admin"]
@@ -245,6 +245,56 @@ class UniversalAppSynthesizer:
                 "Instant Razorpay order payment checkout with receipt generation",
                 "Built-in book sample reader modal with excerpt preview",
                 "Admin inventory management console to add books and track stock",
+            ]
+
+        elif any(w in lower for w in ("amazon", "ecommerce", "e-commerce", "marketplace", "shopping", "retail", "store", "online shop")) and not any(w in lower for w in ("book", "books", "bookstore")):
+            category = "E-Commerce & Retail Marketplace (Amazon Clone)"
+            tagline = "Enterprise multi-department retail marketplace with product search, Prime delivery, slide-out cart, customer reviews, and simulated checkout."
+            stakeholders = ["Customer / Shopper", "Merchant / Seller", "Logistics Driver", "Platform Admin"]
+            palette = {"primary": "#FF9900", "accent": "#146EB4", "bg": "#0B0F19", "card": "#131C2E"}
+            entities = [
+                {"name": "ProductItem", "description": "ASIN, title, department, price, rating, reviewsCount, primeEligible, inStock, specs"},
+                {"name": "CartItem", "description": "ProductId, title, unitPrice, quantity, total, primeDelivery"},
+                {"name": "OrderRecord", "description": "OrderId, customerEmail, shippingAddress, deliverySpeed, paymentMethod, items, subtotal, tax, totalAmount, status"},
+                {"name": "CustomerReview", "description": "ProductId, reviewer, rating, title, comment, verifiedPurchase, date"},
+            ]
+            screens = [
+                {"id": "catalog", "name": "Storefront & Department Grid"},
+                {"id": "cart", "name": "Slide-Out Cart & Checkout"},
+                {"id": "orders", "name": "Order Tracking & History"},
+                {"id": "seller", "name": "Merchant Inventory Hub"},
+            ]
+            features = [
+                "Real-time product search with department filtering (Electronics, Audio, Computers, Home, Books)",
+                "Slide-out interactive Cart drawer with quantity controls (+/-) and free Prime shipping progress",
+                "Amazon 1-Click simulated checkout modal with shipping address, delivery speed, and payment method",
+                "Product detail modal with specs, high-resolution emojis, and customer review submissions",
+                "Merchant inventory console to add products and adjust prices live",
+            ]
+
+        elif any(w in lower for w in ("airbnb", "hotel", "lodging", "stay", "vacation rental", "resort", "host", "booking", "apartment", "villa", "travel rental")):
+            category = "Vacation Rentals & Hospitality (Airbnb Clone)"
+            tagline = "Worldwide boutique vacation rentals and homes with search filters, date picker, booking breakdown, host profiles, and instant reservation confirmation."
+            stakeholders = ["Guest / Traveler", "Superhost / Property Owner", "Property Inspector", "Platform Admin"]
+            palette = {"primary": "#FF385C", "accent": "#00A699", "bg": "#090D16", "card": "#121A2A"}
+            entities = [
+                {"name": "PropertyListing", "description": "ListingId, title, location, category, pricePerNight, rating, reviewsCount, isSuperhost, amenities, maxGuests, bedrooms"},
+                {"name": "Reservation", "description": "ReservationId, listingId, guestName, checkIn, checkOut, nights, nightlyRate, cleaningFee, serviceFee, totalAmount, status"},
+                {"name": "HostProfile", "description": "HostId, name, badge, responseTime, rating, bio, joinedYear"},
+                {"name": "HostMessage", "description": "MessageId, sender, text, timestamp, isFromHost"},
+            ]
+            screens = [
+                {"id": "explore", "name": "Explore Stays & Category Carousel"},
+                {"id": "booking", "name": "Reservation Summary & Booking"},
+                {"id": "messages", "name": "Direct Messaging with Superhosts"},
+                {"id": "host_hub", "name": "List Your Property Console"},
+            ]
+            features = [
+                "Search by destination, check-in / check-out dates, and guest count with live filtering",
+                "Category filter bar: Beachfront, Cabins, Mansions, Tiny Homes, Trending, Countryside",
+                "Interactive Reservation modal with nights calculation, cleaning and service fees, and booking receipt",
+                "Live simulated messaging chat with verified Superhosts",
+                "Host onboarding modal to list new properties dynamically in the catalog",
             ]
 
         else:
@@ -460,6 +510,10 @@ __BUTTONS__
             domain_kind = "transit"
         elif any(w in lower_title or w in lower_cat for w in ("book", "books", "bookstore", "book selling", "bookseller", "author", "publishing", "novel", "reader", "literature", "library")):
             domain_kind = "bookstore"
+        elif any(w in lower_title or w in lower_cat for w in ("amazon", "ecommerce", "e-commerce", "marketplace", "shopping", "retail", "store", "online shop", "cart")):
+            domain_kind = "amazon"
+        elif any(w in lower_title or w in lower_cat for w in ("airbnb", "hotel", "lodging", "stay", "vacation rental", "resort", "host", "booking", "apartment", "villa", "travel rental")):
+            domain_kind = "airbnb"
         else:
             domain_kind = "kanban"
 
@@ -1642,6 +1696,450 @@ __BUTTONS__
     }}
 
     // ==========================================
+    // AMAZON E-COMMERCE MARKETPLACE LOGIC
+    // ==========================================
+    const amazonProducts = [
+      {{ id: 'amz_1', title: 'Echo Dot (5th Gen) Smart Speaker with Alexa', dept: 'Electronics', price: 49.99, origPrice: 59.99, rating: '★ 4.8', reviews: 48290, prime: true, emoji: '🔊', badge: 'Best Seller', specs: 'Rich audio with vibrant bass, Alexa voice control, Motion detection' }},
+      {{ id: 'amz_2', title: 'Sony WH-1000XM5 Wireless Noise Canceling Headphones', dept: 'Audio', price: 348.00, origPrice: 399.99, rating: '★ 4.7', reviews: 12410, prime: true, emoji: '🎧', badge: "Amazon's Choice", specs: 'Industry-leading noise cancelation, 30h battery, ultra-comfortable' }},
+      {{ id: 'amz_3', title: 'Apple MacBook Air 13-inch M3 Chip 16GB Memory', dept: 'Computers', price: 1049.00, origPrice: 1199.00, rating: '★ 4.9', reviews: 3850, prime: true, emoji: '💻', badge: 'Top Rated', specs: 'M3 8-core CPU, 10-core GPU, Liquid Retina Display, MagSafe 3' }},
+      {{ id: 'amz_4', title: 'Kindle Paperwhite 16GB 6.8-inch Glare-Free Display', dept: 'Books', price: 149.99, origPrice: 169.99, rating: '★ 4.8', reviews: 29180, prime: true, emoji: '📖', badge: 'Best Seller', specs: 'Warm adjustable light, up to 10 weeks battery, IPX8 waterproof' }},
+      {{ id: 'amz_5', title: 'Ninja AF101 Air Fryer 4 Qt Convection Roaster', dept: 'Home', price: 89.95, origPrice: 129.99, rating: '★ 4.8', reviews: 62100, prime: true, emoji: '🍳', badge: 'Prime Deal', specs: 'Crisp finish, 4-in-1 versatility, dishwasher safe basket' }},
+      {{ id: 'amz_6', title: 'Logitech MX Master 3S Wireless Performance Mouse', dept: 'Electronics', price: 99.99, origPrice: 109.99, rating: '★ 4.7', reviews: 18920, prime: true, emoji: '🖱️', badge: "Amazon's Choice", specs: 'Quiet clicks, 8K DPI sensor, works on glass, MagSpeed scrolling' }},
+      {{ id: 'amz_7', title: 'Samsung 49-inch Odyssey OLED G9 Curved Monitor', dept: 'Computers', price: 1199.99, origPrice: 1599.99, rating: '★ 4.6', reviews: 1420, prime: true, emoji: '🖥️', badge: 'Deal of the Day', specs: '0.03ms response time, 240Hz, Neo Quantum Processor Pro' }},
+      {{ id: 'amz_8', title: 'Stanley Quencher H2.0 FlowState Tumbler 40 oz', dept: 'Home', price: 45.00, origPrice: 45.00, rating: '★ 4.7', reviews: 34500, prime: true, emoji: '🥤', badge: 'Trending', specs: 'Recycled stainless steel, double-wall vacuum insulation, car cup compatible' }},
+    ];
+    let amazonCart = [];
+    let amazonOrders = [];
+    let selectedAmazonDept = 'All';
+
+    function buildAmazonUI() {{
+      return `
+        <div style="display:flex; flex-direction:column; gap:16px;">
+          <!-- Top Amazon Search & Category Bar -->
+          <div style="background:#080e18; border:1px solid var(--line); border-radius:12px; padding:12px; display:flex; flex-direction:column; gap:10px;">
+            <div style="display:flex; gap:10px; align-items:center;">
+              <select id="amzDeptSelect" onchange="filterAmazonByDept(this.value)" style="background:#030712; border:1px solid var(--line); color:var(--muted); border-radius:8px; padding:8px 10px; font-size:12px;">
+                <option value="All">All Departments</option>
+                <option value="Electronics">Electronics</option>
+                <option value="Audio">Audio</option>
+                <option value="Computers">Computers</option>
+                <option value="Books">Books</option>
+                <option value="Home">Home & Kitchen</option>
+              </select>
+              <input id="amzSearchInput" oninput="searchAmazonProducts(this.value)" placeholder="Search Amazon Products, Deals, Best Sellers..." style="flex:1; background:#030712; border:1px solid var(--line); color:#fff; border-radius:8px; padding:8px 12px; font-size:13px;" />
+              <button class="btn" style="background:#f59e0b; color:#021220; font-weight:800; padding:8px 16px;">🔍 Search</button>
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center; font-size:12px;">
+              <div style="display:flex; gap:8px;">
+                <span class="badge" style="background:rgba(245,158,11,0.15); color:#f59e0b;">⚡ Prime 1-Day Delivery Active</span>
+                <span style="color:var(--muted); display:flex; align-items:center; gap:4px;">Deliver to: <b>New York 10001</b></span>
+              </div>
+              <div style="display:flex; gap:10px;">
+                <button class="btn btn-secondary" style="font-size:11px;" onclick="toggleAmazonSellerHub()">📦 Seller Inventory</button>
+                <button class="btn" style="background:#f59e0b; color:#021220; font-size:11px;" onclick="openAmazonCartModal()">🛒 Cart (<span id="amzCartBadge">0</span>)</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Product Grid -->
+          <div id="amzProductGrid" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(240px, 1fr)); gap:14px;"></div>
+
+          <!-- Slide-out / Modal Cart -->
+          <div id="amzCartModal" class="modal-overlay" style="display:none;">
+            <div class="modal-card" style="max-width:520px;">
+              <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--line); padding-bottom:10px;">
+                <strong style="font-size:15px;">🛒 Shopping Cart (<span id="amzCartTotalItems">0</span> items)</strong>
+                <button class="btn btn-secondary" onclick="closeAmazonCartModal()">✕</button>
+              </div>
+              <div id="amzCartItemsList" style="display:flex; flex-direction:column; gap:10px; max-height:280px; overflow-y:auto; margin:10px 0;"></div>
+              <div style="border-top:1px solid var(--line); padding-top:12px; display:flex; justify-content:space-between; font-size:15px; font-weight:800;">
+                <span>Subtotal (Free Prime Delivery):</span>
+                <span id="amzCartSubtotal" style="color:#f59e0b;">$0.00</span>
+              </div>
+              <button class="btn" style="width:100%; background:#f59e0b; color:#021220; font-weight:800; font-size:13px; margin-top:10px;" onclick="openAmazonCheckoutModal()">Proceed to 1-Click Checkout</button>
+            </div>
+          </div>
+
+          <!-- Amazon Checkout Modal -->
+          <div id="amzCheckoutModal" class="modal-overlay" style="display:none;">
+            <div class="modal-card" style="max-width:480px;">
+              <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--line); padding-bottom:10px;">
+                <div style="display:flex; align-items:center; gap:8px;">
+                  <span style="font-size:20px;">📦</span>
+                  <strong>Amazon Secure 1-Click Checkout</strong>
+                </div>
+                <button class="btn btn-secondary" onclick="closeAmazonCheckoutModal()">✕</button>
+              </div>
+              <div style="display:flex; flex-direction:column; gap:12px; font-size:12px; margin:12px 0;">
+                <div style="background:#080e18; border:1px solid var(--line); border-radius:8px; padding:10px;">
+                  <strong style="color:#f59e0b;">1. Shipping Address</strong>
+                  <p style="color:var(--muted); margin-top:4px;">Alex Rivera · 742 Evergreen Terrace, New York, NY 10001</p>
+                </div>
+                <div style="background:#080e18; border:1px solid var(--line); border-radius:8px; padding:10px;">
+                  <strong style="color:#f59e0b;">2. Payment Method</strong>
+                  <p style="color:var(--muted); margin-top:4px;">Amazon Pay Balance / Visa ending in 4242 · Free Zero-Commission</p>
+                </div>
+                <div style="background:#080e18; border:1px solid var(--line); border-radius:8px; padding:10px;">
+                  <strong style="color:#f59e0b;">3. Delivery Speed</strong>
+                  <p style="color:var(--accent); margin-top:4px;">✓ FREE Prime Guaranteed Next-Day Delivery (Tomorrow by 9 PM)</p>
+                </div>
+                <div style="border-top:1px solid var(--line); padding-top:10px; display:flex; justify-content:space-between; font-size:16px; font-weight:900;">
+                  <span>Order Total:</span>
+                  <span id="amzCheckoutTotal" style="color:#f59e0b;">$0.00</span>
+                </div>
+              </div>
+              <button class="btn" style="width:100%; background:#f59e0b; color:#021220; font-weight:900; font-size:14px;" onclick="placeAmazonOrder()">Place Your Order and Pay</button>
+            </div>
+          </div>
+        </div>
+      `;
+    }}
+
+    function renderAmazonCatalog() {{
+      const grid = document.getElementById('amzProductGrid');
+      if (!grid) return;
+      const search = (document.getElementById('amzSearchInput')?.value || '').toLowerCase();
+      const filtered = amazonProducts.filter(p => {{
+        const matchDept = selectedAmazonDept === 'All' || p.dept === selectedAmazonDept;
+        const matchSearch = !search || p.title.toLowerCase().includes(search) || p.dept.toLowerCase().includes(search);
+        return matchDept && matchSearch;
+      }});
+
+      grid.innerHTML = filtered.map(p => `
+        <div style="background:#080d18; border:1px solid var(--line); border-radius:12px; padding:14px; display:flex; flex-direction:column; justify-content:space-between; gap:10px;">
+          <div>
+            <div style="height:110px; background:#020617; border-radius:8px; display:flex; flex-direction:column; align-items:center; justify-content:center; font-size:42px; position:relative;">
+              ${{p.emoji}}
+              <span style="position:absolute; top:8px; left:8px; background:#b12704; color:#fff; font-size:10px; font-weight:800; padding:2px 6px; border-radius:4px;">${{p.badge}}</span>
+            </div>
+            <div style="margin-top:10px;">
+              <small style="color:var(--muted); font-size:11px;">${{p.dept}}</small>
+              <h4 style="font-size:13px; font-weight:700; margin-top:2px; line-height:1.4;">${{p.title}}</h4>
+              <div style="display:flex; align-items:center; gap:6px; margin-top:4px;">
+                <span style="color:#f59e0b; font-size:12px;">${{p.rating}}</span>
+                <span style="color:var(--muted); font-size:11px;">(${{p.reviews.toLocaleString()}})</span>
+              </div>
+              <div style="margin-top:6px; display:flex; align-items:baseline; gap:6px;">
+                <span style="font-size:18px; font-weight:900; color:#fff;">$${{p.price.toFixed(2)}}</span>
+                <span style="font-size:11px; text-decoration:line-through; color:var(--muted);">$${{p.origPrice.toFixed(2)}}</span>
+              </div>
+              <div style="margin-top:4px; font-size:11px; color:#00a8e1; font-weight:800;">✓ Prime One-Day</div>
+            </div>
+          </div>
+          <button class="btn" style="background:#f59e0b; color:#021220; font-weight:800; font-size:12px;" onclick="addAmazonCartItem('${{p.id}}')">Add to Cart</button>
+        </div>
+      `).join('');
+    }}
+
+    function filterAmazonByDept(dept) {{
+      selectedAmazonDept = dept;
+      renderAmazonCatalog();
+    }}
+
+    function searchAmazonProducts(val) {{
+      renderAmazonCatalog();
+    }}
+
+    function addAmazonCartItem(id) {{
+      const prod = amazonProducts.find(p => p.id === id);
+      if (!prod) return;
+      const exist = amazonCart.find(c => c.id === id);
+      if (exist) {{
+        exist.qty += 1;
+      }} else {{
+        amazonCart.push({{ ...prod, qty: 1 }});
+      }}
+      updateAmazonCartBadge();
+      alert(`Added "${{prod.title}}" to your Amazon Cart!`);
+    }}
+
+    function updateAmazonCartBadge() {{
+      const totalItems = amazonCart.reduce((sum, item) => sum + item.qty, 0);
+      const b = document.getElementById('amzCartBadge');
+      if (b) b.innerText = totalItems;
+      const subtotal = amazonCart.reduce((sum, item) => sum + item.qty * item.price, 0);
+      const subEl = document.getElementById('amzCartSubtotal');
+      if (subEl) subEl.innerText = '$' + subtotal.toFixed(2);
+      const chkEl = document.getElementById('amzCheckoutTotal');
+      if (chkEl) chkEl.innerText = '$' + subtotal.toFixed(2);
+    }}
+
+    function openAmazonCartModal() {{
+      const modal = document.getElementById('amzCartModal');
+      const list = document.getElementById('amzCartItemsList');
+      if (!modal || !list) return;
+      if (amazonCart.length === 0) {{
+        list.innerHTML = '<p style="color:var(--muted); text-align:center; padding:20px;">Your Amazon Cart is empty.</p>';
+      }} else {{
+        list.innerHTML = amazonCart.map(item => `
+          <div style="display:flex; justify-content:space-between; align-items:center; background:#080e18; border:1px solid var(--line); border-radius:8px; padding:10px;">
+            <div>
+              <strong style="font-size:13px;">${{item.title}}</strong>
+              <p style="color:#f59e0b; font-weight:800; font-size:12px; margin-top:2px;">$${{item.price.toFixed(2)}} each</p>
+            </div>
+            <div style="display:flex; align-items:center; gap:6px;">
+              <button class="btn btn-secondary" style="padding:2px 8px;" onclick="changeAmazonQty('${{item.id}}', -1)">-</button>
+              <span style="font-weight:800; font-size:12px;">${{item.qty}}</span>
+              <button class="btn btn-secondary" style="padding:2px 8px;" onclick="changeAmazonQty('${{item.id}}', 1)">+</button>
+            </div>
+          </div>
+        `).join('');
+      }}
+      updateAmazonCartBadge();
+      modal.style.display = 'flex';
+    }}
+
+    function closeAmazonCartModal() {{
+      const modal = document.getElementById('amzCartModal');
+      if (modal) modal.style.display = 'none';
+    }}
+
+    function changeAmazonQty(id, delta) {{
+      const item = amazonCart.find(c => c.id === id);
+      if (!item) return;
+      item.qty += delta;
+      if (item.qty <= 0) {{
+        amazonCart = amazonCart.filter(c => c.id !== id);
+      }}
+      openAmazonCartModal();
+    }}
+
+    function openAmazonCheckoutModal() {{
+      closeAmazonCartModal();
+      const modal = document.getElementById('amzCheckoutModal');
+      if (modal) modal.style.display = 'flex';
+    }}
+
+    function closeAmazonCheckoutModal() {{
+      const modal = document.getElementById('amzCheckoutModal');
+      if (modal) modal.style.display = 'none';
+    }}
+
+    function placeAmazonOrder() {{
+      const subtotal = amazonCart.reduce((sum, item) => sum + item.qty * item.price, 0);
+      const orderId = 'AMZ-' + Math.floor(100000 + Math.random() * 900000);
+      alert(`🎉 Amazon Order Confirmed!\n\nOrder ID: #${{orderId}}\nTotal: $${{subtotal.toFixed(2)}}\nPrime Guaranteed Delivery: Tomorrow by 9:00 PM\nCarrier: Amazon Logistics (GPS Live Tracking enabled)`);
+      amazonCart = [];
+      updateAmazonCartBadge();
+      closeAmazonCheckoutModal();
+    }}
+
+    function toggleAmazonSellerHub() {{
+      const title = prompt('Enter new Product Name to list in Amazon catalog:');
+      if (!title) return;
+      const dept = prompt('Department (Electronics, Audio, Computers, Books, Home):', 'Electronics') || 'Electronics';
+      const price = parseFloat(prompt('Retail Price ($):', '99.99')) || 99.99;
+      amazonProducts.unshift({{
+        id: 'amz_' + Date.now(),
+        title,
+        dept,
+        price,
+        origPrice: price * 1.2,
+        rating: '★ 5.0',
+        reviews: 1,
+        prime: true,
+        emoji: '📦',
+        badge: 'New Release',
+        specs: 'Newly listed Amazon marketplace inventory item'
+      }});
+      renderAmazonCatalog();
+      alert(`✅ "${{title}}" is now live in the Amazon Prime store!`);
+    }}
+
+    // ==========================================
+    // AIRBNB VACATION RENTALS LOGIC
+    // ==========================================
+    const airbnbStays = [
+      {{ id: 'ab_1', title: 'Malibu Oceanfront Glass Villa', location: 'Malibu, California', category: 'Beachfront', price: 450, rating: '★ 4.98', reviews: 184, isSuperhost: true, guests: 6, emoji: '🌊', host: 'Sarah M. (Superhost)', desc: 'Private beach access with 180° Pacific Ocean sunset panorama' }},
+      {{ id: 'ab_2', title: 'Zermatt Matterhorn Luxury Chalet', location: 'Zermatt, Switzerland', category: 'Cabins', price: 580, rating: '★ 4.96', reviews: 142, isSuperhost: true, guests: 8, emoji: '🏔️', host: 'Hans & Heidi (Superhost)', desc: 'Direct view of Matterhorn with private alpine sauna & fireplace' }},
+      {{ id: 'ab_3', title: 'Traditional Kyoto Machiya Garden House', location: 'Kyoto, Japan', category: 'Trending', price: 220, rating: '★ 4.99', reviews: 312, isSuperhost: true, guests: 4, emoji: '⛩️', host: 'Kenji S. (Superhost)', desc: 'Centuries-old cedar home with Japanese rock garden and hinoki tub' }},
+      {{ id: 'ab_4', title: 'Amalfi Cliffside Infinity Pool Villa', location: 'Amalfi, Italy', category: 'Mansions', price: 395, rating: '★ 4.94', reviews: 98, isSuperhost: true, guests: 6, emoji: '🍋', host: 'Marco & Giulia (Superhost)', desc: 'Cliff-edge infinity pool overlooking the turquoise Mediterranean Sea' }},
+      {{ id: 'ab_5', title: 'Aspen Snowmass Ski-in Ski-out Chalet', location: 'Aspen, Colorado', category: 'Cabins', price: 650, rating: '★ 4.97', reviews: 120, isSuperhost: true, guests: 10, emoji: '❄️', host: 'Braden T. (Superhost)', desc: 'Direct slope access with heated hot tub, ski locker, and gourmet kitchen' }},
+      {{ id: 'ab_6', title: 'Santorini Oia Sunset Cave Villa', location: 'Santorini, Greece', category: 'Beachfront', price: 340, rating: '★ 4.95', reviews: 260, isSuperhost: true, guests: 2, emoji: '🏛️', host: 'Elena V. (Superhost)', desc: 'Whitewashed cave suite with private caldera heated plunge pool' }},
+      {{ id: 'ab_7', title: 'Redwood Forest Treehouse Sanctuary', location: 'Santa Cruz, California', category: 'Treehouses', price: 195, rating: '★ 4.92', reviews: 410, isSuperhost: true, guests: 2, emoji: '🌲', host: 'Sky & Chloe (Superhost)', desc: 'Suspended 35ft up in giant coastal redwoods with stargazing skylight' }},
+      {{ id: 'ab_8', title: 'Parisian Haussmann Balcony Loft', location: 'Paris, France', category: 'Trending', price: 285, rating: '★ 4.91', reviews: 175, isSuperhost: true, guests: 3, emoji: '🥐', host: 'Antoine D. (Superhost)', desc: 'Classic wrought iron balcony overlooking cobblestone street near Le Marais' }}
+    ];
+    let selectedAirbnbCat = 'All';
+    let selectedStayForBooking = null;
+
+    function buildAirbnbUI() {{
+      return `
+        <div style="display:flex; flex-direction:column; gap:16px;">
+          <!-- Top Airbnb Search & Category Pill Bar -->
+          <div style="background:#080e18; border:1px solid var(--line); border-radius:14px; padding:12px; display:flex; flex-direction:column; gap:12px;">
+            <div style="display:flex; gap:10px; align-items:center;">
+              <input id="abSearchInput" oninput="searchAirbnbStays(this.value)" placeholder="Search destinations (e.g. Malibu, Switzerland, Kyoto, Amalfi, Paris)..." style="flex:1; background:#030712; border:1px solid var(--line); color:#fff; border-radius:99px; padding:10px 18px; font-size:13px;" />
+              <button class="btn" style="background:#ff385c; color:#fff; border-radius:99px; font-weight:800; padding:10px 20px;">Search Stays</button>
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <div style="display:flex; gap:6px; overflow-x:auto; padding-bottom:4px;">
+                <button class="genre-chip active" onclick="filterAirbnbCat('All', this)">🌟 All Stays</button>
+                <button class="genre-chip" onclick="filterAirbnbCat('Beachfront', this)">🏖️ Beachfront</button>
+                <button class="genre-chip" onclick="filterAirbnbCat('Cabins', this)">🛖 Cabins</button>
+                <button class="genre-chip" onclick="filterAirbnbCat('Mansions', this)">🏰 Mansions</button>
+                <button class="genre-chip" onclick="filterAirbnbCat('Treehouses', this)">🌲 Treehouses</button>
+                <button class="genre-chip" onclick="filterAirbnbCat('Trending', this)">🔥 Trending</button>
+              </div>
+              <button class="btn btn-secondary" style="font-size:11px; white-space:nowrap;" onclick="hostAirbnbProperty()">🏡 Airbnb Your Home</button>
+            </div>
+          </div>
+
+          <!-- Stays Grid -->
+          <div id="airbnbStaysGrid" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(250px, 1fr)); gap:16px;"></div>
+
+          <!-- Booking Reservation Modal -->
+          <div id="airbnbBookingModal" class="modal-overlay" style="display:none;">
+            <div class="modal-card" style="max-width:460px;">
+              <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--line); padding-bottom:10px;">
+                <div>
+                  <h3 id="abModalTitle" style="font-size:15px; font-weight:800;"></h3>
+                  <small id="abModalLocation" style="color:var(--muted);"></small>
+                </div>
+                <button class="btn btn-secondary" onclick="closeAirbnbBookingModal()">✕</button>
+              </div>
+              <div style="display:flex; flex-direction:column; gap:12px; margin:12px 0; font-size:12px;">
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+                  <div style="background:#080e18; border:1px solid var(--line); border-radius:8px; padding:8px;">
+                    <small style="color:var(--muted);">CHECK-IN</small>
+                    <input type="date" id="abCheckInDate" value="2026-11-01" style="background:transparent; border:none; color:#fff; font-size:12px; width:100%;" onchange="calcAirbnbTotal()" />
+                  </div>
+                  <div style="background:#080e18; border:1px solid var(--line); border-radius:8px; padding:8px;">
+                    <small style="color:var(--muted);">CHECK-OUT</small>
+                    <input type="date" id="abCheckOutDate" value="2026-11-05" style="background:transparent; border:none; color:#fff; font-size:12px; width:100%;" onchange="calcAirbnbTotal()" />
+                  </div>
+                </div>
+                <div style="background:#080e18; border:1px solid var(--line); border-radius:8px; padding:10px; display:flex; flex-direction:column; gap:6px;">
+                  <div style="display:flex; justify-content:space-between;">
+                    <span id="abPriceCalcLabel">$0 x 4 nights</span>
+                    <span id="abBasePrice">$0</span>
+                  </div>
+                  <div style="display:flex; justify-content:space-between; color:var(--muted);">
+                    <span>Cleaning fee</span>
+                    <span>$65.00</span>
+                  </div>
+                  <div style="display:flex; justify-content:space-between; color:var(--muted);">
+                    <span>Airbnb service fee</span>
+                    <span>$45.00</span>
+                  </div>
+                  <div style="border-top:1px solid var(--line); padding-top:6px; display:flex; justify-content:space-between; font-weight:800; font-size:15px; color:#ff385c;">
+                    <span>Total before taxes:</span>
+                    <span id="abGrandTotal">$0.00</span>
+                  </div>
+                </div>
+              </div>
+              <button class="btn" style="width:100%; background:#ff385c; color:#fff; font-weight:800; font-size:14px;" onclick="confirmAirbnbReservation()">Reserve & Confirm Booking</button>
+            </div>
+          </div>
+        </div>
+      `;
+    }}
+
+    function renderAirbnbStays() {{
+      const grid = document.getElementById('airbnbStaysGrid');
+      if (!grid) return;
+      const search = (document.getElementById('abSearchInput')?.value || '').toLowerCase();
+      const filtered = airbnbStays.filter(s => {{
+        const matchCat = selectedAirbnbCat === 'All' || s.category === selectedAirbnbCat;
+        const matchSearch = !search || s.title.toLowerCase().includes(search) || s.location.toLowerCase().includes(search);
+        return matchCat && matchSearch;
+      }});
+
+      grid.innerHTML = filtered.map(s => `
+        <div style="background:#080d18; border:1px solid var(--line); border-radius:14px; overflow:hidden; display:flex; flex-direction:column; justify-content:space-between;">
+          <div style="height:140px; background:#020617; display:flex; flex-direction:column; align-items:center; justify-content:center; font-size:46px; position:relative;">
+            ${{s.emoji}}
+            <span style="position:absolute; top:8px; left:8px; background:rgba(0,0,0,0.75); color:#fff; font-size:10px; font-weight:800; padding:2px 8px; border-radius:6px; backdrop-filter:blur(4px);">★ ${{s.isSuperhost ? 'Superhost' : 'Verified'}}</span>
+          </div>
+          <div style="padding:12px; display:flex; flex-direction:column; gap:6px;">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+              <strong style="font-size:13px; font-weight:800; line-height:1.3;">${{s.title}}</strong>
+              <span style="font-size:12px; color:#ff385c; font-weight:700;">${{s.rating}}</span>
+            </div>
+            <p style="color:var(--muted); font-size:11px;">${{s.location}}</p>
+            <p style="color:#94a3b8; font-size:11px; line-height:1.4;">${{s.desc}}</p>
+            <div style="margin-top:6px; display:flex; justify-content:space-between; align-items:center;">
+              <div>
+                <span style="font-size:16px; font-weight:900; color:#fff;">$${{s.price}}</span>
+                <small style="color:var(--muted);"> / night</small>
+              </div>
+              <button class="btn" style="background:#ff385c; color:#fff; font-size:11px; padding:6px 14px;" onclick="openAirbnbBookingModal('${{s.id}}')">Reserve</button>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }}
+
+    function filterAirbnbCat(cat, btn) {{
+      selectedAirbnbCat = cat;
+      if (btn) {{
+        document.querySelectorAll('.genre-chip').forEach(c => c.classList.remove('active'));
+        btn.classList.add('active');
+      }}
+      renderAirbnbStays();
+    }}
+
+    function searchAirbnbStays(val) {{
+      renderAirbnbStays();
+    }}
+
+    function openAirbnbBookingModal(id) {{
+      const stay = airbnbStays.find(s => s.id === id);
+      if (!stay) return;
+      selectedStayForBooking = stay;
+      document.getElementById('abModalTitle').innerText = stay.title;
+      document.getElementById('abModalLocation').innerText = `${{stay.location}} · Hosted by ${{stay.host}}`;
+      calcAirbnbTotal();
+      document.getElementById('airbnbBookingModal').style.display = 'flex';
+    }}
+
+    function closeAirbnbBookingModal() {{
+      const modal = document.getElementById('airbnbBookingModal');
+      if (modal) modal.style.display = 'none';
+    }}
+
+    function calcAirbnbTotal() {{
+      if (!selectedStayForBooking) return;
+      const price = selectedStayForBooking.price;
+      const nights = 4;
+      const base = price * nights;
+      const total = base + 65 + 45;
+      document.getElementById('abPriceCalcLabel').innerText = `$${{price}} x ${{nights}} nights`;
+      document.getElementById('abBasePrice').innerText = `$${{base.toFixed(2)}}`;
+      document.getElementById('abGrandTotal').innerText = `$${{total.toFixed(2)}}`;
+    }}
+
+    function confirmAirbnbReservation() {{
+      if (!selectedStayForBooking) return;
+      const resCode = 'HMZ-AB-' + Math.floor(100000 + Math.random() * 900000);
+      alert(`🎉 Reservation Confirmed!\n\nBooking Reference: #${{resCode}}\nStay: ${{selectedStayForBooking.title}}\nLocation: ${{selectedStayForBooking.location}}\nHost: ${{selectedStayForBooking.host}}\nCheck-in: 3:00 PM · Digital Key code sent.`);
+      closeAirbnbBookingModal();
+    }}
+
+    function hostAirbnbProperty() {{
+      const title = prompt('Property Name (e.g. Modern Glass Loft with City Skyline):');
+      if (!title) return;
+      const location = prompt('Location (City, Country):', 'San Francisco, California') || 'San Francisco, California';
+      const category = prompt('Category (Beachfront, Cabins, Mansions, Treehouses, Trending):', 'Trending') || 'Trending';
+      const price = parseFloat(prompt('Nightly Rate ($):', '250')) || 250;
+      airbnbStays.unshift({{
+        id: 'ab_' + Date.now(),
+        title,
+        location,
+        category,
+        price,
+        rating: '★ New',
+        reviews: 0,
+        isSuperhost: true,
+        guests: 4,
+        emoji: '🏡',
+        host: 'You (New Host)',
+        desc: 'Newly listed luxury stay available for instant guest booking'
+      }});
+      renderAirbnbStays();
+      alert(`✅ "${{title}}" is now listed and available on Airbnb!`);
+    }}
+
+    // ==========================================
     // INITIALIZATION ROUTER
     // ==========================================
     const root = document.getElementById('domainWidgetRoot');
@@ -1673,6 +2171,12 @@ __BUTTONS__
         if (e) e.innerText = '$' + ethPrice.toLocaleString('en-US', {{ minimumFractionDigits: 2, maximumFractionDigits: 2 }});
         if (s) s.innerText = '$' + solPrice.toLocaleString('en-US', {{ minimumFractionDigits: 2, maximumFractionDigits: 2 }});
       }}, 3000);
+    }} else if (domainKind === 'amazon') {{
+      root.innerHTML = buildAmazonUI();
+      renderAmazonCatalog();
+    }} else if (domainKind === 'airbnb') {{
+      root.innerHTML = buildAirbnbUI();
+      renderAirbnbStays();
     }} else if (domainKind === 'bookstore') {{
       root.innerHTML = buildBookstoreUI();
       renderBookCatalog();
