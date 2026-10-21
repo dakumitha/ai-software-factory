@@ -1287,17 +1287,22 @@ class ApiHandler(BaseHTTPRequestHandler):
                 provider = str(body.get("provider", ApiHandler.ai_provider)).strip().lower()
                 key = str(body.get("api_key", body.get("key", ""))).strip() or ApiHandler.provider_keys.get(provider, "")
                 base_url = str(body.get("base_url", body.get("endpoint", ""))).strip() or ApiHandler.provider_urls.get(provider, "")
+                model = str(body.get("model", "")).strip()
+                timeout = float(body.get("timeout", 15.0))
 
-                latency_ms = 35 if provider in {"cerebras", "groq"} else 92
-                return self._send(200, {
-                    "provider": provider,
-                    "connected": True,
-                    "latency_ms": latency_ms,
-                    "has_key": bool(key),
-                    "endpoint": base_url or "default catalog endpoint",
-                    "zero_spend_verified": True,
-                    "message": f"Successfully verified connection to {provider.upper()} API. Zero-spend quota active.",
-                })
+                # Real provider-specific verification — never returns a fabricated result
+                from .provider_verification import verify_provider
+                result = verify_provider(
+                    provider=provider,
+                    api_key=key,
+                    model=model,
+                    base_url=base_url,
+                    timeout=min(timeout, 30.0),
+                )
+                resp = result.to_dict()
+                resp["has_key"] = bool(key)
+                http_code = 200
+                return self._send(http_code, resp)
             if len(parts) == 3 and parts[0] == "jobs" and parts[2] == "autonomous-generate":
                 job = self.store.get_job(parts[1])
                 if not job:

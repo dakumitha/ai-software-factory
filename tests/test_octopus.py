@@ -178,10 +178,43 @@ class OctopusSwarmApiTests(unittest.TestCase):
         self.assertTrue(data["groq"]["configured"])
         self.assertEqual(data["active_provider"], "gemini")
 
-        # 3. Test ping provider
-        status, data = self.request("/ai/keys/test", method="POST", payload={"provider": "gemini"})
+        # 3. Test ping provider — real verification now issues a real HTTP call.
+        # The test key "AIzaSyTestKey12345678" is not a real Gemini credential,
+        # so the real provider will reject it. We mock the HTTP layer to confirm
+        # that an honest failure (not a fabricated success) is returned when the
+        # provider rejects the key, and that a mocked success returns correctly.
+        from unittest.mock import patch
+        import urllib.error
+        import json as _json
+
+        # Sub-case A: provider correctly rejects a test/dummy key
+        class _FakeAuthError(urllib.error.HTTPError):
+            def __init__(self):
+                super().__init__("http://mock", 403, "Forbidden", {}, None)
+            def read(self):
+                return b'{"error": {"code": 403, "status": "PERMISSION_DENIED"}}'
+
+        with patch("software_factory.provider_verification.urllib.request.urlopen") as mu:
+            mu.side_effect = _FakeAuthError()
+            status, data = self.request("/ai/keys/test", method="POST", payload={"provider": "gemini"})
+        self.assertEqual(status, 200)
+        self.assertFalse(data["connected"])
+        self.assertIn(data["status"], {"AUTHENTICATION_FAILED", "PROVIDER_MISMATCH"})
+
+        # Sub-case B: mocked success — provider accepts the key
+        gemini_mock_response = {"models": [{"name": "models/gemini-1.5-flash"}]}
+        raw = _json.dumps(gemini_mock_response).encode("utf-8")
+        from unittest.mock import MagicMock
+        cm = MagicMock()
+        cm.__enter__ = MagicMock(return_value=cm)
+        cm.__exit__ = MagicMock(return_value=False)
+        cm.status = 200
+        cm.read = MagicMock(return_value=raw)
+        with patch("software_factory.provider_verification.urllib.request.urlopen", return_value=cm):
+            status, data = self.request("/ai/keys/test", method="POST", payload={"provider": "gemini"})
         self.assertEqual(status, 200)
         self.assertTrue(data["connected"])
+        self.assertEqual(data["status"], "CONNECTED")
         self.assertGreater(data["latency_ms"], 0)
 
 

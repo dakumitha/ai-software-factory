@@ -176,16 +176,42 @@ class All34ProvidersApiTests(unittest.TestCase):
         self.assertTrue(prov_map["cloudflare"]["configured"])
 
     def test_test_connection_for_any_provider(self):
-        payload = {
-            "provider": "deepseek",
-            "api_key": "mock-deepseek-test-key",
-            "base_url": "https://api.deepseek.com/v1",
-        }
-        status, data = self.request("/ai/keys/test", method="POST", payload=payload)
+        """Test that /ai/keys/test issues a real (mocked) HTTP call and returns honest status.
+
+        The previous implementation always returned connected=True with a fake latency.
+        The new implementation contacts the actual provider endpoint. We verify it behaves
+        honestly: a mock-only key that does not reach a real provider returns a non-success
+        status (NETWORK_ERROR or AUTHENTICATION_FAILED) rather than a fabricated success.
+
+        For a genuinely successful test, see tests/test_provider_verification.py where
+        the HTTP layer is mocked at the provider_verification module level.
+        """
+        from unittest.mock import patch
+        import urllib.error
+
+        # Mock the provider HTTP call to return a 401 (provider rejects the test key)
+        class _FakeHTTPError(urllib.error.HTTPError):
+            def __init__(self):
+                super().__init__("http://mock", 401, "Unauthorized", {}, None)
+            def read(self):
+                return b'{"error": "invalid api key"}'
+
+        with patch("software_factory.provider_verification.urllib.request.urlopen") as mock_open:
+            mock_open.side_effect = _FakeHTTPError()
+            payload = {
+                "provider": "deepseek",
+                "api_key": "mock-deepseek-test-key",
+                "base_url": "https://api.deepseek.com/v1",
+            }
+            status, data = self.request("/ai/keys/test", method="POST", payload=payload)
+
         self.assertEqual(status, 200)
-        self.assertTrue(data["connected"])
+        # Honest result: the mocked provider rejected the key
+        self.assertFalse(data["connected"])
         self.assertEqual(data["provider"], "deepseek")
+        self.assertIn(data["status"], {"AUTHENTICATION_FAILED", "PROVIDER_MISMATCH"})
         self.assertTrue(data["zero_spend_verified"])
+        self.assertNotIn("mock-deepseek-test-key", str(data))  # secret not in payload
 
 
 if __name__ == "__main__":
