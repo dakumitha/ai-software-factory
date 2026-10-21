@@ -50,6 +50,7 @@ def serve_web(host: str = "127.0.0.1", port: int = 8080,
     WebHandler.specs = SpecStore(WebHandler.store)
     WebHandler.api_registry = ApiRegistry(database)
     WebHandler.build_plan = staticmethod(build_plan)
+    WebHandler.load_persisted_keys()
     server = ThreadingHTTPServer((host, port), WebHandler)
     print(f"AI Software Factory connected control room: http://{host}:{port}")
     print(f"Database: {database}; remote worker: not connected; agent execution: disabled")

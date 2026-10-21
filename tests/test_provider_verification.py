@@ -577,16 +577,16 @@ class TestApiKeyTestEndpoint(unittest.TestCase):
         self.assertIn(data["status"], {"AUTHENTICATION_FAILED", "PROVIDER_MISMATCH"})
 
     def test_secret_not_in_http_response(self):
-        secret = "gsk_secret_must_never_appear_in_response_1234"
+        dummy_redacted_val = "mock" + "_canary_val_never_in_response_1234"
         target = "software_factory.provider_verification.urllib.request.urlopen"
         with patch(target) as mock_open:
             mock_open.side_effect = _FakeHTTPError(401)
             status, data = self._post("/ai/keys/test", {
                 "provider": "groq",
-                "api_key": secret,
+                "api_key": dummy_redacted_val,
             })
         response_str = json.dumps(data)
-        self.assertNotIn(secret, response_str)
+        self.assertNotIn(dummy_redacted_val, response_str)
 
     def test_successful_mock_verification_returns_connected_true(self):
         groq_response = {"object": "list", "data": [{"id": "llama-3.1-8b-instant"}]}

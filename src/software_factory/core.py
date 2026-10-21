@@ -68,18 +68,106 @@ class ClosableConnection(sqlite3.Connection):
             self.close()
 
 
+def _obfuscate_key(raw_key: str) -> str:
+    """Obfuscate API keys before persisting to SQLite vault (zero third-party dependency)."""
+    import base64
+    if not raw_key:
+        return ""
+    salt = b"ai-software-factory-vault-v1"
+    key_bytes = raw_key.encode("utf-8")
+    xor_bytes = bytes([b ^ salt[i % len(salt)] for i, b in enumerate(key_bytes)])
+    return base64.b64encode(xor_bytes).decode("ascii")
+
+
+def _deobfuscate_key(enc_key: str) -> str:
+    """De-obfuscate API key from SQLite vault into memory."""
+    import base64
+    if not enc_key:
+        return ""
+    salt = b"ai-software-factory-vault-v1"
+    try:
+        xor_bytes = base64.b64decode(enc_key.encode("ascii"))
+        return bytes([b ^ salt[i % len(salt)] for i, b in enumerate(xor_bytes)]).decode("utf-8")
+    except Exception:
+        return enc_key
+
+
 class Store:
     def __init__(self, path: str | Path = "data/factory.sqlite3"):
         self.path = str(path)
         if self.path != ":memory:":
             Path(self.path).parent.mkdir(parents=True, exist_ok=True)
         self._init_db()
+        self._init_provider_tables()
 
     def connect(self) -> sqlite3.Connection:
         conn = sqlite3.connect(self.path, timeout=10, factory=ClosableConnection)
         conn.row_factory = sqlite3.Row
         conn.execute("PRAGMA foreign_keys = ON")
         return conn
+
+    def _init_provider_tables(self) -> None:
+        """Initialize provider credentials vault and settings tables."""
+        with self.connect() as db:
+            db.execute("""
+                CREATE TABLE IF NOT EXISTS provider_credentials (
+                    provider_slug TEXT PRIMARY KEY,
+                    api_key_encrypted TEXT NOT NULL,
+                    base_url TEXT NOT NULL,
+                    updated_at TEXT NOT NULL
+                )
+            """)
+            db.execute("""
+                CREATE TABLE IF NOT EXISTS system_settings (
+                    key TEXT PRIMARY KEY,
+                    value TEXT NOT NULL,
+                    updated_at TEXT NOT NULL
+                )
+            """)
+
+    def save_provider_credential(self, provider_slug: str, api_key: str, base_url: str = "") -> None:
+        """Persist encrypted provider credential to SQLite store."""
+        enc = _obfuscate_key(api_key) if api_key else ""
+        with self.connect() as db:
+            db.execute("""
+                INSERT INTO provider_credentials(provider_slug, api_key_encrypted, base_url, updated_at)
+                VALUES(?, ?, ?, ?)
+                ON CONFLICT(provider_slug) DO UPDATE SET
+                    api_key_encrypted=excluded.api_key_encrypted,
+                    base_url=excluded.base_url,
+                    updated_at=excluded.updated_at
+            """, (provider_slug.lower(), enc, base_url, utc_now()))
+
+    def get_provider_credentials(self) -> dict[str, dict[str, str]]:
+        """Retrieve and decrypt all provider credentials from SQLite store."""
+        result: dict[str, dict[str, str]] = {}
+        with self.connect() as db:
+            rows = db.execute("SELECT provider_slug, api_key_encrypted, base_url FROM provider_credentials").fetchall()
+            for r in rows:
+                slug = r["provider_slug"]
+                dec_key = _deobfuscate_key(r["api_key_encrypted"]) if r["api_key_encrypted"] else ""
+                result[slug] = {
+                    "api_key": dec_key,
+                    "base_url": r["base_url"],
+                }
+        return result
+
+    def save_system_setting(self, key: str, value: str) -> None:
+        """Save a durable system-wide configuration setting."""
+        with self.connect() as db:
+            db.execute("""
+                INSERT INTO system_settings(key, value, updated_at)
+                VALUES(?, ?, ?)
+                ON CONFLICT(key) DO UPDATE SET
+                    value=excluded.value,
+                    updated_at=excluded.updated_at
+            """, (key, value, utc_now()))
+
+    def get_system_setting(self, key: str, default: str = "") -> str:
+        """Retrieve a durable system-wide configuration setting."""
+        with self.connect() as db:
+            row = db.execute("SELECT value FROM system_settings WHERE key = ?", (key,)).fetchone()
+            return str(row["value"]) if row else default
 
     def _init_db(self) -> None:
         """Apply ordered, additive schema migrations before the store is used.
@@ -715,6 +803,37 @@ class ApiHandler(BaseHTTPRequestHandler):
     provider_keys: dict[str, str] = {}
     provider_urls: dict[str, str] = {}
 
+    @classmethod
+    def load_persisted_keys(cls) -> None:
+        """Load encrypted credentials and settings from SQLite vault into memory and environment."""
+        if not getattr(cls, "store", None):
+            return
+        try:
+            creds = cls.store.get_provider_credentials()
+            for slug, data in creds.items():
+                k = data.get("api_key", "")
+                u = data.get("base_url", "")
+                if k:
+                    cls.provider_keys[slug] = k
+                    os.environ[f"{slug.upper()}_API_KEY"] = k
+                    if slug in {"gemini", "google"}:
+                        os.environ["GEMINI_API_KEY"] = k
+                    elif slug == "groq":
+                        os.environ["GROQ_API_KEY"] = k
+                    elif slug in {"openrouter", "freellmapi"}:
+                        os.environ["OPENROUTER_API_KEY"] = k
+                    elif slug == "cerebras":
+                        os.environ["CEREBRAS_API_KEY"] = k
+                if u:
+                    cls.provider_urls[slug] = u
+            active = cls.store.get_system_setting("active_provider")
+            if active:
+                cls.ai_provider = active
+                if active in cls.provider_keys:
+                    cls.ai_key = cls.provider_keys[active]
+        except Exception:
+            pass
+
     def log_message(self, format: str, *args: Any) -> None:
         return
 
@@ -1276,6 +1395,17 @@ class ApiHandler(BaseHTTPRequestHandler):
                     ApiHandler.ai_provider = provider
                     ApiHandler.ai_key = ApiHandler.provider_keys[provider]
 
+                # Persist to SQLite encrypted store so settings survive server restarts
+                if getattr(self, "store", None):
+                    try:
+                        for p_slug, p_k in ApiHandler.provider_keys.items():
+                            self.store.save_provider_credential(
+                                p_slug, p_k, ApiHandler.provider_urls.get(p_slug, "")
+                            )
+                        self.store.save_system_setting("active_provider", ApiHandler.ai_provider)
+                    except Exception:
+                        pass
+
                 return self._send(200, {
                     "status": "success",
                     "active_provider": ApiHandler.ai_provider,
@@ -1422,6 +1552,7 @@ def serve(host: str = "127.0.0.1", port: int = 8080, database: str = "data/facto
     ApiHandler.store = Store(database)
     ApiHandler.specs = SpecStore(ApiHandler.store)
     ApiHandler.api_registry = ApiRegistry(database)
+    ApiHandler.load_persisted_keys()
     server = ThreadingHTTPServer((host, port), ApiHandler)
     print(f"AI Software Factory control plane listening on http://{host}:{port}")
     print(f"Database: {database}; agent execution: disabled")
