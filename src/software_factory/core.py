@@ -760,6 +760,20 @@ class ApiHandler(BaseHTTPRequestHandler):
         parsed_url = urlparse(self.path)
         path = parsed_url.path.rstrip("/") or "/"
         query_params = parse_qs(parsed_url.query)
+        if path in {"/", "/index.html"}:
+            page = Path(__file__).resolve().parents[2] / "web" / "connected.html"
+            if page.exists():
+                try:
+                    payload = page.read_bytes()
+                    self.send_response(200)
+                    self.send_header("Content-Type", "text/html; charset=utf-8")
+                    self.send_header("Content-Length", str(len(payload)))
+                    self.send_header("Cache-Control", "no-store")
+                    self.end_headers()
+                    self.wfile.write(payload)
+                    return
+                except OSError:
+                    return self._send(503, {"error": "Control-room page is unavailable."})
         if path == "/health":
             return self._send(200, {"ok": True, "service": "ai-software-factory-control-plane", "execution_enabled": False})
         if path == "/projects":
