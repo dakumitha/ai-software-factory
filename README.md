@@ -119,6 +119,7 @@ See [Multi-Product Software Factory Strategy](docs/PRODUCT_FAMILY_STRATEGY.md).
 ## Documentation
 
 - [Product vision and scope](docs/PRODUCT_VISION.md)
+- [Indian Income-tax Computation Engine blueprint](docs/products/INDIAN_INCOME_TAX_ENGINE_BLUEPRINT.md)
 - [Architecture and trust boundaries](docs/ARCHITECTURE.md)
 - [API Discovery Registry](docs/API_DISCOVERY_REGISTRY.md)
 - [Read-only Worker CLI](docs/WORKER_CLI.md)
