@@ -119,6 +119,7 @@ See [Multi-Product Software Factory Strategy](docs/PRODUCT_FAMILY_STRATEGY.md).
 ## Documentation
 
 - [Product vision and scope](docs/PRODUCT_VISION.md)
+- [Phase 1 hybrid toolchain bootstrap](docs/PHASE1_TOOLCHAIN_BOOTSTRAP.md)
 - [Architecture and trust boundaries](docs/ARCHITECTURE.md)
 - [API Discovery Registry](docs/API_DISCOVERY_REGISTRY.md)
 - [Read-only Worker CLI](docs/WORKER_CLI.md)
